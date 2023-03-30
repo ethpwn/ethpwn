@@ -18,7 +18,7 @@ pip install ethpwn
 SPOILERS AHEAD! If you haven't solved the ethernaut challenges yet, you should solve them first before looking at the
 respective examples.
 
-With that said, you can see examples of how to use `ethpwn` to solve the ethernaut challenges in the [Lukas-Dresel/ethernaut](https://github.com/Lukas-Dresel/ethernaut) repository. This illustrates various versions of using `ethpwn` to make exploitation easy.
+With that said, you can see examples of how to use `ethpwn` to solve the ethernaut challenges in the [Lukas-Dresel/ethernaut-ethpwn-solutions](https://github.com/Lukas-Dresel/ethernaut-ethpwn-solutions) repository. This illustrates various versions of using `ethpwn` to make exploitation easy.
 
 Some examples are how to make import from openzeppelin work (see exploit_onchain.py), how to move funds from different
 test wallets (see consolidate_ctf_funds_into.py)
