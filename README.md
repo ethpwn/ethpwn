@@ -1,2 +1,2 @@
 # ethtools
-Tooling for ethereum exploitation
+Tooling to make interacting with the Ethereum ecosystem less painful
