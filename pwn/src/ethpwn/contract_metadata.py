@@ -44,6 +44,7 @@ class ContractMetadata(Serializable):
                     bin_runtime=None,
                     srcmap=None,
                     srcmap_runtime=None,
+                    storage_layout=None,
                     **kwargs
                  ) -> None:
         super().__init__()
@@ -55,6 +56,7 @@ class ContractMetadata(Serializable):
         self.bin_runtime = bin_runtime
         self.srcmap = srcmap
         self.srcmap_runtime = srcmap_runtime
+        self.storage_layout = storage_layout
         self._symbolic_srcmap_constructor: SymbolizedSourceMap = None
         self._symbolic_srcmap_runtime: SymbolizedSourceMap = None
         self._disass_instructions: List[Instruction] = None
@@ -63,11 +65,13 @@ class ContractMetadata(Serializable):
     def from_solidity(source_file, contract_name, json_dict, sources):
         source_file = str(Path(source_file).resolve())
         sources_by_id = read_sources(sources)
+        # import ipdb; ipdb.set_trace()
         abi = json_dict['abi']
         bin = HexBytes(json_dict['evm']['bytecode']['object'])
         bin_runtime = HexBytes(json_dict['evm']['deployedBytecode']['object'])
         srcmap = json_dict['evm']['bytecode']['sourceMap']
         srcmap_runtime = json_dict['evm']['deployedBytecode']['sourceMap']
+        storage_layout = json_dict['storageLayout']
 
         return ContractMetadata(
             source_file=source_file,
@@ -78,6 +82,7 @@ class ContractMetadata(Serializable):
             bin_runtime=bin_runtime,
             srcmap=srcmap,
             srcmap_runtime=srcmap_runtime,
+            storage_layout=storage_layout,
         )
 
     # implement the Serializable interface
@@ -92,6 +97,7 @@ class ContractMetadata(Serializable):
             'bin-runtime': self.bin_runtime,
             'srcmap': self.srcmap,
             'srcmap-runtime': self.srcmap_runtime,
+            'storage-layout': self.storage_layout,
         }
 
     @staticmethod
@@ -105,6 +111,7 @@ class ContractMetadata(Serializable):
             bin_runtime=data['bin-runtime'],
             srcmap=data['srcmap'],
             srcmap_runtime=data['srcmap-runtime'],
+            storage_layout=data['storage-layout'],
         )
 
     def __eq__(self, other):
