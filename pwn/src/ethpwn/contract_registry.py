@@ -1,18 +1,19 @@
 
 import json
 import os
-from typing import Dict
+from typing import Dict, Iterator, Tuple
 
 from hexbytes import HexBytes
 from web3.types import TxReceipt
 from web3.datastructures import AttributeDict
 
-from .hashes import lookup_signature_hash
-from .config import get_logged_deployed_contracts_dir
-from .config.wallets import Wallet, get_wallet_by_address
+from .utils import normalize_contract_address
 from .contract_metadata import CONTRACT_METADATA, ContractMetadata
+from .hashes import lookup_signature_hash
+from .config import get_contract_registry_dir, get_logged_deployed_contracts_dir
+from .config.wallets import Wallet, get_wallet_by_address
 from .global_context import context
-from .json_utils import json_load, json_dump
+from .serialization_utils import deserialize_from_file, register_serializable, serialize_to_file, Serializable
 
 def best_effort_get_contract_address_and_tx_hash_and_receipt(contract_address=None, tx_hash=None, tx_receipt: TxReceipt=None):
     assert contract_address is not None or tx_hash is not None or tx_receipt is not None
@@ -32,37 +33,33 @@ def best_effort_get_contract_address_and_tx_hash_and_receipt(contract_address=No
         assert contract_address is None or HexBytes(contract_address) == HexBytes(tx_receipt['contractAddress'])
         return HexBytes(tx_receipt['contractAddress']), HexBytes(tx_receipt['transactionHash']), tx_receipt
 
-class Contract:
-    def __init__(self, contract_address=None, metadata=None, deploy_tx_hash=None, deploy_tx_receipt=None, auto_deployed_by_ethpwn=False) -> None:
+
+class Contract(Serializable):
+    def __init__(self, address=None, metadata=None, deploy_tx_hash=None, deploy_tx_receipt=None, deploy_wallet=None) -> None:
+        super().__init__()
         self.address: HexBytes = None
         self.deploy_tx_hash: HexBytes = None
         self.deploy_tx_receipt: TxReceipt = None
         self.metadata: ContractMetadata = metadata
-        self.auto_deployed_by_ethpwn = auto_deployed_by_ethpwn
 
         self.address, self.deploy_tx_hash, self.deploy_tx_receipt = \
-            best_effort_get_contract_address_and_tx_hash_and_receipt(
-                contract_address, deploy_tx_hash, deploy_tx_receipt
-                )
+            best_effort_get_contract_address_and_tx_hash_and_receipt(address, deploy_tx_hash, deploy_tx_receipt)
 
-    def load(path) -> 'Contract':
-        data = json_load(path)
-        return Contract(
-            contract_address=HexBytes(data['address']),
-            metadata=data['metadata'],
-            deploy_tx_hash=HexBytes(data['deploy_tx_hash']),
-            deploy_tx_receipt=data['deploy_tx_receipt'],
-            )
+        self.deploy_wallet = deploy_wallet if deploy_wallet is not None else get_wallet_by_address(self.address)
 
-    def save(self, path):
-        data = {
-            'address': self.address.hex(),
-            'deploy_tx_hash': self.deploy_tx_hash.hex(),
+    # implement the Serializable interface
+    def to_serializable(self):
+        return {
+            'address': self.address,
+            'metadata': self.metadata,
+            'deploy_tx_hash': self.deploy_tx_hash,
             'deploy_tx_receipt': self.deploy_tx_receipt,
-            'metadata': self.metadata.name,
             'deploy_wallet': self.deploy_wallet,
         }
-        json_dump(data, path)
+
+    @staticmethod
+    def from_serializable(data):
+        return Contract(**data)
 
     def merge(self, other: 'Contract'):
         self.update(other.address, other.metadata, other.deploy_tx_hash, other.deploy_tx_receipt, other.deploy_wallet)
@@ -86,17 +83,17 @@ class Contract:
 
 class ContractRegistry:
     def __init__(self) -> None:
-        self.registered_contracts = {}
+        self.registered_contracts: Dict[str, Contract] = {}
 
     def register_contract_metadata(self,
-                                   metadata: ContractMetadata,
+                                   metadata: 'ContractMetadata',
                                    address=None,
                                    deploy_tx_hash=None,
                                    deploy_tx_receipt: TxReceipt = None,
                                    deploy_wallet=None,
                                    ):
         contract = Contract(
-            contract_address=address,
+            address=address,
             metadata=metadata,
             deploy_tx_hash=deploy_tx_hash,
             deploy_tx_receipt=deploy_tx_receipt,
@@ -105,73 +102,96 @@ class ContractRegistry:
 
         if contract.address in self.registered_contracts:
             self.registered_contracts[contract.address].merge(contract)
-
-        self.registered_contracts[contract.address] = contract
-
-    def load(self, contract_registry_path):
-        assert os.path.isdir(contract_registry_path)
-        for contract_path in os.listdir(contract_registry_path):
-            contract = Contract()
-            contract.load(contract_path)
+        else:
             self.registered_contracts[contract.address] = contract
 
-CONTRACT_REGISTRY = None
-def get_contract_registry():
+        # on change, save the registry
+        self.store(get_contract_registry_dir())
+
+    # handler for `x in registry`
+    def __contains__(self, contract_address) -> bool:
+        address = normalize_contract_address(contract_address)
+        return address in self.registered_contracts
+
+    # handler for `registry[contract_address]`
+    def __getitem__(self, contract_address) -> Contract:
+        address = normalize_contract_address(contract_address)
+        return self.registered_contracts[address]
+
+    def get(self, contract_address, default=None) -> Contract:
+        address = normalize_contract_address(contract_address)
+        return self.registered_contracts.get(address, default)
+
+    # handler for `registry[contract_address] = contract`
+    def __setitem__(self, contract_address, contract: Contract):
+        address = normalize_contract_address(contract_address)
+        self.registered_contracts[address] = contract
+
+    def __iter__(self) -> Iterator[Tuple[HexBytes, Contract]]:
+        return self.registered_contracts.items().__iter__()
+
+    def store(self, contract_registry_dir):
+        os.makedirs(contract_registry_dir, exist_ok=True)
+        assert os.path.isdir(contract_registry_dir)
+
+        for address, contract in self.registered_contracts.items():
+            serialize_to_file(contract, path=os.path.join(contract_registry_dir, HexBytes(address).hex() + ".json"))
+
+    def load(contract_registry_dir) -> 'ContractRegistry':
+        if not os.path.isdir(contract_registry_dir):
+            return False
+
+        self = ContractRegistry()
+
+        for contract_file_name in os.listdir(contract_registry_dir):
+            contract = deserialize_from_file(path=os.path.join(contract_registry_dir, contract_file_name))
+            assert contract.address is not None and contract_file_name == f"{HexBytes(contract.address).hex()}.json"
+            self.registered_contracts[contract.address] = contract
+
+        return self
+
+CONTRACT_REGISTRY: ContractRegistry = None
+def contract_registry() -> ContractRegistry:
     global CONTRACT_REGISTRY
     if CONTRACT_REGISTRY is None:
         CONTRACT_REGISTRY = load_or_create_contract_registry()
     return CONTRACT_REGISTRY
 
-def load_or_create_contract_registry():
-    contract_registry_path = get_contract_registry_path()
+def load_or_create_contract_registry() -> ContractRegistry:
+    contract_registry_dir = get_contract_registry_dir()
+    if os.path.isdir(contract_registry_dir):
+        return ContractRegistry.load(contract_registry_dir)
+    else:
+        return ContractRegistry()
+
+def register_deployed_contract(metadata, address=None, deploy_tx_hash=None, deploy_tx_receipt: TxReceipt = None):
+    reg = contract_registry()
+    reg.register_contract_metadata(
+        metadata,
+        address,
+        deploy_tx_hash,
+        deploy_tx_receipt,
+        deploy_wallet=get_wallet_by_address(deploy_tx_receipt['from'])
+    )
+
+def register_contract_at_address(metadata, address):
+    reg = contract_registry()
+    reg.register_contract_metadata(
+        metadata,
+        address,
+        deploy_wallet=get_wallet_by_address(address)
+    )
 
 
-def log_deployed_contract(metadata, address=None, deploy_tx_hash=None, deploy_tx_receipt: TxReceipt = None):
-
-    deployed_contracts_path = get_logged_deployed_contracts_dir()
-    os.makedirs(deployed_contracts_path, exist_ok=True)
-    deployed_contracts_path += f"{address}.json"
-
-    with open(deployed_contracts_path, 'w') as f:
-        json_dump({
-            'deploy_wallet': get_wallet_by_address(deploy_tx_receipt['from']).to_serializable_dict(),
-            'tx_hash': deploy_tx_receipt,
-            'tx_receipt': deploy_tx_receipt,
-            'metadata': metadata.to_json_dict(),
-        }, f)
-
-def all_previously_deployed_contracts():
-    deployed_contracts_path = get_logged_deployed_contracts_dir()
-    for file in os.listdir(deployed_contracts_path):
-        if file.endswith('.json'):
-            with open(deployed_contracts_path + file, 'r') as f:
-                data = json.load(f)
-                wallet = Wallet.from_json_dict(data['from_wallet'])
-                tx_hash = HexBytes.fromhex(data['tx_hash'])
-                tx_receipt = TxReceipt(data['tx_receipt'])
-                metadata = ContractMetadata.from_json_dict(data['metadata'])
-                yield wallet, tx_hash, tx_receipt, metadata
-
-def all_previously_deployed_contracts_with_balance_remaining():
-    for wallet, tx_hash, tx_receipt, metadata in all_previously_deployed_contracts():
-        balance = context.w3.eth.get_balance(tx_receipt.contractAddress)
-        if balance > 0:
-            yield wallet, tx_hash, tx_receipt, metadata, balance
-
-TYPED_CONTRACTS: Dict[str, 'ContractMetadata'] = {}
-
-def register_typed_contract(address: str, contract_metadata: 'ContractMetadata'):
-    TYPED_CONTRACTS[address] = contract_metadata
-
-def get_typed_contract(address: str):
-    return TYPED_CONTRACTS.get(address, None)
-
-def decode_function_input(address, input, guess=False):
-    if address in TYPED_CONTRACTS:
-        metadata = TYPED_CONTRACTS[address]
-        return metadata, *metadata.decode_function_input(input)
+def decode_function_input(contract_address, input, guess=False):
+    from .contract_metadata import CONTRACT_METADATA
+    registry = contract_registry()
+    if contract_address in registry:
+        contract = registry[contract_address]
+        metadata = contract.metadata
+        return contract, *metadata.decode_function_input(input)
     elif guess:
-        for name, metadata in CONTRACT_METADATA.contract_info[''].items():
+        for contract_name, metadata in CONTRACT_METADATA.contract_info[''].items():
             try:
                 return metadata, *metadata.decode_function_input(input)
             except ValueError as e:

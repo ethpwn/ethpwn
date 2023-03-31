@@ -2,6 +2,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 import json
 import os
+from pathlib import Path
 from time import sleep
 from typing import Any, Dict, Generator, List, Tuple, Union
 from hexbytes import HexBytes
@@ -12,161 +13,163 @@ import solcx
 from ansi.color.fx import reset, bold, faint as dim
 from ansi.color.fg import red, green, yellow, blue, magenta, cyan
 
-from .json_utils import json_dump, json_load
+from .serialization_utils import serialize_to_file, deserialize_from_file, Serializable
 
 from .config.wallets import get_wallet_by_address, Wallet
 from .config import get_contract_registry_dir, get_logged_deployed_contracts_dir
 from .transactions import transact
 from .global_context import context
 from .hashes import lookup_signature_hash, register_signature_hash, signature_hash
-from .srcmap import SymbolizedSourceMap
+from .srcmap import SymbolizedSourceMap, InstructionSourceInfo
 from .pyevmasm_fixed import disassemble_all, Instruction
 
-def to_snake_case(s):
-    s = s.replace('-', '_')
-    return ''.join('_' + c.lower() if c.isupper() and i != 0 else c.lower() for i, c in enumerate(s)).lstrip('_')
+def read_sources(sources):
+    sources_by_id = {}
+    for file, v in sources.items():
+        with open(file, 'r') as f:
+            sources_by_id[v['id']] = {
+                'id': v['id'],
+                'path': os.path.abspath(file),
+                'content': f.read(),
+            }
+    return sources_by_id
 
-def recursive_snake_case(d):
-    if isinstance(d, dict):
-        return {to_snake_case(k): recursive_snake_case(v) for k, v in d.items()}
-    elif isinstance(d, list):
-        return [recursive_snake_case(v) for v in d]
-    else:
-        return d
-# class SnakeCaseDict(dict):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.__dict__ = self
-
-#     def __setitem__(self, key, value):
-#         potential_keys = {to_snake_case(k) for k in self}
-#         assert len(potential_keys) <= 1, f"Cannot have multiple keys with the same snake case representation: {potential_keys}"
-#         if len(potential_keys) == 1:
-#             key = potential_keys.pop()
-#         super().__setitem__(key, value)
-
-#     def __getitem__(self, key):
-#         return super().__getitem__(to_snake_case(key))
-
-#     def __delitem__(self, __key: _KT) -> None:
-#         return super().__delitem__(to_snake_case(__key))
-
-#     def __getattr__(self, key):
-#         if key not in self:
-#             raise AttributeError(f"SnakeCaseDict has no attribute {key}")
-#         return self[key]
-
-class ContractMetadata:
-    def __init__(self, **kwargs) -> None:
-        kwargs = recursive_snake_case(kwargs)
-        self.source_file = kwargs.pop('source_file', None)
-        self.contract_name = kwargs.pop('contract_name', None)
-        self.sources = kwargs.pop('sources', None)
-        self.info = kwargs
-        self._symbolic_srcmap: SymbolizedSourceMap = None
+class ContractMetadata(Serializable):
+    def __init__(self,
+                    source_file=None,
+                    sources_by_id=None,
+                    contract_name=None,
+                    abi=None,
+                    bin=None,
+                    bin_runtime=None,
+                    srcmap=None,
+                    srcmap_runtime=None,
+                    **kwargs
+                 ) -> None:
+        super().__init__()
+        self.source_file = source_file
+        self.sources_by_id = sources_by_id
+        self.contract_name = contract_name
+        self.abi = abi
+        self.bin = bin
+        self.bin_runtime = bin_runtime
+        self.srcmap = srcmap
+        self.srcmap_runtime = srcmap_runtime
+        self._symbolic_srcmap_constructor: SymbolizedSourceMap = None
         self._symbolic_srcmap_runtime: SymbolizedSourceMap = None
         self._disass_instructions: List[Instruction] = None
         self._disass_instructions_runtime: List[Instruction] = None
 
-    def to_json_dict(self):
+    def from_solidity(source_file, contract_name, json_dict, sources):
+        source_file = str(Path(source_file).resolve())
+        sources_by_id = read_sources(sources)
+        abi = json_dict['abi']
+        bin = HexBytes(json_dict['evm']['bytecode']['object'])
+        bin_runtime = HexBytes(json_dict['evm']['deployedBytecode']['object'])
+        srcmap = json_dict['evm']['bytecode']['sourceMap']
+        srcmap_runtime = json_dict['evm']['deployedBytecode']['sourceMap']
+
+        return ContractMetadata(
+            source_file=source_file,
+            contract_name=contract_name,
+            sources_by_id=sources_by_id,
+            abi=abi,
+            bin=bin,
+            bin_runtime=bin_runtime,
+            srcmap=srcmap,
+            srcmap_runtime=srcmap_runtime,
+        )
+
+    # implement the Serializable interface
+    def to_serializable(self):
         # dump file_name, contract_name, and json_dict
         return {
-            'source_file': self.source_file,
+            'source_file': str(self.source_file),
             'contract_name': self.contract_name,
-            'sources': self.sources,\
-            **self.info,
+            'sources_by_id': self.sources_by_id,
+            'abi': self.abi,
+            'bin': self.bin,
+            'bin-runtime': self.bin_runtime,
+            'srcmap': self.srcmap,
+            'srcmap-runtime': self.srcmap_runtime,
         }
 
-    @property
-    def creation_bytecode(self):
-        return self.info['evm']['bytecode']['object']
+    @staticmethod
+    def from_serializable(data):
+        return ContractMetadata(
+            source_file=data['source_file'],
+            contract_name=data['contract_name'],
+            sources_by_id={int(k): v for k, v in data['sources_by_id'].items()},
+            abi=data['abi'],
+            bin=data['bin'],
+            bin_runtime=data['bin-runtime'],
+            srcmap=data['srcmap'],
+            srcmap_runtime=data['srcmap-runtime'],
+        )
+
+    def __eq__(self, other):
+        return self.to_serializable() == other.to_serializable()
 
     @property
-    def runtime_bytecode(self):
-        return self.info['evm']['deployed_bytecode']['object']
-
-    @property
-    def abi(self):
-        return self.info['abi']
-
-    @property
-    def bin(self):
-        return self.creation_bytecode
-
-    @property
-    def bin_runtime(self):
-        return self.runtime_bytecode
-
-    @property
-    def srcmap(self):
-        return self.info['evm']['bytecode']['source_map']
-
-    @property
-    def srcmap_runtime(self):
-        return self.info['evm']['deployed_bytecode']['source_map']
-
-    @property
-    def symbolic_srcmap(self):
+    def symbolic_srcmap_constructor(self):
         disassembled_instructions = self.disassembled_instructions
-        if self._symbolic_srcmap is None:
-            self._symbolic_srcmap = SymbolizedSourceMap.from_src_map(self.srcmap, self.sources)
-        assert len(disassembled_instructions) > len(self._symbolic_srcmap.entries)
-        return self._symbolic_srcmap
+        if self._symbolic_srcmap_constructor is None:
+            self._symbolic_srcmap_constructor = SymbolizedSourceMap.from_src_map(self.srcmap, self.sources)
+        assert len(disassembled_instructions) > len(self._symbolic_srcmap_constructor.entries)
+        return self._symbolic_srcmap_constructor
 
     @property
     def symbolic_srcmap_runtime(self):
         disassembled_instructions = self.disassembled_instructions_runtime
         if self._symbolic_srcmap_runtime is None:
-            self._symbolic_srcmap_runtime = SymbolizedSourceMap.from_src_map(self.srcmap_runtime, self.sources)
-        assert len(disassembled_instructions) == len(self._symbolic_srcmap_runtime.entries)
+            self._symbolic_srcmap_runtime = SymbolizedSourceMap.from_src_map(self.srcmap_runtime, self.sources_by_id)
+        assert len(disassembled_instructions) > len(self._symbolic_srcmap_runtime.entries)
         return self._symbolic_srcmap_runtime
 
-    def instruction_for_pc(self, pc) -> Instruction:
-        insns = [i for i in self.disassembled_instructions if i.pc == pc]
+    def instruction_index_for_constructor_pc(self, pc) -> int:
+        insns = [i for i, insn in enumerate(self.disassembled_instructions) if i.pc == pc]
         assert len(insns) <= 1
         return insns[0] if len(insns) == 1 else None
 
-    def runtime_instruction_for_pc(self, pc) -> Instruction:
-        insns = [i for i in self.disassembled_instructions_runtime if i.pc == pc]
+    def instruction_index_for_runtime_pc(self, pc) -> int:
+        insns = [i for i, insn in enumerate(self.disassembled_instructions_runtime) if insn.pc == pc]
         assert len(insns) <= 1
         return insns[0] if len(insns) == 1 else None
 
-    def instruction_index_for_pc(self, pc) -> int:
-        return self.disassembled_instructions.index(self.instruction_for_pc(pc))
+    def instruction_for_constructor_pc(self, pc) -> Instruction:
+        idx = self.instruction_index_for_runtime_pc(pc)
+        if idx is None:
+            return None
+        return self.disassembled_instructions[idx]
 
-    def runtime_instruction_index_for_pc(self, pc) -> int:
-        return self.disassembled_instructions_runtime.index(self.runtime_instruction_for_pc(pc))
+    def instruction_for_runtime_pc(self, pc) -> Instruction:
+        idx = self.instruction_index_for_runtime_pc(pc)
+        if idx is None:
+            return None
+        return self.disassembled_instructions_runtime[idx]
 
-    def source_for_pc(self, pc):
-        insn_idx = self.instruction_index_for_pc(pc)
-        return self.symbolic_srcmap.get_source_info_for_instruction(insn_idx)
+    def source_info_for_constructor_pc(self, pc) -> InstructionSourceInfo:
+        insn_idx = self.instruction_index_for_constructor_pc(pc)
+        return self.symbolic_srcmap_constructor.get_source_info_for_instruction(insn_idx)
 
-    def runtime_source_for_pc(self, pc):
-        insn_idx = self.runtime_instruction_index_for_pc(pc)
+    def source_info_for_runtime_pc(self, pc) -> InstructionSourceInfo:
+        insn_idx = self.instruction_index_for_runtime_pc(pc)
         return self.symbolic_srcmap_runtime.get_source_info_for_instruction(insn_idx)
 
     @property
-    def disassembled_instructions(self) -> List[Instruction]:
+    def disassembled_instructions_constructor(self) -> List[Instruction]:
         if self._disass_instructions is None:
-            self._disass_instructions = list(disassemble_all(self.creation_bytecode))
+            self._disass_instructions = list(disassemble_all(self.bin))
         return self._disass_instructions
 
     @property
     def disassembled_instructions_runtime(self):
         if self._disass_instructions_runtime is None:
-            self._disass_instructions_runtime = list(disassemble_all(self.runtime_bytecode))
+            self._disass_instructions_runtime = list(disassemble_all(self.bin_runtime))
         return self._disass_instructions_runtime
 
-    def from_json_dict(d):
-        return ContractMetadata(**d)
-
-    def __getattr__(self, __name: str) -> Any:
-        if __name in self.json_dict:
-            return self.json_dict[__name]
-        else:
-            raise AttributeError(f"ContractMetadata has no attribute {__name}")
-
-    def deploy(self, *constructor_args, log=True, **tx_extras) -> Tuple[HexBytes, Contract]:
+    def deploy(self, *constructor_args, **tx_extras) -> Tuple[HexBytes, Contract]:
+        from .contract_registry import register_deployed_contract
         tx_hash, tx_receipt = transact(
             context.w3.eth.contract(
                 abi=self.abi,
@@ -175,16 +178,13 @@ class ContractMetadata:
             **tx_extras
         )
 
-        if log:
-            log_deployed_contract(self, tx_hash, tx_receipt)
-
         address = tx_receipt['contractAddress']
-        register_typed_contract(address, self)
+        register_deployed_contract(self, address=address, deploy_tx_hash=tx_hash, deploy_tx_receipt=tx_receipt)
         return tx_hash, self.get_contract_at(address)
 
     @contextmanager
     def deploy_destructible(self, *constructor_args, **tx_extras):
-        tx_hash, contract = self.deploy(*constructor_args, log=False, **tx_extras)
+        tx_hash, contract = self.deploy(*constructor_args, **tx_extras)
         exception = None
         try:
             yield tx_hash, contract
@@ -199,7 +199,8 @@ class ContractMetadata:
             transact(contract.functions.destroy(), from_addr=tx_extras.get('from_addr', None))
 
     def get_contract_at(self, addr) -> Contract:
-        register_typed_contract(addr, self)
+        from .contract_registry import register_contract_at_address
+        register_contract_at_address(self, addr)
         return context.w3.eth.contract(
             address=addr,
             abi=self.abi
@@ -307,7 +308,7 @@ class ContractMetadataRegistry:
         for error in output_json.get('errors', []):
             log = getattr(context.logger, error['severity'], context.logger.info)
             log(f"# {red}{bold}{error['severity'].upper()}:{error['type']} {error['formattedMessage']}{reset}")
-            for location in error['secondarySourceLocations']:
+            for location in error.get('secondarySourceLocations', []):
                 log(f"    {location['file']}:{location['start']}:{location['end']}: {location['message']}")
             if error['severity'] == 'error':
                 compilation_error = True
@@ -317,11 +318,8 @@ class ContractMetadataRegistry:
         for source_file in output_json['contracts']:
             for contract_name in output_json['contracts'][source_file]:
                 contract_data = output_json['contracts'][source_file][contract_name]
-                self.contract_info[source_file][contract_name] = ContractMetadata(
-                    source_file=source_file,
-                    contract_name=contract_name,
-                    sources=output_json['sources'],
-                    **contract_data,
+                self.contract_info[source_file][contract_name] = ContractMetadata.from_solidity(
+                    source_file, contract_name, contract_data, output_json['sources']
                 )
                 self.contract_info[''][contract_name] = self.contract_info[source_file][contract_name]
 

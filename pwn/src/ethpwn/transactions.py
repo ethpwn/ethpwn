@@ -121,7 +121,6 @@ def deploy_bare_contract(bin, metadata=None, **tx_kwargs):
     else:
         abi = metadata.abi
 
-
     if 'gasPrice' not in tx_kwargs:
         tx_kwargs['gasPrice'] = context.pessimistic_gas_price_estimate()
 

@@ -4,6 +4,7 @@ import os
 
 def config_root_dir():
     return os.path.expanduser('~/.config/ethpwn')
+
 def get_default_wallet_path():
     return config_root_dir() + '/wallets.json'
 

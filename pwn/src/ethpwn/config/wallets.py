@@ -2,6 +2,8 @@ import json
 import os
 from typing import Dict
 
+from hexbytes import HexBytes
+
 from ..global_context import context
 
 class Wallet:
@@ -91,6 +93,7 @@ def add_wallet(address, private_key):
 
 def get_wallet_by_address(address) -> Wallet:
     from . import GLOBAL_CONFIG
+    address = HexBytes(address).hex()
     return GLOBAL_CONFIG['wallets'].get(address, None)
 
 def get_wallet_by_name(name) -> Wallet:

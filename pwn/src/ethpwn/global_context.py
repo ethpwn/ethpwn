@@ -60,6 +60,11 @@ class Web3Context:
         assert self.w3.is_connected()
         self._configure_w3()
 
+    def connect_websocket(self, url, **kwargs):
+        self.w3 = Web3(Web3.WebsocketProvider(url, **kwargs))
+        assert self.w3.is_connected()
+        self._configure_w3()
+
     def _configure_logging(self):
         logging.basicConfig()
 

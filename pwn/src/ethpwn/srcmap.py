@@ -1,6 +1,7 @@
 
 from typing import Any, Dict, List, Tuple, TypedDict
 from enum import Enum
+import math
 
 from ansi.color.fx import faint as dim, reset, bold
 
@@ -72,25 +73,22 @@ class InstructionSourceInfo:
             self.source_byte_offset_start:self.source_byte_offset_start+self.source_bytes_len
         ]
 
-    def pretty_print_source(self, whole_file=False):
+    def pretty_print_source(self, context_lines=5):
         byte_start = self.source_byte_offset_start
         byte_end = self.source_byte_offset_start + self.source_bytes_len
 
-        source = self.source_content
+        # import ipdb; ipdb.set_trace()
+        highlighted = ''
+        if byte_start > 0:
+            highlighted += self.source_content[:byte_start] + str(reset)
+        highlighted += self.source_content[byte_start:byte_end]
+        if byte_end < len(self.source_content):
+            highlighted += str(dim) + self.source_content[byte_end:]
 
-        start_of_first_line = source.rfind('\n', 0, byte_start) + 1
-        offset_in_first_line = byte_start - start_of_first_line
-        end_of_last_line = source.find('\n', byte_end) + 1
-        len_of_remainder_in_last_line = end_of_last_line - byte_end
-        if not whole_file:
-            source = source[start_of_first_line:end_of_last_line]
-            source_formatted = str(dim) + source[:offset_in_first_line] + str(reset)
-            source_formatted += source[offset_in_first_line:len(source)-len_of_remainder_in_last_line]
-            source_formatted += str(dim) + source[len(source)-len_of_remainder_in_last_line:] + str(reset)
-            return source_formatted
-        else:
-            source = str(dim) + source[:byte_start] + str(reset) + source[byte_start:byte_end] + str(dim) + source[byte_end:] + str(reset)
-            return source
+        lines = highlighted.split('\n')
+        start_line = max(0, self.line_no_start - context_lines)
+        end_line = min(len(lines), self.line_no_end + context_lines)
+        return str(dim) + '\n'.join(lines[start_line:end_line]) + str(reset)
 
     def from_srcmap_entry(entry: SrcMapEntry, source_content: str=None) -> 'InstructionSourceInfo':
 
@@ -119,26 +117,27 @@ def get_line_col_from_byte_offset(source: str, byte_offset: int) -> Tuple[int, i
     col_no = byte_offset - source.rfind('\n', 0, byte_offset)
     return line_no, col_no
 
-def symbolize_source_map(src_map_entries: List[SrcMapEntry], source_ids: Dict[int, str]) -> List[Tuple[int, int, str]]:
+def symbolize_source_map(src_map_entries: List[SrcMapEntry], sources_by_id: Dict[int, str]) -> List[InstructionSourceInfo]:
     result = []
+    # import ipdb; ipdb.set_trace()
     for entry in src_map_entries:
-        source_file = source_ids.get(entry['source_file_index'], None)
-        if source_file is None:
+        if entry['source_file_index'] == -1:
+            result.append(InstructionSourceInfo.from_srcmap_entry(entry))
             continue
-        with open(source_file, 'r') as f:
-            source_content = f.read()
-        result.append(InstructionSourceInfo.from_srcmap_entry(entry, source_content=source_content))
+        source_file = sources_by_id[entry['source_file_index']]
+        assert source_file is not None
+        assert source_file['id'] == entry['source_file_index']
+        path = source_file['path']
+        content = source_file['content']
+        result.append(InstructionSourceInfo.from_srcmap_entry(entry, source_content=content))
     return result
 
 class SymbolizedSourceMap:
     def __init__(self, entries: List[InstructionSourceInfo]) -> None:
         self.entries = entries
 
-    def from_src_map(src_map: str, sources: Dict[str, Any]) -> 'SymbolizedSourceMap':
-        source_ids = {}
-        for source_file, data in sources.items():
-            source_ids[data['id']] = source_file
-        return SymbolizedSourceMap(symbolize_source_map(parse_srcmap(src_map), source_ids))
+    def from_src_map(src_map: str, sources_by_id: Dict[int, Any]) -> 'SymbolizedSourceMap':
+        return SymbolizedSourceMap(symbolize_source_map(parse_srcmap(src_map), sources_by_id))
 
     def get_source_info_for_instruction(self, index: int) -> InstructionSourceInfo:
         return self.entries[index]
