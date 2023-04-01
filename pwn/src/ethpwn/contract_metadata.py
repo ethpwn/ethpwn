@@ -279,7 +279,7 @@ class ContractMetadataRegistry:
 
     def get_allow_paths(self):
         return self.allowed_directories
-;
+
     def get_solc_input_json(self, sources_entry, **kwargs):
         return {
             "language": "Solidity",
