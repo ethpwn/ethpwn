@@ -26,8 +26,9 @@ def best_effort_get_contract_address_and_tx_hash_and_receipt(contract_address=No
             return contract_address, None, None
         else:
             tx_receipt = context.w3.eth.getTransactionReceipt(tx_hash)
-            assert contract_address is None or HexBytes(contract_address) == HexBytes(tx_receipt['contractAddress'])
-            return HexBytes(tx_receipt['contractAddress']), HexBytes(tx_hash), tx_receipt
+            contract_addr = normalize_contract_address(tx_receipt['contractAddress'])
+            assert contract_address is None or normalize_contract_address(contract_address) == contract_addr
+            return contract_addr, HexBytes(tx_hash), tx_receipt
     else:
         assert tx_hash is None or HexBytes(tx_hash) == HexBytes(tx_receipt['transactionHash'])
         assert contract_address is None or HexBytes(contract_address) == HexBytes(tx_receipt['contractAddress'])
@@ -61,25 +62,34 @@ class Contract(Serializable):
     def from_serializable(data):
         return Contract(**data)
 
+    def w3(self):
+        return context.w3.eth.contract(address=self.address, abi=self.metadata.abi)
+
     def merge(self, other: 'Contract'):
         self.update(other.address, other.metadata, other.deploy_tx_hash, other.deploy_tx_receipt, other.deploy_wallet)
 
-    def update(self, address=None, metadata=None, deploy_tx_hash=None, deploy_tx_receipt=None, deploy_wallet=None):
+    def update(self, address=None, metadata=None, deploy_tx_hash=None, deploy_tx_receipt=None, deploy_wallet=None) -> bool:
+        changed = False
         if address is not None:
             assert self.address is None or self.address == address
+            changed = changed or self.address != address
             self.address = address
         if deploy_tx_hash is not None:
             assert self.deploy_tx_hash is None or self.deploy_tx_hash == deploy_tx_hash
+            changed = changed or self.deploy_tx_hash != deploy_tx_hash
             self.deploy_tx_hash = deploy_tx_hash
         if deploy_tx_receipt is not None:
             assert self.deploy_tx_receipt is None or self.deploy_tx_receipt == deploy_tx_receipt
+            changed = changed or self.deploy_tx_receipt != deploy_tx_receipt
             self.deploy_tx_receipt = deploy_tx_receipt
         if metadata is not None:
-            assert self.metadata is None or self.metadata == metadata
+            changed = changed or self.metadata != metadata
             self.metadata = metadata
         if deploy_wallet is not None:
             assert self.deploy_wallet is None or self.deploy_wallet == deploy_wallet
+            changed = changed or self.deploy_wallet != deploy_wallet
             self.deploy_wallet = deploy_wallet
+        return changed
 
 class ContractRegistry:
     def __init__(self) -> None:
@@ -182,26 +192,27 @@ def register_contract_at_address(metadata, address):
         deploy_wallet=get_wallet_by_address(address)
     )
 
-
 def decode_function_input(contract_address, input, guess=False):
     from .contract_metadata import CONTRACT_METADATA
+    contract_address = normalize_contract_address(contract_address)
+
     registry = contract_registry()
     if contract_address in registry:
         contract = registry[contract_address]
         metadata = contract.metadata
-        return contract, *metadata.decode_function_input(input)
+        return contract, metadata, *metadata.decode_function_input(input)
     elif guess:
         for contract_name, metadata in CONTRACT_METADATA.contract_info[''].items():
             try:
-                return metadata, *metadata.decode_function_input(input)
+                return None, metadata, *metadata.decode_function_input(input)
             except ValueError as e:
                 continue
 
-    # worst case: We don't know what this contract is, so we just at least try to decode the function selector
-    selector = input.hex()[2:10]
-    if len(selector) == 8:
-        func_signature = lookup_signature_hash(selector)
-        if func_signature is not None:
-            return None, func_signature, [input[4:]]
+        # worst case: We don't know what this contract is, so we just at least try to decode the function selector
+        selector = input.hex()[2:10]
+        if len(selector) == 8:
+            func_signature = lookup_signature_hash(selector)
+            if func_signature is not None:
+                return None, None, (func_signature, [input[4:]])
 
     return None

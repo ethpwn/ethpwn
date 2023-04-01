@@ -20,12 +20,14 @@ class SrcMapEntry(TypedDict):
 
 
 def parse_srcmap(srcmap: str) -> List[Tuple[int, int]]:
+    if not srcmap:
+        return []
     entries = srcmap.split(';')
     result = []
 
     # src_start_character_index, num_chars, source_file_index, jumpType, modifierDepth
     # modifierDepth didn't used to exist so we initialize it to 0
-    last_entry = [None, None, None, None, '0'] * 5
+    last_entry = [None, None, None, None, '0']
     results = []
     for entry in entries:
         cur_entry = last_entry.copy()
@@ -117,18 +119,17 @@ def get_line_col_from_byte_offset(source: str, byte_offset: int) -> Tuple[int, i
     col_no = byte_offset - source.rfind('\n', 0, byte_offset)
     return line_no, col_no
 
-def symbolize_source_map(src_map_entries: List[SrcMapEntry], sources_by_id: Dict[int, str]) -> List[InstructionSourceInfo]:
+def symbolize_source_map(src_map_entries: List[SrcMapEntry], source_lookup) -> List[InstructionSourceInfo]:
     result = []
     # import ipdb; ipdb.set_trace()
     for entry in src_map_entries:
         if entry['source_file_index'] == -1:
             result.append(InstructionSourceInfo.from_srcmap_entry(entry))
             continue
-        source_file = sources_by_id[entry['source_file_index']]
+        source_file = source_lookup(entry['source_file_index'])
         assert source_file is not None
         assert source_file['id'] == entry['source_file_index']
-        path = source_file['path']
-        content = source_file['content']
+        content = source_file['contents']
         result.append(InstructionSourceInfo.from_srcmap_entry(entry, source_content=content))
     return result
 

@@ -12,6 +12,7 @@ class Serializable(abc.ABC):
     def __init_subclass__(cls) -> None:
         register_serializable(cls)
         return super().__init_subclass__()
+
     @abc.abstractmethod
     def to_serializable(self):
         raise NotImplementedError

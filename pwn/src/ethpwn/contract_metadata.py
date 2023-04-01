@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 from time import sleep
-from typing import Any, Dict, Generator, List, Tuple, Union
+from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 from hexbytes import HexBytes
 from solcx import compile_standard
 from web3.types import TxReceipt
@@ -23,22 +23,29 @@ from .hashes import lookup_signature_hash, register_signature_hash, signature_ha
 from .srcmap import SymbolizedSourceMap, InstructionSourceInfo
 from .pyevmasm_fixed import disassemble_all, Instruction
 
-def read_sources(sources):
-    sources_by_id = {}
+def convert_sources(sources):
+    sources_out = []
     for file, v in sources.items():
         with open(file, 'r') as f:
-            sources_by_id[v['id']] = {
-                'id': v['id'],
-                'path': os.path.abspath(file),
-                'content': f.read(),
-            }
-    return sources_by_id
+            abspath = Path(file).resolve()
+            sources_out.append({
+                'id': int(v['id']),
+                'contents': f.read(),
+                'full_path': str(abspath),
+                'name': abspath.name,
+                'language': 'Solidity',
+                'generated': False,
+            })
+    return list(sorted(sources_out, key=lambda s: s['id']))
+
 
 class ContractMetadata(Serializable):
     def __init__(self,
                     source_file=None,
-                    sources_by_id=None,
                     contract_name=None,
+                    sources_by_id=None,
+                    generated_sources_by_id_constructor=None,
+                    generated_sources_by_id_runtime=None,
                     abi=None,
                     bin=None,
                     bin_runtime=None,
@@ -49,8 +56,10 @@ class ContractMetadata(Serializable):
                  ) -> None:
         super().__init__()
         self.source_file = source_file
-        self.sources_by_id = sources_by_id
         self.contract_name = contract_name
+        self.sources = sources_by_id
+        self.generated_sources_constructor = generated_sources_by_id_constructor
+        self.generated_sources_runtime = generated_sources_by_id_runtime
         self.abi = abi
         self.bin = bin
         self.bin_runtime = bin_runtime
@@ -64,19 +73,29 @@ class ContractMetadata(Serializable):
 
     def from_solidity(source_file, contract_name, json_dict, sources):
         source_file = str(Path(source_file).resolve())
-        sources_by_id = read_sources(sources)
+        sources = convert_sources(sources)
         # import ipdb; ipdb.set_trace()
         abi = json_dict['abi']
         bin = HexBytes(json_dict['evm']['bytecode']['object'])
         bin_runtime = HexBytes(json_dict['evm']['deployedBytecode']['object'])
         srcmap = json_dict['evm']['bytecode']['sourceMap']
         srcmap_runtime = json_dict['evm']['deployedBytecode']['sourceMap']
+        generated_sources_constructor = json_dict['evm']['bytecode']['generatedSources']
+        for src in generated_sources_constructor:
+            del src['ast']
+            src['generated'] = True
+        generated_sources_runtime = json_dict['evm']['deployedBytecode']['generatedSources']
+        for src in generated_sources_runtime:
+            del src['ast']
+            src['generated'] = True
         storage_layout = json_dict['storageLayout']
 
         return ContractMetadata(
             source_file=source_file,
             contract_name=contract_name,
-            sources_by_id=sources_by_id,
+            sources_by_id=sources,
+            generated_sources_by_id_constructor=generated_sources_constructor,
+            generated_sources_by_id_runtime=generated_sources_runtime,
             abi=abi,
             bin=bin,
             bin_runtime=bin_runtime,
@@ -91,7 +110,9 @@ class ContractMetadata(Serializable):
         return {
             'source_file': str(self.source_file),
             'contract_name': self.contract_name,
-            'sources_by_id': self.sources_by_id,
+            'sources': self.sources,
+            'generated_sources_constructor': self.generated_sources_constructor,
+            'generated_sources_runtime': self.generated_sources_runtime,
             'abi': self.abi,
             'bin': self.bin,
             'bin-runtime': self.bin_runtime,
@@ -105,7 +126,9 @@ class ContractMetadata(Serializable):
         return ContractMetadata(
             source_file=data['source_file'],
             contract_name=data['contract_name'],
-            sources_by_id={int(k): v for k, v in data['sources_by_id'].items()},
+            sources_by_id=data['sources'],
+            generated_sources_by_id_constructor=data['generated_sources_constructor'],
+            generated_sources_by_id_runtime=data['generated_sources_runtime'],
             abi=data['abi'],
             bin=data['bin'],
             bin_runtime=data['bin-runtime'],
@@ -114,66 +137,53 @@ class ContractMetadata(Serializable):
             storage_layout=data['storage-layout'],
         )
 
+
+    def constructor_source_by_id(self, id):
+        for source in self.sources + self.generated_sources_constructor:
+            if source['id'] == id:
+                return source
+
+        raise Exception(f"Unknown source id {id}")
+
+    def runtime_source_by_id(self, id):
+        for source in self.sources + self.generated_sources_runtime:
+            if source['id'] == id:
+                return source
+
+        raise Exception(f"Unknown source id {id}")
+
     def __eq__(self, other):
         return self.to_serializable() == other.to_serializable()
 
     @property
     def symbolic_srcmap_constructor(self):
-        disassembled_instructions = self.disassembled_instructions
         if self._symbolic_srcmap_constructor is None:
-            self._symbolic_srcmap_constructor = SymbolizedSourceMap.from_src_map(self.srcmap, self.sources)
-        assert len(disassembled_instructions) > len(self._symbolic_srcmap_constructor.entries)
+            self._symbolic_srcmap_constructor = SymbolizedSourceMap.from_src_map(self.srcmap, self.constructor_source_by_id)
         return self._symbolic_srcmap_constructor
 
     @property
     def symbolic_srcmap_runtime(self):
-        disassembled_instructions = self.disassembled_instructions_runtime
         if self._symbolic_srcmap_runtime is None:
-            self._symbolic_srcmap_runtime = SymbolizedSourceMap.from_src_map(self.srcmap_runtime, self.sources_by_id)
-        assert len(disassembled_instructions) > len(self._symbolic_srcmap_runtime.entries)
+            self._symbolic_srcmap_runtime = SymbolizedSourceMap.from_src_map(self.srcmap_runtime, self.runtime_source_by_id)
         return self._symbolic_srcmap_runtime
 
-    def instruction_index_for_constructor_pc(self, pc) -> int:
-        insns = [i for i, insn in enumerate(self.disassembled_instructions) if i.pc == pc]
-        assert len(insns) <= 1
-        return insns[0] if len(insns) == 1 else None
+    def closest_instruction_index_for_constructor_pc(self, pc, fork='paris') -> int:
+        disass = disassemble_all(self.bin, pc=0, fork=fork)
+        insns = [i for i, insn in enumerate(disass) if i.pc <= pc]
+        # gets the closest instruction that is before the pc
+        return insns[-1] if len(insns) >= 1 else None
 
-    def instruction_index_for_runtime_pc(self, pc) -> int:
-        insns = [i for i, insn in enumerate(self.disassembled_instructions_runtime) if insn.pc == pc]
-        assert len(insns) <= 1
-        return insns[0] if len(insns) == 1 else None
+    def closest_instruction_index_for_runtime_pc(self, pc, fork='paris') -> int:
+        disass = disassemble_all(self.bin_runtime, pc=0, fork=fork)
+        insns = [i for i, insn in enumerate(disass) if insn.pc <= pc]
+        # gets the closest instruction that is before the pc
+        return insns[-1] if len(insns) >= 1 else None
 
-    def instruction_for_constructor_pc(self, pc) -> Instruction:
-        idx = self.instruction_index_for_runtime_pc(pc)
-        if idx is None:
-            return None
-        return self.disassembled_instructions[idx]
-
-    def instruction_for_runtime_pc(self, pc) -> Instruction:
-        idx = self.instruction_index_for_runtime_pc(pc)
-        if idx is None:
-            return None
-        return self.disassembled_instructions_runtime[idx]
-
-    def source_info_for_constructor_pc(self, pc) -> InstructionSourceInfo:
-        insn_idx = self.instruction_index_for_constructor_pc(pc)
+    def source_info_for_constructor_instruction_idx(self, insn_idx) -> InstructionSourceInfo:
         return self.symbolic_srcmap_constructor.get_source_info_for_instruction(insn_idx)
 
-    def source_info_for_runtime_pc(self, pc) -> InstructionSourceInfo:
-        insn_idx = self.instruction_index_for_runtime_pc(pc)
+    def source_info_for_runtime_instruction_idx(self, insn_idx) -> InstructionSourceInfo:
         return self.symbolic_srcmap_runtime.get_source_info_for_instruction(insn_idx)
-
-    @property
-    def disassembled_instructions_constructor(self) -> List[Instruction]:
-        if self._disass_instructions is None:
-            self._disass_instructions = list(disassemble_all(self.bin))
-        return self._disass_instructions
-
-    @property
-    def disassembled_instructions_runtime(self):
-        if self._disass_instructions_runtime is None:
-            self._disass_instructions_runtime = list(disassemble_all(self.bin_runtime))
-        return self._disass_instructions_runtime
 
     def deploy(self, *constructor_args, **tx_extras) -> Tuple[HexBytes, Contract]:
         from .contract_registry import register_deployed_contract
@@ -269,7 +279,7 @@ class ContractMetadataRegistry:
 
     def get_allow_paths(self):
         return self.allowed_directories
-
+;
     def get_solc_input_json(self, sources_entry, **kwargs):
         return {
             "language": "Solidity",
@@ -281,11 +291,11 @@ class ContractMetadataRegistry:
         }
 
 
-    def add_solidity_source(self, source: str, file_name: str, **kwargs):
+    def add_solidity_source(self, source: str, file_name: Union[Path, str], **kwargs):
 
         self.configure_solcx_for_pragma(self.find_pragma_line(source))
 
-        source = self.get_solc_input_json({file_name: {'content': source}}, **kwargs)
+        source = self.get_solc_input_json({str(file_name): {'content': source}}, **kwargs)
 
         output = compile_standard(
             source,
@@ -294,13 +304,13 @@ class ContractMetadataRegistry:
             )
         self.process_solc_output_json(output)
 
-    def add_solidity_files(self, files: List[str], **kwargs):
+    def add_solidity_files(self, files: List[Union[str, Path]], **kwargs):
         pragma_lines = self.get_pragma_lines(files)
         assert len(pragma_lines) <= 1, "Multiple solidity versions in files"
         self.configure_solcx_for_pragma(pragma_lines[0] if len(pragma_lines) == 1 else None)
 
         source = self.get_solc_input_json({
-            path: {"urls": [path]} for path in files
+            str(path): {"urls": [str(path)]} for path in files
         }, **kwargs)
 
         output = compile_standard(
@@ -330,6 +340,10 @@ class ContractMetadataRegistry:
                 )
                 self.contract_info[''][contract_name] = self.contract_info[source_file][contract_name]
 
+                # ensure these can actually get built
+                self.contract_info[''][contract_name].symbolic_srcmap_constructor
+                self.contract_info[''][contract_name].symbolic_srcmap_runtime
+
 
     # make it so that metadata_registry['name'] returns the metadata for the contract of that name, and metadata_registry[('file', 'name')] returns the metadata for the contract of that name in that file
     def __getitem__(self, key: Union[str, Tuple[str, str]]) -> ContractMetadata:
@@ -337,6 +351,29 @@ class ContractMetadataRegistry:
             return self.contract_info[key[0]][key[1]]
         else:
             return self.contract_info[''][key]
+    def __contains__(self, key: Union[str, Tuple[str, str]]) -> bool:
+        if isinstance(key, tuple):
+            return key[1] in self.contract_info[key[0]]
+        else:
+            return key in self.contract_info['']
+
+    def __iter__(self):
+        return self.all_contracts()
+
+    def iter_find(self, predicate) -> Iterator[Tuple[str, str, ContractMetadata]]:
+        for file_name, file_data in self.contract_info.items():
+            for contract_name, contract_data in file_data.items():
+                if predicate(file_name, contract_name, contract_data):
+                    yield file_name, contract_name, contract_data
+
+    def find(self, predicate) -> Optional[Tuple[str, str, ContractMetadata]]:
+        return next(self.iter_find(predicate), None)
+
+    def iter_find_by_name(self, name: str) -> Iterator[Tuple[str, str, ContractMetadata]]:
+        return self.iter_find(lambda file_name, contract_name, contract_data: contract_name == name)
+
+    def find_by_name(self, name: str) -> Optional[Tuple[str, str, ContractMetadata]]:
+        return self.find(lambda file_name, contract_name, contract_data: contract_name == name)
 
     def all_contracts(self):
         for file_name, file_data in self.contract_info.items():

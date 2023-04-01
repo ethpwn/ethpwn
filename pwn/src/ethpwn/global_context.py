@@ -48,25 +48,44 @@ class Web3Context:
     def log_level(self, value):
         self._log_level = value
         self.logger.setLevel(value)
-        self._configure_logging()
+        if not logging.getLogger().handlers:
+            self.logger.addHandler(logging.StreamHandler())
 
-    def connect_http(self, url):
-        self.w3 = Web3(Web3.HTTPProvider(url))
-        assert self.w3.is_connected()
-        self._configure_w3()
+    def connect_http(self, url, can_fail=False, **kwargs):
+        self.w3 = Web3(Web3.HTTPProvider(url, **kwargs))
+        if not self.w3 or not self.w3.is_connected():
+            if can_fail:
+                self.logger.warning(f'Could not connect to {url}')
+                return
+            else:
+                raise Exception(f'Could not connect to {url}')
+        else:
+            self.logger.info(f'Connected to {url}')
+            self._configure_w3()
 
-    def connect_ipc(self, path='/home/eth/.ethereum/geth.ipc'):
+    def connect_ipc(self, path='/home/eth/.ethereum/geth.ipc', can_fail=False):
         self.w3 = Web3(Web3.IPCProvider(path))
-        assert self.w3.is_connected()
-        self._configure_w3()
+        if not self.w3 or not self.w3.is_connected():
+            if can_fail:
+                self.logger.warning(f'Could not connect to {path}')
+                return
+            else:
+                raise Exception(f'Could not connect to {path}')
+        else:
+            self.logger.info(f'Connected to {path}')
+            self._configure_w3()
 
-    def connect_websocket(self, url, **kwargs):
+    def connect_websocket(self, url, can_fail=False, **kwargs):
         self.w3 = Web3(Web3.WebsocketProvider(url, **kwargs))
-        assert self.w3.is_connected()
-        self._configure_w3()
-
-    def _configure_logging(self):
-        logging.basicConfig()
+        if not self.w3 or not self.w3.is_connected():
+            if can_fail:
+                self.logger.warning(f'Could not connect to {url}')
+                return
+            else:
+                raise Exception(f'Could not connect to {url}')
+        else:
+            self.logger.info(f'Connected to {url}')
+            self._configure_w3()
 
     def _configure_w3(self):
         self.w3.eth.set_gas_price_strategy(

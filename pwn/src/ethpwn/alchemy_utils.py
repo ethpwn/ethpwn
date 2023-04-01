@@ -1,3 +1,4 @@
+from ethpwn.utils import normalize_contract_address
 from hexbytes import HexBytes
 from .global_context import context
 from .contract_metadata import CONTRACT_METADATA
@@ -20,8 +21,8 @@ def pretty_print_simulation_trace(trace):
     Pretty print the simulation trace
     """
     for call in trace.calls:
-        src = HexBytes(call['from'])
-        dest = HexBytes(call.to)
+        src = normalize_contract_address(call['from'])
+        dest = normalize_contract_address(call.to)
         input = HexBytes(call.input)
         output = HexBytes(call.output)
         value = call.get('value', 0)

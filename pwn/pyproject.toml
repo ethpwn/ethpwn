@@ -22,6 +22,7 @@ dependencies = [
     "hexbytes",
     "pyevmasm",
     "ansi",
+    "rich",
 ]
 
 keywords = [

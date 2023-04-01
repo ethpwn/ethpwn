@@ -1,8 +1,11 @@
 
 from bisect import bisect
+import functools
 import pyevmasm
-from pyevmasm import assemble, assemble_all, assemble_hex, assemble_one
-from pyevmasm import disassemble, disassemble_all, disassemble_hex, disassemble_one
+
+from pyevmasm import DEFAULT_FORK
+DEFAULT_FORK = 'paris'
+
 from pyevmasm.evmasm import instruction_tables, london_instruction_table, istanbul_instruction_table, accepted_forks, InstructionTable, Instruction
 
 
@@ -45,5 +48,29 @@ def block_to_fork_fixed(block_number):
     return fork_names[bisect(fork_blocks, block_number) - 1]
 
 pyevmasm.block_to_fork = block_to_fork_fixed
+
+
+
+from pyevmasm import assemble, assemble_all, assemble_hex, assemble_one
+from pyevmasm import disassemble_all as __disassemble_all_uncached
+from pyevmasm import disassemble_one as __disassemble_one_uncached
+from pyevmasm import disassemble_hex as __disassemble_hex_uncached
+from pyevmasm import disassemble as __disassemble_uncached
+
+@functools.lru_cache(maxsize=64, typed=True)
+def disassemble_all(bytecode, pc=0, fork='paris'):
+    return list(__disassemble_all_uncached(bytecode, pc, fork))
+
+@functools.lru_cache(maxsize=64, typed=True)
+def disassemble_one(bytecode, pc=0, fork='paris'):
+    return __disassemble_one_uncached(bytecode, pc, fork)
+
+@functools.lru_cache(maxsize=64, typed=True)
+def disassemble_hex(bytecode, pc=0, fork='paris'):
+    return __disassemble_hex_uncached(bytecode, pc, fork)
+
+@functools.lru_cache(maxsize=64, typed=True)
+def disassemble(bytecode, pc=0, fork='paris'):
+    return __disassemble_uncached(bytecode, pc, fork)
 
 
