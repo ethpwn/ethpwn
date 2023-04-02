@@ -50,6 +50,7 @@ def parse_srcmap(srcmap: str) -> List[Tuple[int, int]]:
 
 class InstructionSourceInfo:
     def __init__(self,
+                 entry: SrcMapEntry,
                  source_content,
                  source_byte_offset_start,
                  source_bytes_len,
@@ -60,6 +61,7 @@ class InstructionSourceInfo:
                  jump_type=None,
                  modifier_depth=None
                 ):
+        self.entry = entry
         self.source_content = source_content
         self.source_byte_offset_start = source_byte_offset_start
         self.source_bytes_len = source_bytes_len
@@ -89,7 +91,7 @@ class InstructionSourceInfo:
 
         lines = highlighted.split('\n')
         start_line = max(0, self.line_no_start - context_lines)
-        end_line = min(len(lines), self.line_no_end + context_lines)
+        end_line = min(len(lines), self.line_no_end + 1 + context_lines)
         return str(dim) + '\n'.join(lines[start_line:end_line]) + str(reset)
 
     def from_srcmap_entry(entry: SrcMapEntry, source_content: str=None) -> 'InstructionSourceInfo':
@@ -102,6 +104,7 @@ class InstructionSourceInfo:
             line_no_end, col_no_end = get_line_col_from_byte_offset(source_content, entry['src_start_character_index'] + entry['num_chars'])
 
         return InstructionSourceInfo(
+            entry=entry,
             source_content=source_content,
             source_byte_offset_start=entry['src_start_character_index'],
             source_bytes_len=entry['num_chars'],
@@ -115,7 +118,7 @@ class InstructionSourceInfo:
 
 
 def get_line_col_from_byte_offset(source: str, byte_offset: int) -> Tuple[int, int]:
-    line_no = source.count('\n', 0, byte_offset) + 1
+    line_no = source.count('\n', 0, byte_offset)
     col_no = byte_offset - source.rfind('\n', 0, byte_offset)
     return line_no, col_no
 
@@ -124,7 +127,7 @@ def symbolize_source_map(src_map_entries: List[SrcMapEntry], source_lookup) -> L
     # import ipdb; ipdb.set_trace()
     for entry in src_map_entries:
         if entry['source_file_index'] == -1:
-            result.append(InstructionSourceInfo.from_srcmap_entry(entry))
+            result.append(None)
             continue
         source_file = source_lookup(entry['source_file_index'])
         assert source_file is not None
