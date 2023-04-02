@@ -7,6 +7,9 @@ from hexbytes import HexBytes
 from web3.types import TxReceipt
 from web3.datastructures import AttributeDict
 
+from rich.tree import Tree
+from rich.table import Table
+
 from .utils import normalize_contract_address
 from .contract_metadata import CONTRACT_METADATA, ContractMetadata
 from .hashes import lookup_signature_hash
@@ -61,6 +64,15 @@ class Contract(Serializable):
     @staticmethod
     def from_serializable(data):
         return Contract(**data)
+
+    def __rich_console__(self, console, options):
+        s = f'Contract {self.address} ({self.metadata.contract_name})'
+        if self.deploy_tx_hash is not None:
+            s += f' deployed at {self.deploy_tx_hash}'
+        yield s
+        # now yield the metadata
+        yield from self.metadata.__rich_console__(console, options)
+
 
     def w3(self):
         return context.w3.eth.contract(address=self.address, abi=self.metadata.abi)
@@ -159,6 +171,25 @@ class ContractRegistry:
             self.registered_contracts[contract.address] = contract
 
         return self
+
+    def __rich_console__(self, console, options):
+        table = Table(title="Contract Registry")
+        table.add_column("Address")
+        table.add_column("Name")
+        table.add_column("Deployed")
+        table.add_column("Deployer")
+        table.add_column("Source file")
+        for address, contract in self.registered_contracts.items():
+            table.add_row(
+                contract.address,
+                contract.metadata.contract_name,
+                contract.deploy_tx_hash if contract.deploy_tx_hash is not None else "N/A",
+                str(contract.deploy_wallet) if contract.deploy_wallet is not None else "N/A",
+                contract.metadata.source_file,
+            )
+        yield table
+
+
 
 CONTRACT_REGISTRY: ContractRegistry = None
 def contract_registry() -> ContractRegistry:

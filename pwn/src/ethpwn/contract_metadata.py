@@ -12,6 +12,8 @@ from web3.contract import Contract
 import solcx
 from ansi.color.fx import reset, bold, faint as dim
 from ansi.color.fg import red, green, yellow, blue, magenta, cyan
+from rich.tree import Tree
+from rich.table import Table
 
 from .serialization_utils import serialize_to_file, deserialize_from_file, Serializable
 
@@ -22,7 +24,7 @@ from .global_context import context
 from .hashes import lookup_signature_hash, register_signature_hash, signature_hash
 from .srcmap import SymbolizedSourceMap, InstructionSourceInfo
 from .pyevmasm_fixed import disassemble_all, Instruction
-from .solcx_utils import SolidityCompiler, configure_solcx_for_pragma, find_pragma_line
+from .solidity_utils import SolidityCompiler, configure_solcx_for_pragma, find_pragma_line
 
 def convert_sources(sources):
     sources_out = []
@@ -71,6 +73,78 @@ class ContractMetadata(Serializable):
         self._symbolic_srcmap_runtime: SymbolizedSourceMap = None
         self._disass_instructions: List[Instruction] = None
         self._disass_instructions_runtime: List[Instruction] = None
+
+    def rich_table_for_abi(self, console, options):
+        table = Table(title="ABI functions")
+        table.add_column("Type")
+        table.add_column("Name")
+        table.add_column("Mutability")
+        table.add_column("Inputs")
+        table.add_column("Outputs")
+        for entry in self.abi:
+            if entry['type'] == 'function':
+                table.add_row(
+                    entry['type'],
+                    entry['name'],
+                    entry['stateMutability'],
+                    ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
+                    ', '.join([f"{i['type']} {i['name']}" for i in entry['outputs']]),
+                )
+            elif entry['type'] == 'constructor':
+                table.add_row(
+                    entry['type'],
+                    '',
+                    entry['stateMutability'],
+                    ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
+                    '',
+                )
+            else:
+                assert False, f"Unknown ABI entry type: {entry['type']}"
+        return table
+
+    def rich_table_for_storage_layout(self, console, options):
+        table = Table(title="Storage layout")
+        table.add_column("Type")
+        table.add_column("Name")
+        table.add_column("Offset")
+        table.add_column("Slot")
+        table.add_column("Size")
+        table.add_column("Encoding")
+        types = self.storage_layout['types']
+        for entry in self.storage_layout['storage']:
+            resolved_type = types[entry['type']]
+            table.add_row(
+                resolved_type['label'],
+                entry['label'],
+                str(entry['offset']),
+                str(entry['slot']),
+                resolved_type['numberOfBytes'],
+                resolved_type['encoding'],
+            )
+        return table
+
+    def __rich_console__(self, console, options):
+
+        tree = Tree(f"Metadata")
+        tree.add(f"{bold(self.contract_name)} ({self.source_file})")
+        abi = tree.add(f"{bold('ABI')}")
+        abi.add(self.rich_table_for_abi(console, options))
+
+        if self.bin is not None:
+            tree.add(f"{bold('Bytecode (constructor)')}")
+        if self.bin_runtime is not None:
+            tree.add(f"{bold('Bytecode (runtime)')}")
+
+        storage_layout = tree.add(f"{bold('Storage Layout')}")
+        storage_layout.add(self.rich_table_for_storage_layout(console, options))
+
+        if self._symbolic_srcmap_constructor:
+            tree.add(f"{bold('Source Map (constructor)')}")
+        if self._symbolic_srcmap_runtime:
+            tree.add(f"{bold('Source Map (runtime)')}")
+
+        yield tree
+
 
     def from_solidity(source_file, contract_name, json_dict, sources):
         source_file = str(Path(source_file).resolve())
