@@ -22,6 +22,7 @@ from .global_context import context
 from .hashes import lookup_signature_hash, register_signature_hash, signature_hash
 from .srcmap import SymbolizedSourceMap, InstructionSourceInfo
 from .pyevmasm_fixed import disassemble_all, Instruction
+from .solcx_utils import SolidityCompiler, configure_solcx_for_pragma, find_pragma_line
 
 def convert_sources(sources):
     sources_out = []
@@ -232,95 +233,18 @@ class ContractMetadataRegistry:
     def __init__(self) -> None:
         self.contract_info: Dict[str, Dict[str, ContractMetadata]] = defaultdict(dict)
         exp_template_dir = os.path.dirname(os.path.realpath(__file__)) + "/exploit_templates"
-        self.default_import_remappings: Dict[str, str] = {
+        self.compiler: SolidityCompiler = SolidityCompiler()
+        self.compiler.add_import_remappings({
             "exploit_templates": exp_template_dir,
-        }
-        self.allowed_directories: List[str] = [exp_template_dir]
-
-    def add_default_import_remappings(self, remappings: Dict[str, str]):
-        self.default_import_remappings.update(remappings)
-        self.add_allowed_directories(remappings.values())
-
-    def add_allowed_directories(self, directories: List[str]):
-        self.allowed_directories.extend(directories)
-
-    def get_output_values(self):
-        output_values = ['abi','bin','bin-runtime','asm','hashes','metadata','srcmap','srcmap-runtime']
-        if solcx.get_solc_version().minor >= 6:
-            output_values.append('storage-layout')
-        return output_values
-
-    def find_pragma_line(self, content: str):
-        for line in content.splitlines():
-            if line.strip().startswith('pragma solidity'):
-                return line
-
-    def get_pragma_lines(self, files: List[str]):
-        pragma_lines = set()
-        for file in files:
-            with open(file, 'r') as f:
-                solidity_pragma_line = self.find_pragma_line(f.read())
-                if solidity_pragma_line is not None:
-                    pragma_lines.add(solidity_pragma_line)
-        return list(pragma_lines)
-
-    def configure_solcx_for_pragma(self, pragma_line: str):
-        if pragma_line is None:
-            return
-
-        solcx.install_solc_pragma(pragma_line)
-        solcx.set_solc_version_pragma(pragma_line)
-
-    def get_import_remappings(self, **kwargs):
-        import_remappings = {} if kwargs.get('no_default_import_remappings', False) else self.default_import_remappings.copy()
-        if 'import_remappings' in kwargs:
-            import_remappings.update(kwargs.pop('import_remappings'))
-        return import_remappings
-
-    def get_allow_paths(self):
-        return self.allowed_directories
-
-    def get_solc_input_json(self, sources_entry, **kwargs):
-        return {
-            "language": "Solidity",
-            'sources': sources_entry,
-            'settings': {
-                'remappings': [f'{key}={value}' for key, value in sorted(self.get_import_remappings(**kwargs).items())],
-                'outputSelection': { "*": { "*": [ "*" ], "": [ "*" ] } },
-            }
-        }
-
+        })
 
     def add_solidity_source(self, source: str, file_name: Union[Path, str], **kwargs):
-
-        self.configure_solcx_for_pragma(self.find_pragma_line(source))
-
-        source = self.get_solc_input_json({str(file_name): {'content': source}}, **kwargs)
-
-        output = compile_standard(
-            source,
-            allow_paths=self.get_allow_paths(),
-            **kwargs
-            )
-        self.process_solc_output_json(output)
+        self.process_solc_output_json(self.compiler.compile_source(source, file_name, **kwargs))
 
     def add_solidity_files(self, files: List[Union[str, Path]], **kwargs):
-        pragma_lines = self.get_pragma_lines(files)
-        assert len(pragma_lines) <= 1, "Multiple solidity versions in files"
-        self.configure_solcx_for_pragma(pragma_lines[0] if len(pragma_lines) == 1 else None)
+        self.process_solc_output_json(self.compiler.compile_files(files, **kwargs))
 
-        source = self.get_solc_input_json({
-            str(path): {"urls": [str(path)]} for path in files
-        }, **kwargs)
-
-        output = compile_standard(
-            source,
-            allow_paths=self.get_allow_paths() + [os.path.dirname(file) for file in files],
-            **kwargs
-            )
-        self.process_solc_output_json(output)
-
-    def process_solc_output_json(self, output_json):
+    def handle_solidity_errors(self, output_json):
         compilation_error = False
         for error in output_json.get('errors', []):
             log = getattr(context.logger, error['severity'], context.logger.info)
@@ -331,6 +255,10 @@ class ContractMetadataRegistry:
                 compilation_error = True
         if compilation_error:
             raise Exception("Compilation error")
+
+    def process_solc_output_json(self, output_json):
+
+        self.handle_solidity_errors(output_json)
 
         for source_file in output_json['contracts']:
             for contract_name in output_json['contracts'][source_file]:
