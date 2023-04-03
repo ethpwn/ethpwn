@@ -1,17 +1,26 @@
+'''
+Module containing utility functions for assembling and disassembling EVM bytecode manually
+and automatically.
+'''
+
 from hexbytes import HexBytes
-from .pyevmasm_fixed import assemble, disassemble, disassemble_one, disassemble_all
+from .pyevmasm_fixed import assemble, disassemble_all
 
 def value_to_smallest_hexbytes(value):
+    """Convert an integer to the smallest possible hexbytes"""
+
+    # pylint: disable=unidiomatic-typecheck
     if type(value) is int:
         bit_length = value.bit_length()
         byte_length = (bit_length + 7) // 8
         if byte_length == 0:
             return HexBytes(b'\x00')
         return HexBytes(value.to_bytes(byte_length, 'big'))
-    elif type(value) is HexBytes:
+
+    if isinstance(value, HexBytes):
         return value
-    else:
-        raise ValueError('value must be int or HexBytes')
+
+    raise ValueError('value must be int or HexBytes')
 
 def asm_push_value(value):
     """Push value to the stack"""
@@ -60,7 +69,9 @@ def asm_sload(key):
     return code
 
 def create_shellcode_deployer_bin(shellcode):
-    """Create a contract that deploys shellcode at a specific address"""
+    """
+        Create a contract that deploys shellcode at a specific address
+    """
     shellcode = bytes(HexBytes(shellcode))
 
     return_code = asm_return(0, len(shellcode))
@@ -79,15 +90,20 @@ def create_shellcode_deployer_bin(shellcode):
     return HexBytes(code + shellcode)
 
 def disassemble_pro(code, start_pc=0, fork='paris'):
+    """
+    Disassemble code and return a string containing the disassembly. This disassembly includes the
+    pc, bytes, instruction, gas cost, and description of each instruction in addition to the
+    standard disassembly.
+    """
     code = HexBytes(code)
 
     insns = disassemble_all(code, pc=start_pc, fork=fork)
 
     disassembly = ''
     for insn in insns:
-        bytes_insn = code[insn.pc - start_pc:insn.pc + - start_pc + len(insn.bytes)]
+        bytes_insn = bytes(code[insn.pc - start_pc : insn.pc + - start_pc + len(insn.bytes)])
         bytes_repr = ' '.join([f'{b:02x}' for b in bytes_insn])
-        disassembly += f'{insn.pc:04x}: {bytes_repr:12} {str(insn):20} [gas={insn.fee}, description="{insn.description}"]\n'
+        disassembly += f'{insn.pc:04x}: {bytes_repr:12} {str(insn):20}'
+        disassembly += f'[gas={insn.fee}, description="{insn.description}"]\n'
 
     return disassembly
-

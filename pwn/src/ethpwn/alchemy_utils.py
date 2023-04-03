@@ -1,7 +1,7 @@
-from ethpwn.utils import normalize_contract_address
 from hexbytes import HexBytes
+
+from .utils import normalize_contract_address
 from .global_context import context
-from .contract_metadata import CONTRACT_METADATA
 from .contract_registry import decode_function_input
 
 def decode_simulation_trace(trace):
@@ -10,8 +10,8 @@ def decode_simulation_trace(trace):
     """
     for call in trace.calls:
         dest = call.to
-        input = call.input
-        decoded = decode_function_input(dest, input, guess=True)
+        _input = call.input
+        decoded = decode_function_input(dest, _input, guess=True)
         if decoded:
             call.input = decoded
     return trace
@@ -23,11 +23,11 @@ def pretty_print_simulation_trace(trace):
     for call in trace.calls:
         src = normalize_contract_address(call['from'])
         dest = normalize_contract_address(call.to)
-        input = HexBytes(call.input)
+        _input = HexBytes(call.input)
         output = HexBytes(call.output)
         value = call.get('value', 0)
-        gasUsed = call.gasUsed
-        decoded = decode_function_input(dest, input, guess=True)
+        gas_used = call.gasUsed
+        decoded = decode_function_input(dest, _input, guess=True)
         # import ipdb; ipdb.set_trace()
         if decoded is not None:
             metadata, function, args = decoded
@@ -41,7 +41,7 @@ def pretty_print_simulation_trace(trace):
             contract_name = 'UNKNOWN' if metadata is None else metadata.contract_name
             decoded_output = f"{contract_name}:{function} [{', '.join(map(repr, args))}]"
 
-        msg = f"{src.hex()} -> {dest.hex()} gas={gasUsed}) ({value} ETH)\nINPUT: {decoded} {input.hex()=}\nOUTPUT: {decoded_output} {output.hex()=}\n"
+        msg = f"{src.hex()} -> {dest.hex()} gas={gas_used}) ({value} ETH)\nINPUT: {decoded} {_input.hex()=}\nOUTPUT: {decoded_output} {output.hex()=}\n"
         print(msg)
 
 

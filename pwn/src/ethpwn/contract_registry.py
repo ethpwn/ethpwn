@@ -233,7 +233,7 @@ def decode_function_input(contract_address, input, guess=False):
         metadata = contract.metadata
         return contract, metadata, *metadata.decode_function_input(input)
     elif guess:
-        for contract_name, metadata in CONTRACT_METADATA.contract_info[''].items():
+        for contract_name, metadata in CONTRACT_METADATA.contracts[''].items():
             try:
                 return None, metadata, *metadata.decode_function_input(input)
             except ValueError as e:

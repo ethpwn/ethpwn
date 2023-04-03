@@ -20,10 +20,15 @@ dependencies = [
     "requests",
     "pysha3",
     "hexbytes",
-    "pyevmasm",
+
+    # pyevmasm from github, not pypi
+    "pyevmasm @ git+https://github.com/crytic/pyevmasm.git",
+
     "ansi",
     "rich",
     "cbor",
+    "simanneal",
+    "editdistance",
 ]
 
 keywords = [
