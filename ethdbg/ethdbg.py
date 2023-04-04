@@ -1252,22 +1252,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Check if wallets.json exist and contains at least one wallet
-    if not os.path.exists(WALLETS_FILE):
-        print(f"{RED_COLOR} Could not find ~/.config/ethtools/wallets.json. Please create one! {RESET_COLOR}")
-        sys.exit()
-    elif not os.path.getsize(WALLETS_FILE) > 0:
-        print(f"{RED_COLOR} ~/.config/ethtools/wallets.json is empty. Please add at least one wallet! {RESET_COLOR}")
-        sys.exit()
-    else:
-        # is it a valid json file?
-        try:
-            with open(WALLETS_FILE) as f:
-                json.load(f)
-        except:
-            print(f"{RED_COLOR} ~/.config/ethtools/wallets.json is not a valid json file. Please fix it! {RESET_COLOR}")
-            sys.exit()
-
     wallet_conf = get_wallet(args.wallet)
 
     w3 = get_w3_provider(args.node_url)

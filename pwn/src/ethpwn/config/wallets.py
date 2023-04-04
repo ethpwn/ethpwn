@@ -62,6 +62,19 @@ def load_default_wallets():
         with open(wallets_config_path, 'w') as f:
             f.write('[]')
 
+    # Check if the file is empty
+    if os.stat(wallets_config_path).st_size == 0:
+        with open(wallets_config_path, 'w') as f:
+            f.write('[]')
+    
+    # Check if it is a valid json file
+    try:
+        with open(wallets_config_path, 'r') as f:
+            json.load(f)
+    except json.decoder.JSONDecodeError:
+        with open(wallets_config_path, 'w') as f:
+            f.write('[]')
+            
     with open(wallets_config_path, 'r') as f:
         result = json.load(f)
     result = {d['address']: Wallet.from_json_dict(d) for d in result}
