@@ -5,7 +5,6 @@ Tooling to make interacting with the Ethereum ecosystem less painful
 
 ```
 1. git clone git@github.com:shellphish/ethtools.git && pip install -e ethtools/pwn
-2. pip install py4byte
 3. touch ~/.ethdbg
 
 The .ethdbg file should be:
