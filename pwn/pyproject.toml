@@ -32,7 +32,6 @@ dependencies = [
     "cbor",
     "simanneal",
     "editdistance",
-    "cbor"
 ]
 
 keywords = [
