@@ -23,6 +23,11 @@ class EthtoolsConfigurable(ABC):
         path = pwn_config_root_dir() / self.relative_config_path()
         serialize_to_file(self.get_serializable_config(), path)
 
+def ethtools_config_root_dir() -> Path:
+    dir = os.path.expanduser('~/.config/ethtools/')
+    os.makedirs(dir, exist_ok=True)
+    return Path(dir)
+
 def pwn_config_root_dir() -> Path:
     dir = os.path.expanduser('~/.config/ethtools/pwn/')
     os.makedirs(dir, exist_ok=True)
@@ -34,7 +39,7 @@ def dbg_config_root_dir():
     return dir
 
 def get_default_wallet_path() -> Path:
-    return pwn_config_root_dir() / 'wallets.json'
+    return ethtools_config_root_dir() / 'wallets.json'
 
 def get_logged_deployed_contracts_dir() -> Path:
     d = pwn_config_root_dir() / 'deployed_contracts'

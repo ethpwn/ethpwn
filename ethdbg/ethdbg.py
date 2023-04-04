@@ -6,9 +6,9 @@ import rich
 
 import web3
 import argparse
-import configparser
 import functools
 import os
+import json
 import re
 import sys
 import sha3
@@ -16,6 +16,7 @@ from breakpoint import Breakpoint, ETH_ADDRESS
 
 from ethpwn.prelude import *
 from ethpwn.pyevmasm_fixed import disassemble_one, Instruction
+from ethpwn.config.wallets import get_wallet
 
 from evm import *
 from transaction_debug_target import TransactionDebugTarget
@@ -222,11 +223,9 @@ def get_storage_layout_table(read_storage, code_contract_address, storage_contra
     table.add_row('Storage', table_storage)
     return table
 
-def get_config():
+def get_config(wallet_id):
     # Parse file using ConfigParser
-    config = configparser.ConfigParser()
-    config.read(os.path.expanduser('~/.ethdbg'))
-    return config
+    return get_wallet(wallet_id)
 
 class CallFrame():
     def __init__(self, address, msg_sender, tx_origin, value, calltype, callsite):
@@ -245,14 +244,14 @@ class EthDbgShell(cmd.Cmd):
 
     prompt = f'{RED_COLOR}ethdbg{RESET_COLOR}➤ '
 
-    def __init__(self, ethdbg_conf, w3, debug_target, breaks=None, **kwargs):
+    def __init__(self, wallet_conf, w3, debug_target, breaks=None, **kwargs):
         # call the parent class constructor
         super().__init__(**kwargs)
 
         # The config for ethdbg
         self.tty_rows, self.tty_columns = get_terminal_size()
-        self.ethdbg_conf = ethdbg_conf
-        self.account = Account.from_key(self.ethdbg_conf['user.account']['pk'])
+        self.wallet_conf = wallet_conf
+        self.account = Account.from_key(self.wallet_conf.private_key)
 
         # EVM stuff
         self.w3 = w3
@@ -1248,9 +1247,12 @@ if __name__ == "__main__":
     parser.add_argument("--target", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--block", help="reference block", default=None)
     parser.add_argument("--calldata", help="calldata to use for the transaction", default=None)
+    parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethtools/pwn/wallets.json )", default=None)
+
     args = parser.parse_args()
 
-    ethdbg_conf = get_config()
+    wallet_conf = get_wallet(args.wallet)
+
     w3 = get_w3_provider(args.node_url)
 
     if args.sender:
@@ -1262,13 +1264,13 @@ if __name__ == "__main__":
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, ethdbg_conf=ethdbg_conf)
+        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, wallet_conf=wallet_conf)
     else:
         # interactive mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.new_transaction(to=args.target, sender=args.sender, calldata=args.calldata, chain=args.chain, block_number=args.block, ethdbg_conf=ethdbg_conf)
+        debug_target.new_transaction(to=args.target, sender=args.sender, calldata=args.calldata, chain=args.chain, block_number=args.block, wallet_conf=wallet_conf)
 
-    ethdbgshell = EthDbgShell(ethdbg_conf, w3, debug_target=debug_target)
+    ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target)
     ethdbgshell.print_license()
 
     while True:

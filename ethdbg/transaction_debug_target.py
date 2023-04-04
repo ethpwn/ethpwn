@@ -29,7 +29,7 @@ class TransactionDebugTarget:
         self._max_fee_per_gas = None
         self._max_priority_fee_per_gas = None
         self._nonce = None
-        
+
         self.debug_type = None
 
     def set_default(self, key, value):
@@ -225,7 +225,7 @@ class TransactionDebugTarget:
         if max_priority_fee_per_gas is not None:
             self._max_priority_fee_per_gas = max_priority_fee_per_gas
 
-    def replay_transaction(self, txid, ethdbg_conf, **kwargs) -> 'TransactionDebugTarget':
+    def replay_transaction(self, txid, wallet_conf, **kwargs) -> 'TransactionDebugTarget':
         assert txid is not None
         txid = HexBytes(txid).hex()
 
@@ -241,7 +241,7 @@ class TransactionDebugTarget:
         self.target_address = kwargs.pop('to', None) or tx_data.get('to', None)
         self.source_address = kwargs.pop('sender', None) or tx_data.get('from', None)
         self.calldata = kwargs.pop('calldata', None) or kwargs.pop('input', None) or tx_data.get('input', None)
-        
+
         for k, v in tx_data.items():
             k_snake = to_snake_case(k)
             value = kwargs.pop(k_snake, None) or kwargs.pop(k, None) or v
@@ -255,17 +255,17 @@ class TransactionDebugTarget:
                 setattr(self, k, v)
 
         self.debug_type = "replay"
-        
+
         return self
 
-    def new_transaction(self, to, calldata, ethdbg_conf, **kwargs):
+    def new_transaction(self, to, calldata, wallet_conf, **kwargs):
         self.target_address = to
         self.calldata = calldata
 
         # TODO pull default account and private key from ethpwn
-        self.source_address = kwargs.pop('sender', None) or ethdbg_conf['user.account']['address']
+        self.source_address = kwargs.pop('sender', None) or wallet_conf.address
         self.block_number = kwargs.pop('block_number', self.w3.eth.block_number)
-        
+
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
 
