@@ -159,6 +159,7 @@ class ContractRegistry:
         for address, contract in self.registered_contracts.items():
             serialize_to_file(contract, path=os.path.join(contract_registry_dir, HexBytes(address).hex() + ".json"))
 
+    @staticmethod
     def load(contract_registry_dir) -> 'ContractRegistry':
         if not os.path.isdir(contract_registry_dir):
             return False

@@ -131,7 +131,9 @@ class SolidityCompiler:
 
 solc_binary_cache = {}
 def _add_cached_solc_binary_to_kwargs(kwargs):
-    solc_binary_version = kwargs.get('solc_version')
+    solc_binary_version = kwargs.get('solc_version', None)
+    if solc_binary_version is None:
+        return kwargs
     if kwargs.get('solc_binary', None) is None:
         if solc_binary_version in solc_binary_cache:
             solc_binary = solc_binary_cache[solc_binary_version]
