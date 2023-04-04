@@ -1259,7 +1259,7 @@ if __name__ == "__main__":
     elif not os.path.getsize(WALLETS_FILE) > 0:
         print(f"{RED_COLOR} ~/.config/ethtools/wallets.json is empty. Please add at least one wallet! {RESET_COLOR}")
         sys.exit()
-    elif:
+    else:
         # is it a valid json file?
         try:
             with open(WALLETS_FILE) as f:
