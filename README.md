@@ -48,11 +48,11 @@ ethdbg.py --txid 0xc6e3666c0347e2362b61db5c27ae9e76dac5b48e1e2d0e6cf586c6594e940
 Simulate a new transaction:
 
 ```
-ethdbg.py -- --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000
+ethdbg.py --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000
 ```
 
 Simulate a new transaction at specific block:
 ```
-ethdbg.py -- --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --block 11469711
+ethdbg.py --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --block 11469711
 ```
 
