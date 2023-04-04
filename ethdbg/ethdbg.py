@@ -27,7 +27,7 @@ from ethdbg_exceptions import *
 from rich import print as rich_print, inspect as rich_inspect
 from rich.table import Table
 
-DEFAULT_NODE_URL = "ws://172.17.0.1:8546"
+DEFAULT_NODE_URL = "ws://128.111.49.122:8546"
 
 def get_w3_provider(web3_host):
     if web3_host.startswith('http'):
@@ -749,7 +749,11 @@ class EthDbgShell(cmd.Cmd):
                 calltype_string = f'{call.calltype}'
             calltype_string = calltype_string.ljust(max_call_opcode_length)
             callsite_string = call.callsite.rjust(max_pc_length)
-            calls_view += f'{call.address:42} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {call.msg_sender:42} | {call.value} \n'
+            call_addr = call.address[::-1][:40][::-1] # fuuuuucke you @dreselli
+            msg_sender = call.msg_sender[::-1][:40][::-1] # fuuuuucke you @dreselli again
+            calls_view += f'{call_addr:42} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:42} | {call.value} \n'
+            if len(call.address) > 42:
+                import ipdb; ipdb.set_trace()
 
         return title + legend + calls_view
 
