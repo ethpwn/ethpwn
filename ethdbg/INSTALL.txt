@@ -1,0 +1,2 @@
+cd eth && pip install -e .
+pip install web3 pyevmasm
