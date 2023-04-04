@@ -226,6 +226,7 @@ def register_contract_at_address(metadata, address):
 
 def decode_function_input(contract_address, input, guess=False):
     from .contract_metadata import CONTRACT_METADATA
+    input = HexBytes(input)
     contract_address = normalize_contract_address(contract_address)
 
     registry = contract_registry()

@@ -14,7 +14,6 @@ import sys
 import sha3
 from breakpoint import Breakpoint, ETH_ADDRESS
 
-from py4byte import signatures as decodesignature
 from ethpwn.prelude import *
 from ethpwn.pyevmasm_fixed import disassemble_one, Instruction
 
@@ -350,10 +349,13 @@ class EthDbgShell(cmd.Cmd):
 
     def do_guessfuncid(self, arg):
         try:
-            guesses = decodesignature(hex_signature=arg)
-            print(f"Possible functions: ")
-            for res in guesses:
-                print(f" → {res['text_signature']}")
+            res = decode_function_input(None, arg, guess=True)
+            if res is None:
+                print(f'Could not retrieve function signature :(')
+                return
+            _contract, _metadata, _decoded_func = res
+            sig, args = _decoded_func
+            print(f" → {sig}({', '.join(map(repr,args))})")
         except Exception as e:
             print(f'Could not retrieve function signature :(')
             print(f'{RED_COLOR}{e}{RESET_COLOR}')
