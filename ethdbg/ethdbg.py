@@ -26,6 +26,7 @@ from ethdbg_exceptions import *
 
 from rich import print as rich_print, inspect as rich_inspect
 from rich.table import Table
+from rich.tree import Tree
 
 DEFAULT_NODE_URL = "ws://128.111.49.122:8546"
 
@@ -271,6 +272,7 @@ class EthDbgShell(cmd.Cmd):
 
         # The *CALL trace between contracts
         self.callstack = []
+        self.callhistory = list()
 
         # Recording here the SSTOREs, the dictionary is organized
         # per account so we can keep track of what storages slots have
@@ -498,6 +500,20 @@ class EthDbgShell(cmd.Cmd):
             print(f' Error: {RED_COLOR}{e}{RESET_COLOR}')
 
         print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {slot} | Value: {hex(value_read)}')
+
+    def do_callhistory(self, arg):
+        # Print the callhistory
+        for call_id, call in enumerate(self.callhistory):
+            call_type, call_target, call_value = call
+            call_target = call_target[::-1][:40][::-1]
+            if call_type == "CALL":
+                print(f'[{call_id}] {PURPLE_COLOR}{call_type:12}{RESET_COLOR} | Target: 0x{call_target} | Value: {call_value}')
+            elif call_type == "DELEGATECALL":
+                print(f'[{call_id}] {RED_COLOR}{call_type:12}{RESET_COLOR} | Target: 0x{call_target} | Value: {call_value}')
+            elif call_type == "STATICCALL":
+                print(f'[{call_id}] {BLUE_COLOR}{call_type:12}{RESET_COLOR} | Target: 0x{call_target} | Value: {call_value}')
+            else:
+                pass
 
     @only_when_started
     def do_sstores(self, arg):
@@ -1166,6 +1182,7 @@ class EthDbgShell(cmd.Cmd):
                                         hex(pc)
                                         )
                 self.callstack.append(new_callframe)
+                self.callhistory.append(("CALL", contract_target, value_sent))
 
             elif opcode.mnemonic == "DELEGATECALL":
                 contract_target = computation._stack.values[-2]
@@ -1183,6 +1200,7 @@ class EthDbgShell(cmd.Cmd):
                                         hex(pc)
                                         )
                 self.callstack.append(new_callframe)
+                self.callhistory.append(("DELEGATECALL", contract_target, value_sent))
 
             elif opcode.mnemonic == "STATICCALL":
                 contract_target = computation._stack.values[-2]
@@ -1201,6 +1219,7 @@ class EthDbgShell(cmd.Cmd):
                                             hex(pc)
                                             )
                     self.callstack.append(new_callframe)
+                    self.callhistory.append(("STATICCALL", contract_target, value_sent))
 
 
             elif opcode.mnemonic == "CREATE":
@@ -1216,6 +1235,7 @@ class EthDbgShell(cmd.Cmd):
                     hex(pc)
                 )
                 self.callstack.append(new_callframe)
+
 
 
             else:
