@@ -751,9 +751,7 @@ class EthDbgShell(cmd.Cmd):
             callsite_string = call.callsite.rjust(max_pc_length)
             call_addr = call.address[::-1][:40][::-1] # fuuuuucke you @dreselli
             msg_sender = call.msg_sender[::-1][:40][::-1] # fuuuuucke you @dreselli again
-            calls_view += f'{call_addr:42} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:42} | {call.value} \n'
-            if len(call.address) > 42:
-                import ipdb; ipdb.set_trace()
+            calls_view += f'0x{call_addr:42} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | 0x{msg_sender:42} | {call.value} \n'
 
         return title + legend + calls_view
 
@@ -1289,5 +1287,5 @@ if __name__ == "__main__":
             continue
         except RestartDbgException:
             old_breaks = ethdbgshell.breakpoints
-            ethdbgshell = EthDbgShell(ethdbg_conf, w3, debug_target=debug_target, breaks=old_breaks)
+            ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, breaks=old_breaks)
             ethdbgshell.cmdqueue.append("start\n")

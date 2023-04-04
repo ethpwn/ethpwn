@@ -133,7 +133,7 @@ class Breakpoint():
                     # Warning: this is not checksummed
                     curr_code_addr = '0x' + comp.msg.code_address.hex()
                     value = value.lower()
-                    expr = f'{value} {when} {curr_code_addr}'
+                    expr = f'"{str(value)}" {when} "{str(curr_code_addr)}"'
                     if not eval(expr):
                         return False
 
@@ -141,7 +141,7 @@ class Breakpoint():
                     # Warning: this is not checksummed
                     curr_storage_addr = '0x' + comp.msg.storage_address.hex()
                     value = value.lower()
-                    expr = f'{value} {when} {curr_storage_addr}'
+                    expr = f'"{str(value)}" {when} "{str(curr_storage_addr)}"'
                     if not eval(expr):
                         return False
 
