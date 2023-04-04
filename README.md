@@ -7,7 +7,7 @@ Tooling to make interacting with the Ethereum ecosystem less painful
 1. git clone git@github.com:shellphish/ethtools.git && pip install -e ethtools/pwn
 2. touch ~/.config/ethtools/wallets.json
 
-The .wallets.json file should be:
+The wallets.json file should be:
 
 [
   {
