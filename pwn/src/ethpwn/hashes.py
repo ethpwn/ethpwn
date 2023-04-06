@@ -27,7 +27,10 @@ def lookup_signature_hash_database(hash):
     if hash == '00000000':
         return None
     # result looks like {"count":1,"next":null,"previous":null,"results":[{"id":951886,"created_at":"2023-03-24T09:22:56.366397Z","text_signature":"Revert()","hex_signature":"0xd8b98391","bytes_signature":"Ø"}]
-    result = requests.get(f"https://www.4byte.directory/api/v1/signatures/?hex_signature=0x{hash}").json()
+    result = requests.get(
+        f"https://www.4byte.directory/api/v1/signatures/?hex_signature=0x{hash}",
+        timeout=1
+    ).json()
     if result["count"] == 0:
         return None
     if result["count"] == 1:
