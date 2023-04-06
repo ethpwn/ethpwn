@@ -86,10 +86,13 @@ class SolidityCompiler:
 
         configure_solcx_for_pragma(find_pragma_line(source))
 
+        if optimizer_settings is None:
+            optimizer_settings = self.get_optimizer_settings()
+
         source = self.get_solc_input_json(
             {str(file_name): {'content': source}},
             remappings=self.get_import_remappings(no_default_import_remappings, extra_import_remappings),
-            optimizer_settings=optimizer_settings if optimizer_settings is not None else self.get_optimizer_settings()
+            optimizer_settings=optimizer_settings,
         )
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
