@@ -176,8 +176,21 @@ def try_match_optimizer_settings(compile, contract_name,
     Tries to match the optimizer settings of the given contract to the given bytecode by repeatedly
     compiling the contract with different optimizer settings until a match is found.
 
+    ```
+    from ethpwn.prelude import *
+
+    compiler = SolidityCompiler()
+    do_compile = functools.partial(compiler.compile_files, ['contracts/MyContract.sol'])
+
+    code = context.w3.eth.getCode('0x...')
+
+    best_kwargs, meta, result_bytecode = try_match_optimizer_settings(do_compile, 'MyContract', bin_runtime=bytecode)
+    print(best_kwargs)
+    ```
+
     :param compile: A function that takes keyword arguments `optimizer_settings` and `solc_version`
-                    and returns the `output_json` from the solidity compiler.
+                    and returns the `output_json` from the solidity compiler. This is compatible with
+                    the `SolidityCompiler.compile_source` and `SolidityCompiler.compile_files` methods.
     :param contract_name: The name of the contract to match
     :param bin: The constructor bytecode of the contract to match or `None`
     :param bin_runtime: The runtime bytecode of the contract to match or `None`
