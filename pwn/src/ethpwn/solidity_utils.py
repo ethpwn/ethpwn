@@ -79,7 +79,7 @@ class SolidityCompiler:
         }
 
     def compile_source(self,
-                       source: str,file_name: Union[Path, str],
+                       source: str, file_name: Union[Path, str],
                        optimizer_settings=None,
                        no_default_import_remappings=False, extra_import_remappings=None,
                        **kwargs):
@@ -410,4 +410,8 @@ def try_match_optimizer_settings(compile, contract_name,
     editdist = editdistance.distance(final_bytecode, bin_data)
     # pylint: disable=line-too-long
     rich.print(f'[bold green]FINAL STATE: {best_state}[/bold green] with fitness {final_energy} and edit distance {editdist}')
-    return best_state, solidity_meta, final_bytecode
+    best_kwargs = {
+        'optimizer_settings': {'enabled': True, 'runs': best_state['runs'] },
+        'solc_version': best_state['solc_version']
+    }
+    return best_kwargs, solidity_meta, final_bytecode
