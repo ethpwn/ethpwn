@@ -262,9 +262,8 @@ class TransactionDebugTarget:
         self.target_address = to
         self.calldata = calldata
 
-        # TODO pull default account and private key from ethpwn
         self.source_address = kwargs.pop('sender', None) or wallet_conf.address
-        self.block_number = kwargs.pop('block_number', self.w3.eth.block_number)
+        self.block_number = kwargs.pop('block_number', None) or  self.w3.eth.block_number
 
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
