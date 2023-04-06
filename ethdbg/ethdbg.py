@@ -272,8 +272,11 @@ class EthDbgShell(cmd.Cmd):
 
         # The *CALL trace between contracts
         self.callstack = []
-        self.callhistory = list()
 
+        self.root_tree_node = Tree(self.debug_target._target_address)
+        self.curr_tree_node = self.root_tree_node
+        self.list_tree_nodes = [self.curr_tree_node]
+        
         # Recording here the SSTOREs, the dictionary is organized
         # per account so we can keep track of what storages slots have
         # been modified for every single contract that the transaction touched
@@ -502,18 +505,7 @@ class EthDbgShell(cmd.Cmd):
         print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {slot} | Value: {hex(value_read)}')
 
     def do_callhistory(self, arg):
-        # Print the callhistory
-        for call_id, call in enumerate(self.callhistory):
-            call_type, call_target, call_value = call
-            call_target = call_target[::-1][:40][::-1]
-            if call_type == "CALL":
-                print(f'[{call_id}] {PURPLE_COLOR}{call_type:12}{RESET_COLOR} | Target: 0x{call_target} | Value: {call_value}')
-            elif call_type == "DELEGATECALL":
-                print(f'[{call_id}] {RED_COLOR}{call_type:12}{RESET_COLOR} | Target: 0x{call_target} | Value: {call_value}')
-            elif call_type == "STATICCALL":
-                print(f'[{call_id}] {BLUE_COLOR}{call_type:12}{RESET_COLOR} | Target: 0x{call_target} | Value: {call_value}')
-            else:
-                pass
+        rich_print(self.root_tree_node)
 
     @only_when_started
     def do_sstores(self, arg):
@@ -746,7 +738,7 @@ class EthDbgShell(cmd.Cmd):
         max_pc_length = max(len('CallSite'), max((len(call.callsite) for call in self.callstack), default=0))
         calltype_string_legend = 'CallType'.ljust(max_call_opcode_length)
         callsite_string_legend = 'CallSite'.rjust(max_pc_length)
-        legend = f'{"[ Legend: Address":42} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":42} | msg.value ]\n'
+        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | msg.value ]\n'
         for call in self.callstack[::-1]:
             color = ''
             if call.calltype == "CALL":
@@ -1182,7 +1174,9 @@ class EthDbgShell(cmd.Cmd):
                                         hex(pc)
                                         )
                 self.callstack.append(new_callframe)
-                self.callhistory.append(("CALL", contract_target, value_sent))
+                new_tree_node = self.curr_tree_node.add(f"{PURPLE_COLOR}CALL{RESET_COLOR} 0x{contract_target[::-1][:40][::-1]}")
+                self.curr_tree_node = new_tree_node
+                self.list_tree_nodes.append(new_tree_node)
 
             elif opcode.mnemonic == "DELEGATECALL":
                 contract_target = computation._stack.values[-2]
@@ -1200,7 +1194,10 @@ class EthDbgShell(cmd.Cmd):
                                         hex(pc)
                                         )
                 self.callstack.append(new_callframe)
-                self.callhistory.append(("DELEGATECALL", contract_target, value_sent))
+                new_tree_node = self.curr_tree_node.add(f"{RED_COLOR}DELEGATECALL{RESET_COLOR} 0x{contract_target[::-1][:40][::-1]}")
+                self.curr_tree_node = new_tree_node
+                self.list_tree_nodes.append(new_tree_node)
+
 
             elif opcode.mnemonic == "STATICCALL":
                 contract_target = computation._stack.values[-2]
@@ -1219,8 +1216,11 @@ class EthDbgShell(cmd.Cmd):
                                             hex(pc)
                                             )
                     self.callstack.append(new_callframe)
-                    self.callhistory.append(("STATICCALL", contract_target, value_sent))
-
+                    new_tree_node = self.curr_tree_node.add(f"{BLUE_COLOR}STATICCALL{RESET_COLOR} 0x{contract_target[::-1][:40][::-1]}")
+                    self.curr_tree_node = new_tree_node
+                    self.list_tree_nodes.append(new_tree_node)
+                else:
+                    self.curr_tree_node.add(f"{BLUE_COLOR}STATICCALL{RESET_COLOR} {contract_target[::-1][:40][::-1]}")
 
             elif opcode.mnemonic == "CREATE":
                 contract_value = HexBytes(computation._stack.values[-1][1]).hex()
@@ -1235,14 +1235,18 @@ class EthDbgShell(cmd.Cmd):
                     hex(pc)
                 )
                 self.callstack.append(new_callframe)
-
-
+                new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE{RESET_COLOR} 0x0")
+                self.curr_tree_node = new_tree_node
+                self.list_tree_nodes.append(new_tree_node)
 
             else:
                 print(f"Plz add support for {opcode.mnemonic}")
 
         if opcode.mnemonic in RETURN_OPCODES:
             self.callstack.pop()
+            if len(self.list_tree_nodes) > 1:
+                old_root = self.list_tree_nodes.pop()
+                self.curr_tree_node = self.list_tree_nodes[-1]
 
         # Execute the opcode!
         opcode(computation=computation)
