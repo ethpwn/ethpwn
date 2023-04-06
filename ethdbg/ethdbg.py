@@ -1174,7 +1174,7 @@ class EthDbgShell(cmd.Cmd):
                                         hex(pc)
                                         )
                 self.callstack.append(new_callframe)
-                new_tree_node = self.curr_tree_node.add(f"{PURPLE_COLOR}CALL{RESET_COLOR} 0x{contract_target[::-1][:40][::-1]}")
+                new_tree_node = self.curr_tree_node.add(f"{PURPLE_COLOR}CALL{RESET_COLOR} {contract_target}")
                 self.curr_tree_node = new_tree_node
                 self.list_tree_nodes.append(new_tree_node)
 
@@ -1194,7 +1194,7 @@ class EthDbgShell(cmd.Cmd):
                                         hex(pc)
                                         )
                 self.callstack.append(new_callframe)
-                new_tree_node = self.curr_tree_node.add(f"{RED_COLOR}DELEGATECALL{RESET_COLOR} 0x{contract_target[::-1][:40][::-1]}")
+                new_tree_node = self.curr_tree_node.add(f"{RED_COLOR}DELEGATECALL{RESET_COLOR} {contract_target}")
                 self.curr_tree_node = new_tree_node
                 self.list_tree_nodes.append(new_tree_node)
 
@@ -1216,11 +1216,11 @@ class EthDbgShell(cmd.Cmd):
                                             hex(pc)
                                             )
                     self.callstack.append(new_callframe)
-                    new_tree_node = self.curr_tree_node.add(f"{BLUE_COLOR}STATICCALL{RESET_COLOR} 0x{contract_target[::-1][:40][::-1]}")
+                    new_tree_node = self.curr_tree_node.add(f"{BLUE_COLOR}STATICCALL{RESET_COLOR} {contract_target}")
                     self.curr_tree_node = new_tree_node
                     self.list_tree_nodes.append(new_tree_node)
                 else:
-                    self.curr_tree_node.add(f"{BLUE_COLOR}STATICCALL{RESET_COLOR} {contract_target[::-1][:40][::-1]}")
+                    self.curr_tree_node.add(f"{BLUE_COLOR}STATICCALL{RESET_COLOR} {contract_target}")
 
             elif opcode.mnemonic == "CREATE":
                 contract_value = HexBytes(computation._stack.values[-1][1]).hex()
