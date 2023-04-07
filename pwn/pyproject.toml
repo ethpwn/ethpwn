@@ -41,6 +41,7 @@ keywords = [
     "ctf",
     "security",
     "testing",
+    "debugging",
 ]
 
 classifiers = [

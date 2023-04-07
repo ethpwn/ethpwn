@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 
-import cmd
-from typing import List
-from hexbytes import HexBytes
-import rich
-
-import web3
 import argparse
 import functools
 import os
-import json
 import re
 import sys
+import cmd
+from typing import List
+
 import sha3
-from breakpoint import Breakpoint, ETH_ADDRESS
+from hexbytes import HexBytes
+
+import rich
+from rich import print as rich_print
+from rich.table import Table
+from rich.tree import Tree
 
 from ethpwn.prelude import *
 from ethpwn.pyevmasm_fixed import disassemble_one, Instruction
 from ethpwn.config.wallets import get_wallet
 
-from evm import *
-from transaction_debug_target import TransactionDebugTarget
-from utils import *
-from ethdbg_exceptions import *
+from breakpoint import Breakpoint, ETH_ADDRESS
 
-from rich import print as rich_print, inspect as rich_inspect
-from rich.table import Table
-from rich.tree import Tree
+from transaction_debug_target import TransactionDebugTarget
+from evm import *
+from utils import *
+from ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, RestartDbgException
+
 
 DEFAULT_NODE_URL = "ws://128.111.49.122:8546"
 
@@ -276,7 +276,7 @@ class EthDbgShell(cmd.Cmd):
         self.root_tree_node = Tree(self.debug_target._target_address)
         self.curr_tree_node = self.root_tree_node
         self.list_tree_nodes = [self.curr_tree_node]
-        
+
         # Recording here the SSTOREs, the dictionary is organized
         # per account so we can keep track of what storages slots have
         # been modified for every single contract that the transaction touched
