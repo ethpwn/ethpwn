@@ -497,12 +497,12 @@ class EthDbgShell(cmd.Cmd):
             if self.started:
                 value_read = self.comp.state.get_storage(address, slot)
             else:
-                value_read = self.w3.eth.get_storage_at(address, slot)
+                value_read = self.w3.eth.get_storage_at(address, slot, self.debug_target.block_number)
         except Exception as e:
             print("Something went wrong while fetching storage:")
             print(f' Error: {RED_COLOR}{e}{RESET_COLOR}')
 
-        print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {slot} | Value: {hex(value_read)}')
+        print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {slot} | Value: {HexBytes(value_read).hex()}')
 
     def do_callhistory(self, arg):
         rich_print(self.root_tree_node)
@@ -526,12 +526,12 @@ class EthDbgShell(cmd.Cmd):
         if arg and arg in self.sloads.keys():
             sloads_account = self.sloads[arg]
             for sload_slot, sload_val in sloads_account.items():
-                print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {sload_slot} | Value: {hex(sload_val)}')
+                print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {sload_slot} | Value: {HexBytes(sload_val).hex()}')
         else:
             for ref_account, sloads in self.sloads.items():
                 print(f'Account: {BOLD_TEXT}{BLUE_COLOR}{ref_account}{RESET_COLOR}:')
                 for sload_slot, sload_val in sloads.items():
-                    print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {sload_slot} | Value: {hex(sload_val)}')
+                    print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {sload_slot} | Value: {HexBytes(sload_val).hex()}')
 
     def do_breaks(self,arg):
         # Print all the breaks

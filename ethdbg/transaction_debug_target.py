@@ -241,6 +241,9 @@ class TransactionDebugTarget:
         self.target_address = kwargs.pop('to', None) or tx_data.get('to', None)
         self.source_address = kwargs.pop('sender', None) or tx_data.get('from', None)
         self.calldata = kwargs.pop('calldata', None) or kwargs.pop('input', None) or tx_data.get('input', None)
+        self.block_number = kwargs.pop('block_number', None) or self.w3.eth.block_number
+        if type(self.block_number) == str:
+            self.block_number = int(self.block_number, 10)
 
         for k, v in tx_data.items():
             k_snake = to_snake_case(k)
