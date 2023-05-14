@@ -161,6 +161,7 @@ class AccountDB(AccountDatabaseAPI):
     # Storage
     #
     def get_storage(self, address: Address, slot: int, from_journal: bool = True) -> int:
+        assert(False)
         validate_canonical_address(address, title="Storage Address")
         validate_uint256(slot, title="Storage Slot")
 
@@ -228,10 +229,12 @@ class AccountDB(AccountDatabaseAPI):
                 yield address, store.get_changed_root()
 
     def _get_storage_root(self, address: Address) -> Hash32:
+        assert(False)
         account = self._get_account(address)
         return account.storage_root
 
     def _set_storage_root(self, address: Address, new_storage_root: Hash32) -> None:
+        assert(False)
         account = self._get_account(address)
         self._set_account(address, account.copy(storage_root=new_storage_root))
 
@@ -266,12 +269,14 @@ class AccountDB(AccountDatabaseAPI):
     # Nonce
     #
     def get_nonce(self, address: Address) -> int:
+        assert(False)
         validate_canonical_address(address, title="Storage Address")
 
         account = self._get_account(address)
         return account.nonce
 
     def set_nonce(self, address: Address, nonce: int) -> None:
+        assert(False)
         validate_canonical_address(address, title="Storage Address")
         validate_uint256(nonce, title="Nonce")
 
@@ -279,6 +284,7 @@ class AccountDB(AccountDatabaseAPI):
         self._set_account(address, account.copy(nonce=nonce))
 
     def increment_nonce(self, address: Address) -> None:
+        assert(False)
         current_nonce = self.get_nonce(address)
         self.set_nonce(address, current_nonce + 1)
 
@@ -301,6 +307,7 @@ class AccountDB(AccountDatabaseAPI):
                     self._accessed_bytecodes.add(address)
 
     def set_code(self, address: Address, code: bytes) -> None:
+        assert(False)
         validate_canonical_address(address, title="Storage Address")
         validate_is_bytes(code, title="Code")
 
@@ -380,11 +387,12 @@ class AccountDB(AccountDatabaseAPI):
             return b''
 
     def _get_account(self, address: Address, from_journal: bool = True) -> Account:
+        assert(False)
         if from_journal and address in self._account_cache:
             return self._account_cache[address]
 
         rlp_account = self._get_encoded_account(address, from_journal)
-
+        
         if rlp_account:
             account = rlp.decode(rlp_account, sedes=Account)
         else:

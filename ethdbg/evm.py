@@ -38,8 +38,12 @@ import eth.vm.forks.arrow_glacier
 import eth.vm.forks.arrow_glacier.state
 import eth.vm.forks.arrow_glacier.computation
 
+# I guess this will be replaced by ShanghaiBlockHeader
+from eth.vm.forks.paris.blocks import ParisBlockHeader
+
 from eth_account import Account
 import eth_account.signers.local
+from ethpwn.prelude import *
 
 OpcodeHook = typing.Callable[[Opcode, ComputationAPI], typing.Any]
 
@@ -199,6 +203,27 @@ ALL_EVM_OPCODES = [
      'SELFDESTRUCT'                                                                                                                                                                     
      ]  
 
+def get_w3_provider():
+    web3_host = 'ws://128.111.49.122:8546'
+    if web3_host.startswith('http'):
+        context.connect_http(
+            web3_host
+        )
+    elif web3_host.startswith('ws'):
+        context.connect_websocket(
+            web3_host,
+            websocket_timeout=60 * 5,
+            websocket_kwargs={
+                'max_size': 1024 * 1024 * 1024,
+            },
+        )
+    else:
+        raise Exception("Unknown web3 provider")
+
+    w3 = context.w3
+    assert w3.is_connected()
+    return w3
+
 
 # STUBS
 # ============================
@@ -225,6 +250,8 @@ class StubMemoryDB(MemoryDB):
 
     def __getitem__(self, key: bytes) -> bytes:
         if not super()._exists(key):
+            # TODO this will be gone, we will stub it in MyAccountDb
+            assert(False)
             got = self._w3.provider.make_request('debug_dbGet', ['0x' + bytes(key).hex()])
             b = bytes.fromhex(got['result'][2:])
             super().__setitem__(key=key, value=b)
@@ -260,26 +287,28 @@ class MyChainDB(ChainDB):
 
         Raises BlockNotFound if it is not present in the db.
         """
-        validate_word(block_hash, title="Block Hash")
-        try:
-            bblock_number = db[b'H' + bytes(block_hash)]
-            block_number = int.from_bytes(bblock_number, byteorder='big', signed=False)
-            try:
-                header_rlp = db[
-                    b'h' +
-                    int.to_bytes(block_number, length=8, signed=False, byteorder='big') +
-                    bytes(block_hash)
-                ]
-            except KeyError:
-                # might be in the freezer
-                resp = provider.make_request('debug_dbAncient', ['headers', block_number])
-                if 'result' in resp:
-                    header_rlp = bytes.fromhex(resp['result'][2:])
-                else:
-                    raise
-        except KeyError:
-            raise HeaderNotFound(f"No header with hash {encode_hex(block_hash)} found")
-        return _decode_block_header(header_rlp)
+        w3 = get_w3_provider()
+        block = w3.eth.get_block(block_hash)
+        decoded_block_header = ParisBlockHeader(
+            difficulty       = 0,
+            block_number     = block['number'],
+            gas_limit        = block['gasLimit'],
+            timestamp        = block['timestamp'],
+            coinbase         = bytes.fromhex(block['miner'][2:]),
+            parent_hash      = bytes(block['parentHash']),
+            # uncles_hash      = bytes(block.block['uncles']), # NOTE: excluded because web3py give us the wrong type (list vs hash)
+            state_root       = bytes(block['stateRoot']),
+            transaction_root = bytes(block['transactionsRoot']),
+            receipt_root     = bytes(block['receiptsRoot']),
+            bloom            = int.from_bytes(block['logsBloom'], byteorder='big', signed=False),
+            gas_used         = int(block['gasUsed']),
+            extra_data       = bytes(block['extraData']),
+            mix_hash         = bytes(block['mixHash']),
+            nonce            = bytes(block['nonce']),
+            base_fee_per_gas = int(block.get('baseFeePerGas'), 0)
+        )
+
+        return decoded_block_header
 
 # ============================
 
@@ -332,33 +361,30 @@ def to_snake_case(s: str) -> str:
     return ''.join(['_' + c.lower() if c.isupper() else c for c in s]).lstrip('_')
 
 def build_block_header(w3: web3.Web3, block_number: int) -> BlockHeader:
-    """
-    Load a block header from geth in the format pyevm likes (not json)
-    """
+    
+    block = w3.eth.get_block(block_number)
 
-    try:
-        result = w3.provider.make_request('debug_getRawHeader', [hex(block_number)])
-        b = bytes.fromhex(result['result'][2:])
-        return _decode_block_header(b)
-    except Exception:
-
-        if w3.eth.chain_id == 11155111:
-            block = w3.eth.get_block(block_number)
-            BlockHeader = eth.vm.forks.paris.blocks.ParisBlockHeader
-
-            block_kwargs = {}
-            for key, value in block.items():
-                key_snake = to_snake_case(key)
-                if key_snake in BlockHeader._meta.field_names:
-                    block_kwargs[key_snake] = value
-
-            header = BlockHeader(
-                block_number=block_number,
-                **block_kwargs
-            )
-            return header
-        else:
-            raise
+    # TODO Given a vm we should fetch the righ block header class 
+    decoded_block_header = ParisBlockHeader(
+        difficulty       = 0,
+        block_number     = block['number'],
+        gas_limit        = block['gasLimit'],
+        timestamp        = block['timestamp'],
+        coinbase         = bytes.fromhex(block['miner'][2:]),
+        parent_hash      = bytes(block['parentHash']),
+        # uncles_hash      = bytes(block.block['uncles']), # NOTE: excluded because web3py give us the wrong type (list vs hash)
+        state_root       = bytes(block['stateRoot']),
+        transaction_root = bytes(block['transactionsRoot']),
+        receipt_root     = bytes(block['receiptsRoot']),
+        bloom            = int.from_bytes(block['logsBloom'], byteorder='big', signed=False),
+        gas_used         = int(block['gasUsed']),
+        extra_data       = bytes(block['extraData']),
+        mix_hash         = bytes(block['mixHash']),
+        nonce            = bytes(block['nonce']),
+        base_fee_per_gas = int(block.get('baseFeePerGas', 0))
+    )
+    
+    return decoded_block_header
 
 
 def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> typing.Type[VM]:
@@ -400,42 +426,83 @@ def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> ty
 
         most code copy+pasted from pyevm
         """
+        _w3 = get_w3_provider()
         called_set_balance = False
 
+        storage_cache = {}
+        balance_cache = {}
+        nonce_cache = {}
+        code_cache = {}
+        
+        def _get_account(self, address):
+            from eth.rlp.accounts import Account
+            #print(f"Asking for {address.hex()}")
+            #import ipdb; ipdb.set_trace()
+            nonce = self._w3.eth.get_transaction_count(address, block_number)
+            balance = self._w3.eth.get_balance(address, block_number)
+            account = Account(nonce=nonce, balance=balance)
+            return account
+
+        def account_exists(self, address):
+            return True
+
+        def get_storage(self, address: Address, slot: int, from_journal: bool = True) -> int:
+            addr = address.hex()
+            if addr not in self.storage_cache.keys():                
+                self.storage_cache[addr] = {}
+                self.storage_cache[addr][slot] = None
+
+                data = int.from_bytes(self._w3.eth.get_storage_at(address, slot, block_identifier=block_number), byteorder='big')
+                #print(f'Got storage for {address.hex()} at slot {slot}, value {hex(data)} (web3) block {block_number}')
+                self.storage_cache[addr][slot] = data
+
+            elif slot not in self.storage_cache[addr].keys():
+                self.storage_cache[addr][slot] = None
+                data = int.from_bytes(self._w3.eth.get_storage_at(address, slot, block_identifier=block_number), byteorder='big')
+                #print(f'Got storage for {address.hex()} at slot {slot}, value {hex(data)} (web3) block {block_number}')
+                self.storage_cache[addr][slot] = data
+            else:
+                data = self.storage_cache[addr][slot]
+                #print(f'Got storage for {address.hex()} at slot {slot}, value {hex(data)} (cache)')
+
+            return data
+        
+        def set_storage(self, address: Address, slot: int, value: int) -> None:
+            #print(f'Setting storage for {address.hex()} at slot {slot}, value {value}')
+            addr = address.hex()
+            if addr not in self.storage_cache.keys():
+                self.storage_cache[addr] = {}
+                self.storage_cache[addr][slot] = value
+            else:
+                self.storage_cache[addr][slot] = value
+        
+        def get_nonce(self, address):
+            addr = address.hex()
+            if addr not in self.nonce_cache.keys():
+                self.nonce_cache[addr] = self._w3.eth.get_transaction_count(address, block_number)
+            return self.nonce_cache[addr]
+        
+        def set_nonce(self, address: Address, nonce: int) -> None:
+            addr = address.hex()
+            self.nonce_cache[addr] = nonce
+
         def get_code(self, address: Address) -> bytes:
-            validate_canonical_address(address, title="Storage Address")
+            validate_canonical_address(address, title="Storage Address")    
+            return self._w3.eth.get_code(address, block_number)
 
-            code_hash = self.get_code_hash(address)
-            if code_hash == EMPTY_SHA3:
-                return b''
-            else:
-                try:
-                    return self._journaldb[b'c' + bytes(code_hash)]
-                except KeyError:
-                    raise MissingBytecode(code_hash) from KeyError
-                finally:
-                    if code_hash in self._get_accessed_node_hashes():
-                        self._accessed_bytecodes.add(address)
-
-        def set_code(self, address: Address, code: bytes) -> None:
-            validate_canonical_address(address, title="Storage Address")
-            validate_is_bytes(code, title="Code")
-
-            account = self._get_account(address)
-
-            code_hash = keccak(code)
-            self._journaldb[b'c' + bytes(code_hash)] = code
-            self._set_account(address, account.copy(code_hash=code_hash))
-
+        def increment_nonce(self, address: Address) -> None:
+            current_nonce = self.get_nonce(address)
+            self.set_nonce(address, current_nonce + 1)
+        
         def get_balance(self, address: Address) -> int:
-            if not self.called_set_balance:
-                return 10000000000000000000
-            else:
-                return super().get_balance(address)
-
+            addr = address.hex()
+            if addr not in self.balance_cache.keys():
+                self.balance_cache[addr] = self._w3.eth.get_balance(address, block_number)
+            return self.balance_cache[addr]
+            
         def set_balance(self, address: Address, balance: int) -> None:
-            self.called_set_balance = True
-            return super().set_balance(address, balance)
+            addr = address.hex()
+            self.balance_cache[addr] = balance
 
     class MyStateClass(TargetStateClass):
         """only used to pass account db stub"""

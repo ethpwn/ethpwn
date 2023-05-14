@@ -419,7 +419,6 @@ class EthDbgShell(cmd.Cmd):
             eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, self.debug_target.source_address)
         else:
             eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
-
         vm, header = get_evm(self.w3, self.debug_target.block_number-1, self._myhook)
 
         assert self.debug_target.fork is None or self.debug_target.fork == vm.fork
@@ -1328,6 +1327,8 @@ if __name__ == "__main__":
             print("Program terminated.")
             continue
         except RestartDbgException:
-            old_breaks = ethdbgshell.breakpoints
-            ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, breaks=old_breaks)
-            ethdbgshell.cmdqueue.append("start\n")
+            import ipdb; ipdb.set_trace()
+            break
+            #old_breaks = ethdbgshell.breakpoints
+            #ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, breaks=old_breaks)
+            #ethdbgshell.cmdqueue.append("start\n")
