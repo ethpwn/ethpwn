@@ -529,6 +529,7 @@ def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> ty
         # Extremely smart way to detect if stuff is already hooked, LOL.
         if "stub" in str(MyStateClass.computation_class.opcodes[0]):
             for i, opcode in sorted(MyStateClass.computation_class.opcodes.items()):
+                # Restore the old handlers
                 MyStateClass.computation_class.opcodes[i] = EVM_OLD_HANDLERS[i]
 
         # stub opcodes with a hook
