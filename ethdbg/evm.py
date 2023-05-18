@@ -52,7 +52,7 @@ CALL_OPCODES = ['CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL', 'CREATE', 'CRE
 RETURN_OPCODES = ['RETURN', 'REVERT', 'STOP']
 
 PRECOMPILED_CONTRACTS = {
-    'ecRecover': 0x1, 
+    'ecRecover': 0x1,
     'SHA2-256': 0x2,
     'RIPEMD-160': 0x3,
     'identity': 0x4,
@@ -63,145 +63,145 @@ PRECOMPILED_CONTRACTS = {
     'blake2f': 0x9
 }
 
-ALL_EVM_OPCODES = [                                                                                                                                                                            
-     'STOP',                                                                                                                                                                            
-     'ADD',                                                                                                                                                                             
-     'MUL',                                                                                                                                                                             
-     'SUB',                                                                                                                                                                             
-     'DIV',                                                                                                                                                                             
-     'SDIV',                                                                                                                                                                            
-     'MOD',                                                                                                                                                                             
-     'SMOD',                                                                                                                                                                            
-     'ADDMOD',                                                                                                                                                                          
-     'MULMOD',                                                                                                                                                                          
-     'EXP',                                                                                                                                                                             
-     'SIGNEXTEND',                                                                                                                                                                      
-     'LT',                                                                                                                                                                              
-     'GT',                                                                                                                                                                              
-     'SLT',                                                                                                                                                                             
-     'SGT',                                                                                                                                                                             
-     'EQ',                                                                                                                                                                              
-     'NOT',                                                                                                                                                                             
-     'AND',                                                                                                                                                                             
-     'OR',                                                                                                                                                                              
-     'XOR',                                                                                                                                                                             
-     'BYTE',                                                                                                                                                                            
-     'SHL',                                                                                                                                                                             
-     'SHR',                                                                                                                                                                             
-     'SAR',                                                                                                                                                                             
-     'SHA3',                                                                                                                                                                            
-     'ADDRESS',                                                                                                                                                                         
-     'BALANCE',                                                                                                                                                                         
-     'ORIGIN',                                                                                                                                                                          
-     'CALLER',                                                                                                                                                                          
-     'CALLVALUE',                                                                                                                                                                       
-     'CALLDATALOAD',                                                                                                                                                                    
-     'CALLDATASIZE',                                                                                                                                                                    
-     'CALLDATACOPY',                                                                                                                                                                    
-     'CODESIZE',                                                                                                                                                                        
-     'CODECOPY',                                                                                                                                                                        
-     'GASPRICE',                                                                                                                                                                        
-     'EXTCODESIZE',                                                                                                                                                                     
-     'EXTCODECOPY',                                                                                                                                                                     
-     'RETURNDATASIZE',                                                                                                                                                                  
-     'RETURNDATACOPY',                                                                                                                                                                  
-     'BLOCKHASH',                                                                                                                                                                       
-     'COINBASE',                                                                                                                                                                        
-     'TIMESTAMP',                                                                                                                                                                       
-     'NUMBER',                                                                                                                                                                          
-     'DIFFICULTY',                                                                                                                                                                      
-     'GASLIMIT',                                                                                                                                                                        
-     'POP',                                                                                                                                                                             
-     'MLOAD',                                                                                                                                                                           
-     'MSTORE',                                                                                                                                                                          
-     'MSTORE8',                                                                                                                                                                         
-     'SLOAD',                                                                                                                                                                           
-     'SSTORE',                                                                                                                                                                          
-     'JUMP',                                                                                                                                                                            
-     'JUMPI',                                                                                                                                                                           
-     'PC',                                                                                                                                                                              
-     'MSIZE',                                                                                                                                                                           
-     'GAS',                                                                                                                                                                             
-     'JUMPDEST',                                                                                                                                                                        
-     'PUSH1',                                                                                                                                                                           
-     'PUSH2',                                                                                                                                                                           
-     'PUSH3',                                                                                                                                                                           
-     'PUSH4',                                                                                                                                                                           
-     'PUSH5',                                                                                                                                                                           
-     'PUSH6',                                                                                                                                                                           
-     'PUSH7',                                                                                                                                                                           
-     'PUSH8',                                                                                                                                                                           
-     'PUSH9',                                                                                                                                                                           
-     'PUSH10',                                                                                                                                                                          
-     'PUSH11',                                                                                                                                                                          
-     'PUSH12',                                                                                                                                                                          
-     'PUSH13',                                                                                                                                                                          
-     'PUSH14',                                                                                                                                                                          
-     'PUSH15',                                                                                                                                                                          
-     'PUSH16',                                                                                                                                                                          
-     'PUSH17',                                                                                                                                                                          
-     'PUSH18',                                                                                                                                                                          
-     'PUSH19',                                                                                                                                                                          
-     'PUSH20',                                                                                                                                                                          
-     'PUSH21',                                                                                                                                                                          
-     'PUSH22',                                                                                                                                                                          
-     'PUSH23',                                                                                                                                                                          
-     'PUSH24',                                                                                                                                                                          
-     'PUSH25',                                                                                                                                                                          
-     'PUSH26',                                                                                                                                                                          
-     'PUSH27',                                                                                                                                                                          
-     'PUSH28',                                                                                                                                                                          
-     'PUSH29',                                                                                                                                                                          
-     'PUSH30',                                                                                                                                                                          
-     'PUSH31',                                                                                                                                                                          
-     'PUSH32',                                                                                                                                                                          
-     'DUP1',                                                                                                                                                                            
-     'DUP2',                                                                                                                                                                            
-     'DUP3',                                                                                                                                                                            
-     'DUP4',                                                                                                                                                                            
-     'DUP5',                                                                                                                                                                            
-     'DUP6',                                                                                                                                                                            
-     'DUP7',                                                                                                                                                                            
-     'DUP8',                                                                                                                                                                            
-     'DUP9',                                                                                                                                                                            
-     'DUP10',                                                                                                                                                                           
-     'DUP11',                                                                                                                                                                           
-     'DUP12',                                                                                                                                                                           
-     'DUP13',                                                                                                                                                                           
-     'DUP14',                                                                                                                                                                           
-     'DUP15',                                                                                                                                                                           
-     'DUP16',                                                                                                                                                                           
-     'SWAP1',                                                                                                                                                                           
-     'SWAP2',                                                                                                                                                                           
-     'SWAP3',                                                                                                                                                                           
-     'SWAP4',                                                                                                                                                                           
-     'SWAP5',                                                                                                                                                                           
-     'SWAP6',                                                                                                                                                                           
-     'SWAP7',                                                                                                                                                                           
-     'SWAP8',                                                                                                                                                                           
-     'SWAP9',                                                                                                                                                                           
-     'SWAP10',                                                                                                                                                                          
-     'SWAP11',                                                                                                                                                                          
-     'SWAP12',                                                                                                                                                                          
-     'SWAP13',                                                                                                                                                                          
-     'SWAP14',                                                                                                                                                                          
-     'SWAP15',                                                                                                                                                                          
-     'SWAP16',                                                                                                                                                                          
-     'LOG0',                                                                                                                                                                            
-     'LOG1',                                                                                                                                                                            
-     'LOG2',                                                                                                                                                                            
-     'LOG3',                                                                                                                                                                            
-     'LOG4',                                                                                                                                                                            
-     'CREATE',                                                                                                                                                                          
-     'CALL',                                                                                                                                                                            
-     'CALLCODE',                                                                                                                                                                        
-     'RETURN',                                                                                                                                                                          
-     'DELEGATECALL',                                                                                                                                                                    
-     'STATICCALL',                                                                                                                                                                      
-     'REVERT',                                                                                                                                                                          
-     'INVALID',                                                                                                                                                                         
-     'SELFDESTRUCT'                                                                                                                                                                     
-     ]  
+ALL_EVM_OPCODES = [
+     'STOP',
+     'ADD',
+     'MUL',
+     'SUB',
+     'DIV',
+     'SDIV',
+     'MOD',
+     'SMOD',
+     'ADDMOD',
+     'MULMOD',
+     'EXP',
+     'SIGNEXTEND',
+     'LT',
+     'GT',
+     'SLT',
+     'SGT',
+     'EQ',
+     'NOT',
+     'AND',
+     'OR',
+     'XOR',
+     'BYTE',
+     'SHL',
+     'SHR',
+     'SAR',
+     'SHA3',
+     'ADDRESS',
+     'BALANCE',
+     'ORIGIN',
+     'CALLER',
+     'CALLVALUE',
+     'CALLDATALOAD',
+     'CALLDATASIZE',
+     'CALLDATACOPY',
+     'CODESIZE',
+     'CODECOPY',
+     'GASPRICE',
+     'EXTCODESIZE',
+     'EXTCODECOPY',
+     'RETURNDATASIZE',
+     'RETURNDATACOPY',
+     'BLOCKHASH',
+     'COINBASE',
+     'TIMESTAMP',
+     'NUMBER',
+     'DIFFICULTY',
+     'GASLIMIT',
+     'POP',
+     'MLOAD',
+     'MSTORE',
+     'MSTORE8',
+     'SLOAD',
+     'SSTORE',
+     'JUMP',
+     'JUMPI',
+     'PC',
+     'MSIZE',
+     'GAS',
+     'JUMPDEST',
+     'PUSH1',
+     'PUSH2',
+     'PUSH3',
+     'PUSH4',
+     'PUSH5',
+     'PUSH6',
+     'PUSH7',
+     'PUSH8',
+     'PUSH9',
+     'PUSH10',
+     'PUSH11',
+     'PUSH12',
+     'PUSH13',
+     'PUSH14',
+     'PUSH15',
+     'PUSH16',
+     'PUSH17',
+     'PUSH18',
+     'PUSH19',
+     'PUSH20',
+     'PUSH21',
+     'PUSH22',
+     'PUSH23',
+     'PUSH24',
+     'PUSH25',
+     'PUSH26',
+     'PUSH27',
+     'PUSH28',
+     'PUSH29',
+     'PUSH30',
+     'PUSH31',
+     'PUSH32',
+     'DUP1',
+     'DUP2',
+     'DUP3',
+     'DUP4',
+     'DUP5',
+     'DUP6',
+     'DUP7',
+     'DUP8',
+     'DUP9',
+     'DUP10',
+     'DUP11',
+     'DUP12',
+     'DUP13',
+     'DUP14',
+     'DUP15',
+     'DUP16',
+     'SWAP1',
+     'SWAP2',
+     'SWAP3',
+     'SWAP4',
+     'SWAP5',
+     'SWAP6',
+     'SWAP7',
+     'SWAP8',
+     'SWAP9',
+     'SWAP10',
+     'SWAP11',
+     'SWAP12',
+     'SWAP13',
+     'SWAP14',
+     'SWAP15',
+     'SWAP16',
+     'LOG0',
+     'LOG1',
+     'LOG2',
+     'LOG3',
+     'LOG4',
+     'CREATE',
+     'CALL',
+     'CALLCODE',
+     'RETURN',
+     'DELEGATECALL',
+     'STATICCALL',
+     'REVERT',
+     'INVALID',
+     'SELFDESTRUCT'
+     ]
 
 def get_w3_provider():
     web3_host = 'ws://128.111.49.122:8546'
@@ -361,10 +361,10 @@ def to_snake_case(s: str) -> str:
     return ''.join(['_' + c.lower() if c.isupper() else c for c in s]).lstrip('_')
 
 def build_block_header(w3: web3.Web3, block_number: int) -> BlockHeader:
-    
+
     block = w3.eth.get_block(block_number)
 
-    # TODO Given a vm we should fetch the righ block header class 
+    # TODO Given a vm we should fetch the righ block header class
     decoded_block_header = ParisBlockHeader(
         difficulty       = 0,
         block_number     = block['number'],
@@ -383,15 +383,17 @@ def build_block_header(w3: web3.Web3, block_number: int) -> BlockHeader:
         nonce            = bytes(block['nonce']),
         base_fee_per_gas = int(block.get('baseFeePerGas', 0))
     )
-    
+
     return decoded_block_header
 
 
+EVM_OLD_HANDLERS = {}
 def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> typing.Type[VM]:
     """
     Construct the approprate VM for the given block number, and optionally insert the given hook
     to run after each instruction.
     """
+    global OLD_HANDLER
 
     if chain_id == eth.chains.mainnet.constants.MAINNET_CHAIN_ID:
 
@@ -433,7 +435,7 @@ def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> ty
         balance_cache = {}
         nonce_cache = {}
         code_cache = {}
-        
+
         def _get_account(self, address):
             from eth.rlp.accounts import Account
             #print(f"Asking for {address.hex()}")
@@ -448,7 +450,7 @@ def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> ty
 
         def get_storage(self, address: Address, slot: int, from_journal: bool = True) -> int:
             addr = address.hex()
-            if addr not in self.storage_cache.keys():                
+            if addr not in self.storage_cache.keys():
                 self.storage_cache[addr] = {}
                 self.storage_cache[addr][slot] = None
 
@@ -466,7 +468,7 @@ def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> ty
                 #print(f'Got storage for {address.hex()} at slot {slot}, value {hex(data)} (cache)')
 
             return data
-        
+
         def set_storage(self, address: Address, slot: int, value: int) -> None:
             #print(f'Setting storage for {address.hex()} at slot {slot}, value {value}')
             addr = address.hex()
@@ -475,31 +477,31 @@ def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> ty
                 self.storage_cache[addr][slot] = value
             else:
                 self.storage_cache[addr][slot] = value
-        
+
         def get_nonce(self, address):
             addr = address.hex()
             if addr not in self.nonce_cache.keys():
                 self.nonce_cache[addr] = self._w3.eth.get_transaction_count(address, block_number)
             return self.nonce_cache[addr]
-        
+
         def set_nonce(self, address: Address, nonce: int) -> None:
             addr = address.hex()
             self.nonce_cache[addr] = nonce
 
         def get_code(self, address: Address) -> bytes:
-            validate_canonical_address(address, title="Storage Address")    
+            validate_canonical_address(address, title="Storage Address")
             return self._w3.eth.get_code(address, block_number)
 
         def increment_nonce(self, address: Address) -> None:
             current_nonce = self.get_nonce(address)
             self.set_nonce(address, current_nonce + 1)
-        
+
         def get_balance(self, address: Address) -> int:
             addr = address.hex()
             if addr not in self.balance_cache.keys():
                 self.balance_cache[addr] = self._w3.eth.get_balance(address, block_number)
             return self.balance_cache[addr]
-            
+
         def set_balance(self, address: Address, balance: int) -> None:
             addr = address.hex()
             self.balance_cache[addr] = balance
@@ -521,10 +523,19 @@ def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> ty
         def validate_transaction_against_header(*args, **kwargs):
             # Never check for gasPrice.
             pass
-    
+
+
     if hook is not None:
+        # Extremely smart way to detect if stuff is already hooked, LOL.
+        if "stub" in str(MyStateClass.computation_class.opcodes[0]):
+            for i, opcode in sorted(MyStateClass.computation_class.opcodes.items()):
+                MyStateClass.computation_class.opcodes[i] = EVM_OLD_HANDLERS[i]
+
         # stub opcodes with a hook
         for i, opcode in sorted(MyStateClass.computation_class.opcodes.items()):
+
+            EVM_OLD_HANDLERS[i] = MyStateClass.computation_class.opcodes[i]
+
             def new_call(opcode=opcode, **kwargs): # use opcode=opcode to ensure it's bound to the func
                 return hook(opcode, **kwargs)
 
@@ -538,5 +549,5 @@ def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> ty
 
             # override opcode with our hooked one
             MyStateClass.computation_class.opcodes[i] = opcode_cls()
-    
+
     return MyVM

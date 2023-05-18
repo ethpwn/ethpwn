@@ -62,7 +62,7 @@ def t_dict(d):
    if isinstance(d, list):
       return [t_dict(i) if isinstance(i, (dict, list)) else i for i in d]
    return AttributeDict({to_snake(a):t_dict(b) if isinstance(b, (dict, list)) else b for a, b in d.items()})
-   
+
 
 
 def get_evm(w3, block_number, myhook):
@@ -83,7 +83,7 @@ def get_evm(w3, block_number, myhook):
     header = vm.get_header()
     header = header.copy(gas_used = 0, state_root=state_root)
     #header  = t_dict(header)
-    #import ipdb; ipdb.set_trace()     
+    #import ipdb; ipdb.set_trace()
     execution_context = vm.create_execution_context(
                 header, vm.previous_hashes, vm.chain_context)
     vm._state = vm.get_state_class()(vm.chaindb.db, execution_context, header.state_root)
@@ -1103,8 +1103,6 @@ class EthDbgShell(cmd.Cmd):
         pc = computation.code.program_counter - 1
         self.curr_pc = pc
 
-        #print(f'{hex(self.curr_pc)}{self.callstack}')
-        
         with computation.code.seek(pc):
             opcode_bytes = computation.code.read(64) # max 32 byte immediate + 32 bytes should be enough, right???
 
@@ -1192,6 +1190,7 @@ class EthDbgShell(cmd.Cmd):
                                         "CALL",
                                         hex(pc)
                                         )
+
                 self.callstack.append(new_callframe)
                 new_tree_node = self.curr_tree_node.add(f"{PURPLE_COLOR}CALL{RESET_COLOR} {contract_target}")
                 self.curr_tree_node = new_tree_node
