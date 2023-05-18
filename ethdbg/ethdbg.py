@@ -26,7 +26,7 @@ from transaction_debug_target import TransactionDebugTarget
 from evm import *
 from utils import *
 from ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, RestartDbgException
-
+from hexdump import hexdump
 
 DEFAULT_NODE_URL = "ws://128.111.49.122:8546"
 
@@ -732,8 +732,8 @@ class EthDbgShell(cmd.Cmd):
                     length = int(read_args[1],16)
                 else:
                     length = int(read_args[1],10)
-
-                print(f'{self.comp._memory.read(int(offset,16), length).hex()}')
+                data = self.comp._memory.read(int(offset,16), length)
+                hexdump(data.tobytes())
             except Exception as e:
                 print(f'{RED_COLOR}Error reading memory: {e}{RESET_COLOR}')
     # INTERNALS
