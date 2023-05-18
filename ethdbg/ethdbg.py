@@ -504,12 +504,11 @@ class EthDbgShell(cmd.Cmd):
         address = None
         if ':' in arg1:
             address, slot = arg1.split(':')
-            slot = int(slot, 0)
-            address = HexBytes(address).hex()
+            address = HexBytes(address)
+            slot = int(slot, 16)
         else:
-            slot = int(arg1, 0)
-
-        address = self.comp.msg.storage_address if self.started else self.debug_target.target_address
+            address = self.comp.msg.storage_address if self.started else self.debug_target.target_address
+            slot = int(arg1, 16)
         try:
             if self.started:
                 value_read = self.comp.state.get_storage(address, slot)

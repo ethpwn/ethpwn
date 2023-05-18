@@ -388,6 +388,7 @@ def build_block_header(w3: web3.Web3, block_number: int) -> BlockHeader:
 
 
 EVM_OLD_HANDLERS = {}
+
 def get_vm_for_block(chain_id, block_number: int, hook: OpcodeHook = None) -> typing.Type[VM]:
     """
     Construct the approprate VM for the given block number, and optionally insert the given hook
