@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true # to allow github dependencies
+
+[project]
+name = "ethtools"
+license = {text = "MIT License"}
+version = "0.0.2.1"
+authors = [
+  { name="Lukas Dresel", email="Lukas-Dresel@noreply.github.com" },
+  { name="Fabio Gritti", email="degrigis@ucsb.edu"}
+]
+description = "A swiss army knife package to help with ethereum smart contract exploit interaction, designed with CTF challenges in mind. Some might call it a set of pwn tools for ethereum exploitation."
+readme = "README.md"
+requires-python = ">=3.7"
+
+dependencies = [
+    "web3>=6.0.0",
+    "web3[tester]",
+    "py-solc-x",
+    "requests",
+    "pysha3",
+    "hexbytes",
+
+    # pyevmasm from github, not pypi
+    "pyevmasm @ git+https://github.com/crytic/pyevmasm.git",
+
+    "ansi",
+    "rich",
+    "cbor",
+    "simanneal",
+    "editdistance",
+    "pysha3>=1.0.2",
+    "hexdump",
+
+]
+
+keywords = [
+    "ethereum",
+    "smart-contracts",
+    "exploits",
+    "ctf",
+    "security",
+    "testing",
+    "debugging",
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Natural Language :: English",
+    "Topic :: Security",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/shellphish/ethtools"
+"Bug Tracker" = "https://github.com/shellphish/ethtools/issues"
+
+[project.scripts]
+txdecode = "ethtools.pwn.console_scripts.txdecode:main"
+txdo = "ethtools.pwn.console_scripts.txdo:main"
+ethdbg = "ethtools.dbg.ethdbg:main"
