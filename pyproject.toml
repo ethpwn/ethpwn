@@ -26,7 +26,7 @@ dependencies = [
     "hexbytes",
 
     # pyevmasm from github, not pypi
-    "pyevmasm @ git+https://github.com/crytic/pyevmasm.git",
+    "pyevmasm @ git+https://github.com/shellphish/pyevmasm.git",
 
     "ansi",
     "rich",
