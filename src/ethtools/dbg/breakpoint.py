@@ -1,7 +1,7 @@
 
 import re
 from .ethdbg_exceptions import InvalidBreakpointException
-from .evm import ALL_EVM_OPCODES, ComputationAPI, OpcodeAPI
+from .analyzer import ALL_EVM_OPCODES, ComputationAPI, OpcodeAPI
 
 ALLOWED_COND_BPS = ['addr', 'saddr', 'opcode', 'pc', 'value']
 BPS_RE_PATTERN = r'([a-zA-Z]*)(==|!=|<=|>=|>|<|=)(.*)'

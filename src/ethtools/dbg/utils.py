@@ -20,6 +20,10 @@ BOLD_TEXT = "\033[1m"
 
 FOUR_BYTE_URL = "https://raw.githubusercontent.com/ethereum-lists/4bytes/master/signatures/{}"
 
+def to_snake_case(s: str) -> str:
+    s = s.replace('-', '_')
+    return ''.join(['_' + c.lower() if c.isupper() else c for c in s]).lstrip('_')
+
 def get_terminal_size():
     """Return the current terminal size."""
     if platform.system() == "Windows":

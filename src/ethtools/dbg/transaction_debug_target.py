@@ -2,8 +2,7 @@
 from hexbytes import HexBytes
 import web3
 
-from .evm import to_snake_case
-from .utils import get_chain_name, get_chainid
+from .utils import get_chain_name, get_chainid, to_snake_case
 
 
 class TransactionDebugTarget:

@@ -11,6 +11,7 @@ from typing import List
 
 import sha3
 from hexbytes import HexBytes
+from web3.datastructures import AttributeDict
 
 import rich
 from rich import print as rich_print
@@ -22,13 +23,16 @@ from ..pwn.pyevmasm_fixed import disassemble_one, Instruction
 from ..pwn.config.wallets import get_wallet
 
 from .breakpoint import Breakpoint, ETH_ADDRESS
+from .analyzer import Analyzer
 
 from .transaction_debug_target import TransactionDebugTarget
-from .evm import *
+from .analyzer import *
 from .utils import *
 from .ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, RestartDbgException
 
-DEFAULT_NODE_URL = "ws://128.111.49.122:8546"
+from eth_utils.curried import to_canonical_address
+
+DEFAULT_NODE_URL = "ws://172.17.0.1:8546"
 
 def get_w3_provider(web3_host):
     if web3_host.startswith('http'):
@@ -49,46 +53,6 @@ def get_w3_provider(web3_host):
     w3 = context.w3
     assert w3.is_connected()
     return w3
-
-
-
-import re
-from web3.datastructures import AttributeDict
-
-def to_snake(s):
-  return re.sub('([A-Z]\w+$)', '_\\1', s).lower()
-
-def t_dict(d):
-   if isinstance(d, list):
-      return [t_dict(i) if isinstance(i, (dict, list)) else i for i in d]
-   return AttributeDict({to_snake(a):t_dict(b) if isinstance(b, (dict, list)) else b for a, b in d.items()})
-
-
-
-def get_evm(w3, block_number, myhook):
-    VMClass = get_vm_for_block(w3.eth.chain_id, block_number, myhook)
-
-    db = MyChainDB(AtomicDB(StubMemoryDB(w3)))
-
-    vm = VMClass(
-        header            = build_block_header(w3, block_number),
-        chain_context     = StubChainContext(),
-        chaindb           = db,
-        consensus_context = None,
-    )
-
-    old_block = w3.eth.get_block(block_number-1)
-    state_root = bytes(old_block['stateRoot'])
-
-    header = vm.get_header()
-    header = header.copy(gas_used = 0, state_root=state_root)
-    #header  = t_dict(header)
-    #import ipdb; ipdb.set_trace()
-    execution_context = vm.create_execution_context(
-                header, vm.previous_hashes, vm.chain_context)
-    vm._state = vm.get_state_class()(vm.chaindb.db, execution_context, header.state_root)
-
-    return vm, header
 
 def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexBytes, pc: int):
 
@@ -420,16 +384,24 @@ class EthDbgShell(cmd.Cmd):
         else:
             eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
 
-        vm, header = get_evm(self.w3, self.debug_target.block_number-1, self._myhook)
+        # get the analyzer 
+        analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
+        vm = analyzer.vm
+
+        if self.debug_target.debug_type == "replay":
+            print("Replay not supported yet")
+            assert(False)
+        else:
+            vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 
         assert self.debug_target.fork is None or self.debug_target.fork == vm.fork
-        self.debug_target.set_default('fork', vm.fork)
 
+        self.debug_target.set_default('fork', vm.fork)
         txn = self.debug_target.get_transaction_dict()
         raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
 
         txn = vm.get_transaction_builder().decode(raw_txn)
-
+        
         self.started = True
 
         origin_callframe = CallFrame(
@@ -444,7 +416,7 @@ class EthDbgShell(cmd.Cmd):
         self.temp_break = True
 
         receipt, comp = vm.apply_transaction(
-            header=header,
+            header=vm.get_header(),
             transaction=txn,
         )
 

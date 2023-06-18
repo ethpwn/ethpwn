@@ -19,7 +19,6 @@ requires-python = ">=3.7"
 
 dependencies = [
     "web3>=6.0.0",
-    "web3[tester]",
     "py-solc-x",
     "requests",
     "pysha3",
@@ -27,6 +26,7 @@ dependencies = [
 
     # pyevmasm from github, not pypi
     "pyevmasm @ git+https://github.com/shellphish/pyevmasm.git",
+    "py-evm @ git+https://github.com/ucsb-seclab/py-evm.git",
 
     "ansi",
     "rich",
@@ -35,6 +35,8 @@ dependencies = [
     "editdistance",
     "pysha3>=1.0.2",
     "hexdump",
+    "backoff",
+    "cachetools"
 
 ]
 
@@ -46,6 +48,7 @@ keywords = [
     "security",
     "testing",
     "debugging",
+    "ipdb"
 ]
 
 classifiers = [
