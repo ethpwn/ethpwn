@@ -546,6 +546,63 @@ class Analyzer:
         cls._cache[key] = block
         return block
 
+    def hook_vm(self, hook: typing.Callable[[Opcode, ComputationAPI], None] = None):
+        
+        if hook is not None:
+            # Extremely smart way to detect if stuff is already hooked, LOL.
+            if "stub" in str(self.vm.state.computation_class.opcodes[0]):
+                for i, opcode in sorted(self.vm.state.computation_class.opcodes.items()):
+                    # Restore the old handlers
+                    self.vm.state.computation_class.opcodes[i] = EVM_OLD_HANDLERS[i]
+
+            # stub opcodes with a hook
+            for i, opcode in sorted(self.vm.state.computation_class.opcodes.items()):
+                assert 'stub' not in str(type(opcode))
+                EVM_OLD_HANDLERS[i] = self.vm.state.computation_class.opcodes[i]
+
+                # stupid: fix the fact that py-evm doesn't have a mnemonic set for SELFDESTRUCT
+                # (because it is wrapped with a decorator)
+                if hasattr(opcode, '__wrapped__'):
+                    inner_func = inspect.unwrap(opcode)
+                    mnemonic = inner_func.mnemonic
+                    gas_cost = inner_func.gas_cost
+                    opcode.mnemonic = mnemonic
+                else:
+                    mnemonic = opcode.mnemonic
+                    gas_cost = opcode.gas_cost
+                
+                def new_call(opcode=opcode, **kwargs): # use opcode=opcode to ensure it's bound to the func
+                    return hook(opcode, **kwargs)
+
+                # copy+pasted from pyevm opcode.py
+                props = {
+                    '__call__': staticmethod(new_call),
+                    'mnemonic': opcode.mnemonic,
+                    'gas_cost': opcode.gas_cost,
+                }
+                opcode_cls = type(f"opcode:{opcode.mnemonic}:stub", (Opcode,), props)
+
+                # override opcode with our hooked one
+                self.vm.state.computation_class.opcodes[i] = opcode_cls()
+
+            # stub 'invalid opcode' with a hook
+            if 'stub' not in str(self.vm.state.computation_class.invalid_opcode_class):
+                old_cls = self.vm.state.computation_class.invalid_opcode_class
+
+                def new_invalid_call(opcode: InvalidOpcode, **kwargs):
+                    old_opcode = old_cls(opcode.value)
+
+                    return hook(old_opcode, **kwargs)
+
+                stub_cls = type(
+                    'opcode:invalid:stub',
+                    (self.vm.state.computation_class.invalid_opcode_class,),
+                    {
+                        '__call__': new_invalid_call
+                    }
+                )
+                self.vm.state.computation_class.invalid_opcode_class = stub_cls     
+
 
 def build_transaction(vm: VM, w3: web3.Web3, block_number: int, transaction_index: int) -> SignedTransactionMethods:
     """

@@ -384,14 +384,37 @@ class EthDbgShell(cmd.Cmd):
         else:
             eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
 
-        # get the analyzer 
-        analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
-        vm = analyzer.vm
-
         if self.debug_target.debug_type == "replay":
-            print("Replay not supported yet")
-            assert(False)
+            analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number)
+            vm = analyzer.vm
+            block = self.w3.eth.get_block(self.debug_target.block_number)
+
+            # Now we need to get the position of the transaction in the block
+            for prev_tx in block["transactions"][0:self.debug_target.transaction_index]:
+                print(f'Applying transaction {prev_tx.hex()}')
+                
+                prev_tx_target = TransactionDebugTarget(self.w3)
+                prev_tx_target.replay_transaction(prev_tx)
+                prev_tx_target.set_default('fork', vm.fork)
+                txn = prev_tx_target.get_transaction_dict()
+                #mport ipdb; ipdb.set_trace()
+
+                eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, prev_tx_target.source_address)
+
+                raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
+                txn = vm.get_transaction_builder().decode(raw_txn)
+                #txn, receipt, _ = analyzer.next_transaction()
+                receipt, comp = vm.apply_transaction(
+                    header=vm.get_header(),
+                    transaction=txn,
+                )
+            
+            analyzer.hook_vm(self._myhook)
+
         else:
+            # get the analyzer 
+            analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
+            vm = analyzer.vm
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 
         assert self.debug_target.fork is None or self.debug_target.fork == vm.fork

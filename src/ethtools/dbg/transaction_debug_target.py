@@ -28,6 +28,7 @@ class TransactionDebugTarget:
         self._max_fee_per_gas = None
         self._max_priority_fee_per_gas = None
         self._nonce = None
+        self._tx_index = None
 
         self.debug_type = None
 
@@ -224,11 +225,12 @@ class TransactionDebugTarget:
         if max_priority_fee_per_gas is not None:
             self._max_priority_fee_per_gas = max_priority_fee_per_gas
 
-    def replay_transaction(self, txid, wallet_conf, **kwargs) -> 'TransactionDebugTarget':
+    def replay_transaction(self, txid, **kwargs) -> 'TransactionDebugTarget':
         assert txid is not None
         txid = HexBytes(txid).hex()
 
         tx_data = self.w3.eth.get_transaction(txid)
+        
         self.transaction_hash = txid
 
         self.defaults = {
@@ -236,11 +238,11 @@ class TransactionDebugTarget:
             'chain_id': self.w3.eth.chain_id,
         }
 
-        # TODO pull default account and private key from ethpwn
         self.target_address = kwargs.pop('to', None) or tx_data.get('to', None)
         self.source_address = kwargs.pop('sender', None) or tx_data.get('from', None)
         self.calldata = kwargs.pop('calldata', None) or kwargs.pop('input', None) or tx_data.get('input', None)
         self.block_number = kwargs.pop('block_number', None) or self.w3.eth.block_number
+        
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
 
@@ -285,7 +287,8 @@ class TransactionDebugTarget:
 
 
     def get_transaction_dict(self, **defaults):
-        assert self.chain_id is not None
+        if self.chain_id is None:
+            self.chain_id = self.w3.eth.chain_id
         assert self.source_address is not None
         assert self.nonce is not None
 
