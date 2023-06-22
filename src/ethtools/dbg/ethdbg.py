@@ -378,13 +378,6 @@ class EthDbgShell(cmd.Cmd):
             print("No calldata set. Proceeding with empty calldata.")
 
         if self.debug_target.debug_type == "replay":
-            def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
-                return bytes(HexBytes(source_address))
-            eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, self.debug_target.source_address)
-        else:
-            eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
-
-        if self.debug_target.debug_type == "replay":
             analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number)
             vm = analyzer.vm
             block = self.w3.eth.get_block(self.debug_target.block_number)
@@ -399,6 +392,8 @@ class EthDbgShell(cmd.Cmd):
                 txn = prev_tx_target.get_transaction_dict()
                 #mport ipdb; ipdb.set_trace()
 
+                def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
+                    return bytes(HexBytes(source_address))
                 eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, prev_tx_target.source_address)
 
                 raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
@@ -416,6 +411,13 @@ class EthDbgShell(cmd.Cmd):
             analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
             vm = analyzer.vm
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
+
+        if self.debug_target.debug_type == "replay":
+            def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
+                return bytes(HexBytes(source_address))
+            eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, self.debug_target.source_address)
+        else:
+            eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
 
         assert self.debug_target.fork is None or self.debug_target.fork == vm.fork
 
@@ -1279,6 +1281,7 @@ def main():
 
     # parse optional argument
     parser.add_argument("--txid", help="address of the smart contract we are debugging", default=None)
+    parser.add_argument("--as-was", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--sender", help="address of the sender", default=None)
     parser.add_argument("--chain", help="chain name", default=None)
     parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=DEFAULT_NODE_URL)
