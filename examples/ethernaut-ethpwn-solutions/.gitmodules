@@ -1,0 +1,7 @@
+[submodule "__solidity_includes/openzeppelin-contracts-0.8"]
+	path = __solidity_includes/openzeppelin-contracts-0.8
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "__solidity_includes/openzeppelin-contracts-0.6"]
+	path = __solidity_includes/openzeppelin-contracts-0.6
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+	branch = release-v3.4

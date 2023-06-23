@@ -1,0 +1,26 @@
+EXTRAS:
+
+4- Telescope command and automatic abi decoding for opcodes
+6- Display if we are taking next jump or not through emulation
+9- watchpoints on storage location or memory
+12- support for multiple transactions
+21- Add explain to see where a value come from
+22- We have to stub ecrecover and every freaking call that expects that the signer was actually a real account when impersonating.
+23- Modifying storage and memory on demand
+35- do a vmmap command to show current usage of the whole memory!
+37- Visualize logs
+38- cache to avoid burn all the calls for Infura (LATER)
+41- add option to avoid shooting all the tx before the target tx
+42- merge snapshots
+43- undo command
+44- ui terminal
+
+PRIORITY:
+
+40- try sepolia (fix py-evm header block)
+39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?)
+36- precise execution (gasPrice and sig verification ON)
+20- Support execution of TX from top of block, end, or specific position (more advanced)
+    - Executing always at the top might not work in some cases (balance of tokens for a contract) [URGENT]
+17- If execution reverts inside a contract, the sstores should be removed!
+18- option to avoid replying all
