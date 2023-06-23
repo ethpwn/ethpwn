@@ -6,10 +6,12 @@ import os
 import re
 import sys
 import cmd
+import sha3
+
 from hexdump import hexdump
 from typing import List
+from alive_progress import alive_bar
 
-import sha3
 from hexbytes import HexBytes
 from web3.datastructures import AttributeDict
 
@@ -382,28 +384,32 @@ class EthDbgShell(cmd.Cmd):
             vm = analyzer.vm
             block = self.w3.eth.get_block(self.debug_target.block_number)
 
-            # Now we need to get the position of the transaction in the block
-            for prev_tx in block["transactions"][0:self.debug_target.transaction_index]:
-                print(f'Applying transaction {prev_tx.hex()}')
+            num_prev_txs = len(block["transactions"][0:self.debug_target.transaction_index])
+            print(f'Applying previous {num_prev_txs} transactions...')
 
-                prev_tx_target = TransactionDebugTarget(self.w3)
-                prev_tx_target.replay_transaction(prev_tx)
-                prev_tx_target.set_default('fork', vm.fork)
-                txn = prev_tx_target.get_transaction_dict()
-                #mport ipdb; ipdb.set_trace()
+            with alive_bar(num_prev_txs) as bar:
+                # Now we need to get the position of the transaction in the block
+                for prev_tx in block["transactions"][0:self.debug_target.transaction_index]:
 
-                def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
-                    return bytes(HexBytes(source_address))
-                eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, prev_tx_target.source_address)
+                    prev_tx_target = TransactionDebugTarget(self.w3)
+                    prev_tx_target.replay_transaction(prev_tx)
+                    prev_tx_target.set_default('fork', vm.fork)
+                    txn = prev_tx_target.get_transaction_dict()
+                    #mport ipdb; ipdb.set_trace()
 
-                raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
-                txn = vm.get_transaction_builder().decode(raw_txn)
-                #txn, receipt, _ = analyzer.next_transaction()
-                receipt, comp = vm.apply_transaction(
-                    header=vm.get_header(),
-                    transaction=txn,
-                )
+                    def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
+                        return bytes(HexBytes(source_address))
+                    eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, prev_tx_target.source_address)
 
+                    raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
+                    txn = vm.get_transaction_builder().decode(raw_txn)
+                    #txn, receipt, _ = analyzer.next_transaction()
+                    receipt, comp = vm.apply_transaction(
+                        header=vm.get_header(),
+                        transaction=txn,
+                    )
+
+                    bar()
             analyzer.hook_vm(self._myhook)
 
         else:
