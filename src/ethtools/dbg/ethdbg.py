@@ -382,36 +382,36 @@ class EthDbgShell(cmd.Cmd):
         if self.debug_target.debug_type == "replay":
             analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number)
             vm = analyzer.vm
-            block = self.w3.eth.get_block(self.debug_target.block_number)
 
-            num_prev_txs = len(block["transactions"][0:self.debug_target.transaction_index])
-            print(f'Applying previous {num_prev_txs} transactions...')
+            if not self.debug_target.no_previous:
+                block = self.w3.eth.get_block(self.debug_target.block_number)
+                num_prev_txs = len(block["transactions"][0:self.debug_target.transaction_index])
+                print(f'Applying previous {num_prev_txs} transactions...')
 
-            with alive_bar(num_prev_txs) as bar:
-                # Now we need to get the position of the transaction in the block
-                for prev_tx in block["transactions"][0:self.debug_target.transaction_index]:
+                with alive_bar(num_prev_txs) as bar:
+                    # Now we need to get the position of the transaction in the block
+                    for prev_tx in block["transactions"][0:self.debug_target.transaction_index]:
 
-                    prev_tx_target = TransactionDebugTarget(self.w3)
-                    prev_tx_target.replay_transaction(prev_tx)
-                    prev_tx_target.set_default('fork', vm.fork)
-                    txn = prev_tx_target.get_transaction_dict()
-                    #mport ipdb; ipdb.set_trace()
+                        prev_tx_target = TransactionDebugTarget(self.w3)
+                        prev_tx_target.replay_transaction(prev_tx)
+                        prev_tx_target.set_default('fork', vm.fork)
+                        txn = prev_tx_target.get_transaction_dict()
+                        #mport ipdb; ipdb.set_trace()
 
-                    def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
-                        return bytes(HexBytes(source_address))
-                    eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, prev_tx_target.source_address)
+                        def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
+                            return bytes(HexBytes(source_address))
+                        eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, prev_tx_target.source_address)
 
-                    raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
-                    txn = vm.get_transaction_builder().decode(raw_txn)
-                    #txn, receipt, _ = analyzer.next_transaction()
-                    receipt, comp = vm.apply_transaction(
-                        header=vm.get_header(),
-                        transaction=txn,
-                    )
+                        raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
+                        txn = vm.get_transaction_builder().decode(raw_txn)
+                        #txn, receipt, _ = analyzer.next_transaction()
+                        receipt, comp = vm.apply_transaction(
+                            header=vm.get_header(),
+                            transaction=txn,
+                        )
+                        bar()
 
-                    bar()
             analyzer.hook_vm(self._myhook)
-
         else:
             # get the analyzer
             analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
@@ -1287,7 +1287,7 @@ def main():
 
     # parse optional argument
     parser.add_argument("--txid", help="address of the smart contract we are debugging", default=None)
-    parser.add_argument("--as-was", help="address of the smart contract we are debugging", default=None)
+    parser.add_argument("--no-previous", help="address of the smart contract we are debugging", action='store_true')
     parser.add_argument("--sender", help="address of the sender", default=None)
     parser.add_argument("--chain", help="chain name", default=None)
     parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=DEFAULT_NODE_URL)
@@ -1310,9 +1310,8 @@ def main():
 
     if args.txid:
         # replay transaction mode
-        # TODO: we should re-execute the transaction at the specific block.
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, wallet_conf=wallet_conf)
+        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, no_previous=args.no_previous, wallet_conf=wallet_conf)
     else:
         # interactive mode
         debug_target = TransactionDebugTarget(w3)

@@ -23,4 +23,3 @@ PRIORITY:
 20- Support execution of TX from top of block, end, or specific position (more advanced)
     - Executing always at the top might not work in some cases (balance of tokens for a contract) [URGENT]
 17- If execution reverts inside a contract, the sstores should be removed!
-18- option to avoid replying all
