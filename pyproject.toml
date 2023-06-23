@@ -36,8 +36,8 @@ dependencies = [
     "pysha3>=1.0.2",
     "hexdump",
     "backoff",
-    "cachetools"
-
+    "cachetools",
+    "alive-progress"
 ]
 
 keywords = [
