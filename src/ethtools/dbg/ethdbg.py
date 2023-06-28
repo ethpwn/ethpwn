@@ -806,8 +806,9 @@ class EthDbgShell(cmd.Cmd):
         curr_account_storage = '0x' + self.comp.msg.storage_address.hex()
         curr_balance = self.comp.state.get_balance(self.comp.msg.storage_address)
         curr_balance_eth = int(curr_balance) / 10**18
-        gas_remaining = self.comp.get_gas_remaining()
-        gas_used = self.comp.get_gas_used()
+
+        gas_remaining = self.comp.get_gas_remaining() + self.comp.get_gas_refund()
+        gas_used = self.debug_target.gas - self.comp.get_gas_remaining() - self.comp.get_gas_refund()
         gas_limit = self.comp.state.gas_limit
 
         _metadata = f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
