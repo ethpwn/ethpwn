@@ -30,7 +30,7 @@ from .analyzer import Analyzer
 from .transaction_debug_target import TransactionDebugTarget
 from .analyzer import *
 from .utils import *
-from .ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, RestartDbgException
+from .ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, RestartDbgException, InvalidTargetException
 
 from eth_utils.curried import to_canonical_address
 
@@ -645,45 +645,6 @@ class EthDbgShell(cmd.Cmd):
                     print("Invalid breakpoint")
 
     do_del = do_clear
-
-    def do_run(self, arg):
-        if self.started:
-            answer = input("Debugger already started. Do you want to restart the debugger? [y/N] ")
-            if answer.lower() == 'y':
-                raise RestartDbgException()
-            return
-        if not self.debug_target.target_address:
-            print("No target set. Use 'target' command to set it.")
-            return
-        if not self.debug_target.calldata and self.started == False:
-            print("No calldata set. Proceeding with empty calldata.")
-
-        vm, header = get_evm(self.w3, self.debug_target.block_number, self._myhook)
-        self.debug_target.set_default('fork', vm.fork)
-
-        txn = self.debug_target.get_transaction_dict()
-        raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
-        txn = vm.get_transaction_builder().decode(raw_txn)
-
-        self.started = True
-
-        origin_callframe = CallFrame(self.debug_target.target_address, self.debug_target.source_address, self.debug_target.source_address, self.debug_target.value, "-", "-")
-        self.callstack.append(origin_callframe)
-
-        receipt, comp = vm.apply_transaction(
-            header=header,
-            transaction=txn,
-        )
-
-        if hasattr(comp, 'error'):
-            if type(comp.error) == eth.exceptions.OutOfGas:
-                self._display_context(cmdloop=False, with_message=f'❌ {RED_BACKGROUND} ERROR: Out Of Gas{RESET_COLOR}')
-            elif type(comp.error) == eth.exceptions.Revert:
-                self._display_context(cmdloop=False, with_message=f'❌ {RED_BACKGROUND} ERROR: Reverted: {comp.error}{RESET_COLOR}')
-        else:
-            self._display_context(cmdloop=False, with_message=f'✔️ {GREEN_BACKGROUND} Execution Terminated!{RESET_COLOR}')
-
-    do_r = do_run
 
     def do_log_op(self, arg):
         self.log_op = not self.log_op
@@ -1311,7 +1272,11 @@ def main():
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, no_previous=args.no_previous, wallet_conf=wallet_conf)
+        try:
+            debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, no_previous=args.no_previous, wallet_conf=wallet_conf)
+        except InvalidTargetException as e:
+            print(f"{RED_COLOR}Target address {e.target_address} not a contract {RESET_COLOR}")
+            sys.exit(0)
     else:
         # interactive mode
         debug_target = TransactionDebugTarget(w3)

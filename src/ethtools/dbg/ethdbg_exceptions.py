@@ -1,8 +1,14 @@
 
 class InvalidBreakpointException(Exception):
     pass
+
 class ExitCmdException(Exception):
-    pass #Could do something but just make a simple exception
+    pass
 
 class RestartDbgException(Exception):
-    pass #Could do something but just make a simple exception
+    pass
+
+class InvalidTargetException(Exception):
+    def __init__(self, target_address):
+        self.target_address = target_address
+    pass

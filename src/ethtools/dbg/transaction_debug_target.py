@@ -3,7 +3,7 @@ from hexbytes import HexBytes
 import web3
 
 from .utils import get_chain_name, get_chainid, to_snake_case
-
+from .ethdbg_exceptions import InvalidTargetException
 
 class TransactionDebugTarget:
     def __init__(self, w3) -> None:
@@ -230,7 +230,7 @@ class TransactionDebugTarget:
         txid = HexBytes(txid).hex()
 
         tx_data = self.w3.eth.get_transaction(txid)
-        
+
         self.transaction_hash = txid
 
         self.defaults = {
@@ -239,10 +239,16 @@ class TransactionDebugTarget:
         }
 
         self.target_address = kwargs.pop('to', None) or tx_data.get('to', None)
+
         self.source_address = kwargs.pop('sender', None) or tx_data.get('from', None)
         self.calldata = kwargs.pop('calldata', None) or kwargs.pop('input', None) or tx_data.get('input', None)
         self.block_number = kwargs.pop('block_number', None) or self.w3.eth.block_number
-        
+
+        # Check if the target address is a contract
+        #if self.target_address is not None:
+        #    if self.w3.eth.get_code(self.target_address, self.block_number) == b'':
+        #        raise InvalidTargetException(self.target_address)
+
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
 
@@ -268,6 +274,11 @@ class TransactionDebugTarget:
 
         self.source_address = kwargs.pop('sender', None) or wallet_conf.address
         self.block_number = kwargs.pop('block_number', None) or  self.w3.eth.block_number
+
+        # Check if the target address is a contract
+        if self.target_address is not None:
+            if self.w3.eth.get_code(self.target_addressm, self.block_number) == b'':
+                raise InvalidTargetException(self.target_address)
 
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
