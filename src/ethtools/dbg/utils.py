@@ -17,6 +17,7 @@ GREEN_BACKGROUND = "\033[42m"
 RESET_COLOR = "\033[0m"
 HORIZONTAL_LINE  = "\u2500"
 BOLD_TEXT = "\033[1m"
+STRIKETHROUGH = "\u0336"
 
 FOUR_BYTE_URL = "https://raw.githubusercontent.com/ethereum-lists/4bytes/master/signatures/{}"
 

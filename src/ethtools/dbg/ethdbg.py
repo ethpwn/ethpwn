@@ -297,6 +297,8 @@ class EthDbgShell(cmd.Cmd):
 
         self.logs = list()
 
+        self.reverted_contracts = set()
+
     def only_when_started(func):
         def wrapper(self, *args, **kwargs):
             if self.started:
@@ -462,6 +464,7 @@ class EthDbgShell(cmd.Cmd):
             if type(comp.error) == eth.exceptions.OutOfGas:
                 self._display_context(cmdloop=False, with_message=f'❌ {RED_BACKGROUND} ERROR: Out Of Gas{RESET_COLOR}')
             elif type(comp.error) == eth.exceptions.Revert:
+                self._handle_revert()
                 self._display_context(cmdloop=False, with_message=f'❌ {RED_BACKGROUND} ERROR: Reverted: {comp.error}{RESET_COLOR}')
         else:
             self._display_context(cmdloop=False, with_message=f'✔️ {GREEN_BACKGROUND} Execution Terminated!{RESET_COLOR}')
@@ -535,17 +538,30 @@ class EthDbgShell(cmd.Cmd):
 
     @only_when_started
     def do_sstores(self, arg):
-
-        # Check if there is an argument
+         # Check if there is an argument
         if arg and arg in self.sstores.keys():
             sstores_account = self.sstores[arg]
             for sstore_slot, sstore_val in sstores_account.items():
-                print(f' {YELLOW_COLOR}[w]{RESET_COLOR} Slot: {sstore_slot} | Value: {sstore_val}')
+                if sstores_account not in self.reverted_contracts:
+                    print(f' {YELLOW_COLOR}[w]{RESET_COLOR} Slot: {sstore_slot} | Value: {sstore_val}')
+                else:
+                    _log = f' [w] Slot: {sstore_slot} | Value: {sstore_val}'
+                    res = ''
+                    for c in _log:
+                        res = res + c + STRIKETHROUGH
+                    print(f'{res} ❌')
         else:
             for ref_account, sstores in self.sstores.items():
                 print(f'Account: {BOLD_TEXT}{BLUE_COLOR}{ref_account}{RESET_COLOR}:')
                 for sstore_slot, sstore_val in sstores.items():
-                    print(f' {YELLOW_COLOR}[w]{RESET_COLOR} Slot: {sstore_slot} | Value: {sstore_val}')
+                    if ref_account not in self.reverted_contracts:
+                        print(f' {YELLOW_COLOR}[w]{RESET_COLOR} Slot: {sstore_slot} | Value: {sstore_val}')
+                    else:
+                        _log = f' [w] Slot: {sstore_slot} | Value: {sstore_val}'
+                        res = ''
+                        for c in _log:
+                            res = res + c + STRIKETHROUGH
+                        print(f'{res} ❌')
 
     @only_when_started
     def do_sloads(self, arg):
@@ -710,6 +726,66 @@ class EthDbgShell(cmd.Cmd):
     # INTERNALS
     def _resume(self):
         raise ExitCmdException()
+
+    def _handle_revert(self):
+        # We'll mark the sstores as reverted
+        curr_storage_contract = '0x'+self.comp.msg.storage_address.hex()
+        curr_code_contracts = '0x'+self.comp.msg.code_address.hex()
+
+        reverting_contracts = [curr_storage_contract, curr_code_contracts]
+        self.reverted_contracts.add(curr_storage_contract)
+        self.reverted_contracts.add(curr_code_contracts) # this is useless but ok
+
+        worklist = set()
+        for x in self.list_tree_nodes:
+            worklist.add(x)
+
+        while len(worklist) != 0:
+            node = worklist.pop()
+            if curr_storage_contract in node.label or curr_code_contracts in node.label:
+                offset = node.label.find(curr_storage_contract)
+                if offset == -1:
+                    offset = node.label.find(curr_code_contracts)
+                assert(offset != -1)
+
+                new_label = node.label[:offset]
+
+                for c in node.label[offset:]:
+                    if c.isascii():
+                        new_label = new_label + c + STRIKETHROUGH
+                node.label = new_label + ' (revert) ❌'
+            for child in node.children:
+                worklist.add(child)
+
+    def _handle_out_of_gas(self):
+        # We'll mark the sstores as reverted
+        curr_storage_contract = '0x'+self.comp.msg.storage_address.hex()
+        curr_code_contracts = '0x'+self.comp.msg.code_address.hex()
+
+        reverting_contracts = [curr_storage_contract, curr_code_contracts]
+        self.reverted_contracts.add(curr_storage_contract)
+        self.reverted_contracts.add(curr_code_contracts) # this is useless but ok
+
+        worklist = set()
+        for x in self.list_tree_nodes:
+            worklist.add(x)
+
+        while len(worklist) != 0:
+            node = worklist.pop()
+            if curr_code_contracts in node.label:
+                offset = node.label.find(curr_storage_contract)
+                if offset == -1:
+                    offset = node.label.find(curr_code_contracts)
+                assert(offset != -1)
+
+                new_label = node.label[:offset]
+
+                for c in node.label[offset:]:
+                    if c.isascii():
+                        new_label = new_label + c + STRIKETHROUGH
+                node.label = new_label + ' (out of gas) 🪫'
+            for child in node.children:
+                worklist.add(child)
 
     def _get_callstack(self):
         message = f"{GREEN_COLOR}Callstack {RESET_COLOR}"
@@ -965,7 +1041,10 @@ class EthDbgShell(cmd.Cmd):
             if ref_account in self.sstores:
                 ref_account_sstores = self.sstores[ref_account]
                 for slot, val in ref_account_sstores.items():
-                    _sstore_log += f'{YELLOW_COLOR}[w]{RESET_COLOR} {slot} -> {val}\n'
+                    if ref_account in self.reverted_contracts:
+                        _sstore_log += f'{YELLOW_COLOR}[w] {slot} -> {val}{RESET_COLOR}\n'
+                    else:
+                        _sstore_log += f'{YELLOW_COLOR}[w]{RESET_COLOR} {slot} -> {val}\n'
 
         return title + legend + _sload_log + _sstore_log
 
@@ -1090,7 +1169,7 @@ class EthDbgShell(cmd.Cmd):
 
 
         if self.log_op:
-            print(_opcode_str)
+            print(f'{self.comp.msg.code_address.hex()} {_opcode_str} {self.comp.get_gas_remaining() + self.comp.get_gas_refund()}')
 
         self.history.append(_opcode_str)
 
@@ -1148,7 +1227,7 @@ class EthDbgShell(cmd.Cmd):
 
             if opcode.mnemonic == "CALL":
                 contract_target = computation._stack.values[-2]
-                contract_target = HexBytes(contract_target[1]).hex()
+                contract_target = "0x" + HexBytes(contract_target[1]).hex()[-40:]
 
                 value_sent = int.from_bytes(HexBytes(computation._stack.values[-3][1]), byteorder='big')
 
@@ -1235,9 +1314,14 @@ class EthDbgShell(cmd.Cmd):
             if len(self.list_tree_nodes) > 1:
                 old_root = self.list_tree_nodes.pop()
                 self.curr_tree_node = self.list_tree_nodes[-1]
+        if opcode.mnemonic == "REVERT":
+            self._handle_revert()
 
         # Execute the opcode!
-        opcode(computation=computation)
+        try:
+            opcode(computation=computation)
+        except eth.exceptions.OutOfGas:
+            self._handle_out_of_gas()
 
 
     def print_license(self):

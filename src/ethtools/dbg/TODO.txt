@@ -17,10 +17,12 @@ EXTRAS:
     - Executing always at the top might not work in some cases (balance of tokens for a contract)
 
 PRIORITY:
-39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?)
+39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
 17- If execution reverts inside a contract, the sstores should be removed!
 18- stabilize breakpoints
-19- check if TX is not a smart contract transaction
 20- Documentation
 21 - TESTS
-22-
+22- parse REVERT message and display only printable characters
+23- WEIRDNESS: ethdbg --txid 0xfcbbdf0e713fb7cd8e079ff1cb02c5712db0dccba43278bfcb6a9112b1b5f34d --no-previous
+    - The first reverting contract should be 0x0Bf04952a5b3eF6bAD343C2218F584a7413bb44d, but for some reasons it never appears in the
+      self.comp.msg.code_address when I hit a breakpoint in the handle_revert function. SUPER WEIRD!!!!!!
