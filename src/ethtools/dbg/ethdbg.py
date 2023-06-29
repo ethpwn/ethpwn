@@ -7,6 +7,7 @@ import re
 import sys
 import cmd
 import sha3
+import string
 
 from hexdump import hexdump
 from typing import List
@@ -468,7 +469,10 @@ class EthDbgShell(cmd.Cmd):
                 self._display_context(cmdloop=False, with_message=f'❌ {RED_BACKGROUND} ERROR: Out Of Gas{RESET_COLOR}')
             elif type(comp.error) == eth.exceptions.Revert:
                 self._handle_revert()
-                self._display_context(cmdloop=False, with_message=f'❌ {RED_BACKGROUND} ERROR: Reverted: {comp.error}{RESET_COLOR}')
+                # Grab only the printable characters from the rever error
+                revert_error = comp.error.args[0].decode('ascii', 'ignore')
+                revert_error = ''.join([c for c in revert_error if c.isprintable()])
+                self._display_context(cmdloop=False, with_message=f'❌ {RED_BACKGROUND} ERROR: Reverted: {revert_error}{RESET_COLOR}')
         else:
             self._display_context(cmdloop=False, with_message=f'✔️ {GREEN_BACKGROUND} Execution Terminated!{RESET_COLOR}')
 
@@ -899,7 +903,7 @@ class EthDbgShell(cmd.Cmd):
 
         _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number}\n'
         _metadata += f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
-        _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Remaining: {gas_remaining} | ⛽ Gas Used: {gas_used} | ⛽ Gas Limit: {gas_limit}'
+        _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Used: {gas_used} | ⛽ Gas Remaining: {gas_remaining} | ⛽ Gas Limit: {gas_limit}'
 
         return title + _metadata
 
