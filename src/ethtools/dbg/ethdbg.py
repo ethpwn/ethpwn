@@ -368,6 +368,13 @@ class EthDbgShell(cmd.Cmd):
             print(f'{self.debug_target.gas} wei')
 
     def do_start(self, arg):
+
+        # Check if the target address is a contract!
+        if self.debug_target.target_address is not None:
+            if self.w3.eth.get_code(self.debug_target.target_address, self.debug_target.block_number) == b'':
+                print(f"{RED_COLOR}Target address {self.debug_target.target_address} of transaction is not a contract {RESET_COLOR}")
+                sys.exit(0)
+
         if self.started:
             answer = input("Debugger already started. Do you want to restart the debugger? [y/N] ")
             if answer.lower() == 'y':
@@ -1273,11 +1280,7 @@ def main():
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        try:
-            debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, no_previous=args.no_previous, wallet_conf=wallet_conf)
-        except InvalidTargetException as e:
-            print(f"{RED_COLOR}Target address {e.target_address} not a contract {RESET_COLOR}")
-            sys.exit(0)
+        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, no_previous=args.no_previous, wallet_conf=wallet_conf)
     else:
         # interactive mode
         debug_target = TransactionDebugTarget(w3)
