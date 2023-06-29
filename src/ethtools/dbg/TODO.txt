@@ -26,3 +26,6 @@ PRIORITY:
 23- WEIRDNESS: ethdbg --txid 0xfcbbdf0e713fb7cd8e079ff1cb02c5712db0dccba43278bfcb6a9112b1b5f34d --no-previous
     - The first reverting contract should be 0x0Bf04952a5b3eF6bAD343C2218F584a7413bb44d, but for some reasons it never appears in the
       self.comp.msg.code_address when I hit a breakpoint in the handle_revert function. SUPER WEIRD!!!!!!
+24- fix parsing of address in CALL/DELEGATECALL/....
+25- if chainid is different than supported one, abort
+26- 

@@ -285,6 +285,8 @@ class EthDbgShell(cmd.Cmd):
         self.history = list()
         #  The computation object of py-evm
         self.comp = None
+        #  The name of the fork we are using
+        self.vm_fork_name = ''
         # The current opcode
         self.curr_opcode = None
         #  Used for step command
@@ -435,6 +437,7 @@ class EthDbgShell(cmd.Cmd):
             eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
 
         assert self.debug_target.fork is None or self.debug_target.fork == vm.fork
+        self.vm_fork_name = vm.fork
 
         self.debug_target.set_default('fork', vm.fork)
         txn = self.debug_target.get_transaction_dict()
@@ -454,7 +457,7 @@ class EthDbgShell(cmd.Cmd):
         self.callstack.append(origin_callframe)
 
         self.temp_break = True
-
+    
         receipt, comp = vm.apply_transaction(
             header=vm.get_header(),
             transaction=txn,
@@ -894,7 +897,8 @@ class EthDbgShell(cmd.Cmd):
         gas_used = self.debug_target.gas - self.comp.get_gas_remaining() - self.comp.get_gas_refund()
         gas_limit = self.comp.state.gas_limit
 
-        _metadata = f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
+        _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number}\n'
+        _metadata += f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
         _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Remaining: {gas_remaining} | ⛽ Gas Used: {gas_used} | ⛽ Gas Limit: {gas_limit}'
 
         return title + _metadata
@@ -1354,6 +1358,11 @@ def main():
     wallet_conf = get_wallet(args.wallet)
 
     w3 = get_w3_provider(args.node_url)
+
+    # Check if we support the chain
+    if w3.eth.chain_id not in SUPPORTED_CHAINS:
+        print(f'{RED_COLOR}Unsupported chain: [{w3.eth.chain_id}] {RESET_COLOR}')
+        sys.exit(0)
 
     if args.sender:
         # Validate ETH address using regexp

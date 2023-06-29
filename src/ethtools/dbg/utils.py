@@ -21,6 +21,14 @@ STRIKETHROUGH = "\u0336"
 
 FOUR_BYTE_URL = "https://raw.githubusercontent.com/ethereum-lists/4bytes/master/signatures/{}"
 
+# Enum for the different types of chain 
+# that are supported by the tool
+class ChainName:
+    MAINNET = 1
+    SEPOLIA = 11155111
+
+SUPPORTED_CHAINS = [ChainName.MAINNET, ChainName.SEPOLIA]
+
 def to_snake_case(s: str) -> str:
     s = s.replace('-', '_')
     return ''.join(['_' + c.lower() if c.isupper() else c for c in s]).lstrip('_')
