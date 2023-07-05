@@ -216,7 +216,6 @@ class CallFrame():
     def __init__(self, address, msg_sender, tx_origin, value, calltype, callsite):
         # Initialize attributes with args
         self.address = address
-
         self.msg_sender = msg_sender
         self.tx_origin = tx_origin
         self.value = value
@@ -284,6 +283,10 @@ class EthDbgShell(cmd.Cmd):
 
         #  History of executed opcodes
         self.history = list()
+        #  The analyzer object
+        self.analyzer = None
+        #  Checkpoint for the analyzer
+        self.checkpoints = set()
         #  The computation object of py-evm
         self.comp = None
         #  The name of the fork we are using
@@ -313,6 +316,16 @@ class EthDbgShell(cmd.Cmd):
     # COMMANDS
     def do_chain(self, arg):
         print(f'{self.debug_target.chain}@{self.debug_target.block_number}:{self.w3.provider.endpoint_uri}')
+
+    def do_options(self, arg):
+        print(f'chain: {self.debug_target.chain}@{self.debug_target.block_number}')
+        print(f'w3-endpoint: {self.w3.provider.endpoint_uri}')
+        print(f'full-context: {self.debug_target.full_context}')
+        print(f'log_ops: {self.log_op}')
+        print(f'stop_on_returns: {self.stop_on_returns}')
+        print(f'hide_sstores: {self.hide_sstores}')
+        print(f'hide_sloads: {self.hide_sloads}')
+
 
     def do_block(self, arg):
         if arg and not self.started:
@@ -395,7 +408,7 @@ class EthDbgShell(cmd.Cmd):
             analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number)
             vm = analyzer.vm
 
-            if not self.debug_target.no_previous:
+            if self.debug_target.full_context:
                 block = self.w3.eth.get_block(self.debug_target.block_number)
                 num_prev_txs = len(block["transactions"][0:self.debug_target.transaction_index])
                 print(f'Applying previous {num_prev_txs} transactions...')
@@ -430,6 +443,8 @@ class EthDbgShell(cmd.Cmd):
             vm = analyzer.vm
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 
+        self.analyzer = analyzer
+
         if self.debug_target.debug_type == "replay":
             def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
                 return bytes(HexBytes(source_address))
@@ -449,7 +464,7 @@ class EthDbgShell(cmd.Cmd):
         self.started = True
 
         origin_callframe = CallFrame(
-            self.debug_target.target_address,
+            '0x'+self.debug_target.target_address.replace('0x','').zfill(40),
             self.debug_target.source_address,
             self.debug_target.source_address,
             self.debug_target.value,
@@ -458,7 +473,7 @@ class EthDbgShell(cmd.Cmd):
         self.callstack.append(origin_callframe)
 
         self.temp_break = True
-    
+
         receipt, comp = vm.apply_transaction(
             header=vm.get_header(),
             transaction=txn,
@@ -476,6 +491,22 @@ class EthDbgShell(cmd.Cmd):
         else:
             self._display_context(cmdloop=False, with_message=f'✔️ {GREEN_BACKGROUND} Execution Terminated!{RESET_COLOR}')
 
+
+    def do_snapshot(self, arg):
+        self.checkpoints.add(self.analyzer.checkpoint())
+
+    def do_restore(self, arg):
+        # TODO: check if the checkpoint is valid
+        if arg == "":
+            print("Please specify the checkpoint number to restore")
+            return
+        else:
+            checkpoint = int(arg)
+            self.analyzer.restore(checkpoint)
+
+    def do_snapshots(self, arg):
+        for i, checkpoint in enumerate(self.checkpoints):
+            print(f"{i}: {checkpoint}")
 
     def do_context(self, arg):
         if self.started:
@@ -827,9 +858,9 @@ class EthDbgShell(cmd.Cmd):
                 calltype_string = f'{call.calltype}'
             calltype_string = calltype_string.ljust(max_call_opcode_length)
             callsite_string = call.callsite.rjust(max_pc_length)
-            call_addr = call.address[::-1][:40][::-1] # fuuuuucke you @dreselli
-            msg_sender = call.msg_sender[::-1][:40][::-1] # fuuuuucke you @dreselli again
-            calls_view += f'0x{call_addr:42} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | 0x{msg_sender:42} | {call.value} \n'
+            call_addr = call.address
+            msg_sender = call.msg_sender
+            calls_view += f'{call_addr} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:44} | {call.value} \n'
 
         return title + legend + calls_view
 
@@ -903,7 +934,7 @@ class EthDbgShell(cmd.Cmd):
 
         _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number}\n'
         _metadata += f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
-        _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Used: {gas_used} | ⛽ Gas Remaining: {gas_remaining} | ⛽ Gas Limit: {gas_limit}'
+        _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Used: {gas_used} | ⛽ Gas Remaining: {gas_remaining} '
 
         return title + _metadata
 
@@ -1088,7 +1119,11 @@ class EthDbgShell(cmd.Cmd):
 
         # print the chain context and the transaction context
         # import ipdb; ipdb.set_trace()
-        source = get_source_code(self.debug_target, self.comp.msg.code_address, self.comp.code.program_counter - 1)
+        try:
+            source = get_source_code(self.debug_target, self.comp.msg.code_address, self.comp.code.program_counter - 1)
+        except Exception as e:
+            source = None
+
         if source is not None:
             return title + '\n' + source
         else:
@@ -1168,7 +1203,9 @@ class EthDbgShell(cmd.Cmd):
         if opcode_bytes:
             insn: Instruction = disassemble_one(opcode_bytes, pc=pc, fork=self.debug_target.fork)
             assert insn is not None, "64 bytes was not enough to disassemble?? or this is somehow an invalid opcode??"
-            assert insn.mnemonic == opcode.mnemonic, "disassembled opcode does not match the opcode we're currently executing??"
+            if insn.mnemonic != opcode.mnemonic:
+                print(f"disassembled opcode does not match the opcode we're currently executing??")
+                assert(False)
             hex_bytes = ' '.join(f'{b:02x}' for b in insn.bytes[:5])
             if insn.size > 5: hex_bytes += ' ...'
             _opcode_str = f'{pc:#06x}  {hex_bytes:18} {str(insn):20}    // {insn.description}'
@@ -1177,7 +1214,7 @@ class EthDbgShell(cmd.Cmd):
 
 
         if self.log_op:
-            print(f'{self.comp.msg.code_address.hex()} {_opcode_str} {self.comp.get_gas_remaining() + self.comp.get_gas_refund()}')
+            print(f'{_opcode_str}q')
 
         self.history.append(_opcode_str)
 
@@ -1235,7 +1272,9 @@ class EthDbgShell(cmd.Cmd):
 
             if opcode.mnemonic == "CALL":
                 contract_target = computation._stack.values[-2]
-                contract_target = "0x" + HexBytes(contract_target[1]).hex()[-40:]
+                contract_target = HexBytes(contract_target[1]).hex()
+                contract_target = '0x' + contract_target.replace('0x','').zfill(40)
+                contract_target = self.w3.to_checksum_address(contract_target)
 
                 value_sent = int.from_bytes(HexBytes(computation._stack.values[-3][1]), byteorder='big')
 
@@ -1257,9 +1296,9 @@ class EthDbgShell(cmd.Cmd):
             elif opcode.mnemonic == "DELEGATECALL":
                 contract_target = computation._stack.values[-2]
                 contract_target = HexBytes(contract_target[1]).hex()
-
-                value_sent = int.from_bytes(HexBytes(computation._stack.values[-3][1]), byteorder='big')
-
+                contract_target = '0x' + contract_target.replace('0x','').zfill(40)
+                contract_target = self.w3.to_checksum_address(contract_target)
+                value_sent = 0
                 # We gotta parse the callstack according to the *CALL opcode
                 new_callframe = CallFrame(
                                         contract_target,
@@ -1277,9 +1316,10 @@ class EthDbgShell(cmd.Cmd):
             elif opcode.mnemonic == "STATICCALL":
                 contract_target = computation._stack.values[-2]
                 contract_target = HexBytes(contract_target[1]).hex()
+                contract_target = '0x' + contract_target.replace('0x','').zfill(40)
+                contract_target = self.w3.to_checksum_address(contract_target)
 
-                value_sent = int.from_bytes(HexBytes(computation._stack.values[-3][1]), byteorder='big')
-
+                value_sent = 0
                 if int(contract_target,16) not in PRECOMPILED_CONTRACTS.values():
                     # We gotta parse the callstack according to the *CALL opcode
                     new_callframe = CallFrame(
@@ -1311,6 +1351,24 @@ class EthDbgShell(cmd.Cmd):
                 )
                 self.callstack.append(new_callframe)
                 new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE{RESET_COLOR} 0x0")
+                self.curr_tree_node = new_tree_node
+                self.list_tree_nodes.append(new_tree_node)
+
+            elif opcode.mnemonic == "CREATE2":
+                contract_value = HexBytes(computation._stack.values[-1][1]).hex()
+                code_offset = HexBytes(computation._stack.values[-2][1]).hex()
+                code_size = HexBytes(computation._stack.values[-3][1]).hex()
+                salt = HexBytes(computation._stack.values[-4][1]).hex()
+                new_callframe = CallFrame(
+                    '0x' + '0' * 40,
+                    '0x' + computation.msg.code_address.hex(),
+                    '0x' + computation.transaction_context.origin.hex(),
+                    contract_value,
+                    "CREATE2",
+                    hex(pc)
+                )
+                self.callstack.append(new_callframe)
+                new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE2{RESET_COLOR} 0x0")
                 self.curr_tree_node = new_tree_node
                 self.list_tree_nodes.append(new_tree_node)
 
@@ -1348,7 +1406,7 @@ def main():
 
     # parse optional argument
     parser.add_argument("--txid", help="address of the smart contract we are debugging", default=None)
-    parser.add_argument("--no-previous", help="address of the smart contract we are debugging", action='store_true')
+    parser.add_argument("--full-context", help="weather we should replay the previous tx before the target one", action='store_true')
     parser.add_argument("--sender", help="address of the sender", default=None)
     parser.add_argument("--chain", help="chain name", default=None)
     parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=DEFAULT_NODE_URL)
@@ -1377,7 +1435,7 @@ def main():
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, no_previous=args.no_previous, wallet_conf=wallet_conf)
+        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, full_context=args.full_context, wallet_conf=wallet_conf)
     else:
         # interactive mode
         debug_target = TransactionDebugTarget(w3)

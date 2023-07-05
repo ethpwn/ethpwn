@@ -3,7 +3,7 @@ import re
 from .ethdbg_exceptions import InvalidBreakpointException
 from .analyzer import ALL_EVM_OPCODES, ComputationAPI, OpcodeAPI
 
-ALLOWED_COND_BPS = ['addr', 'saddr', 'opcode', 'pc', 'value']
+ALLOWED_COND_BPS = ['addr', 'saddr', 'op', 'pc', 'value']
 BPS_RE_PATTERN = r'([a-zA-Z]*)(==|!=|<=|>=|>|<|=)(.*)'
 ETH_ADDRESS = r'^(0x)?[0-9a-fA-F]{40}$'
 
