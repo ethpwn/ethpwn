@@ -1234,7 +1234,7 @@ class EthDbgShell(cmd.Cmd):
             slot_id = computation._stack.values[-1]
             slot_id = HexBytes(slot_id[1]).hex()
             if slot_id == '0x':
-                slot_id = '0x0'
+                slot_id = '0x00'
 
             slot_val = computation._stack.values[-2]
             slot_val = HexBytes(slot_val[1]).hex()
