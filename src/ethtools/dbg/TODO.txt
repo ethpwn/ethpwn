@@ -1,5 +1,4 @@
 EXTRAS:
-
 4- Telescope command and automatic abi decoding for opcodes
 6- Display if we are taking next jump or not through emulation
 9- watchpoints on storage location or memory
@@ -20,6 +19,5 @@ PRIORITY:
 39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
 18- stabilize breakpoints
 20- Documentation
-21 - TESTS
 25- Polishing!
 26- deployers

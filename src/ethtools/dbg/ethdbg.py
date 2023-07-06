@@ -592,14 +592,7 @@ class EthDbgShell(cmd.Cmd):
             for ref_account, sstores in self.sstores.items():
                 print(f'Account: {BOLD_TEXT}{BLUE_COLOR}{ref_account}{RESET_COLOR}:')
                 for sstore_slot, sstore_val in sstores.items():
-                    if ref_account not in self.reverted_contracts:
-                        print(f' {YELLOW_COLOR}[w]{RESET_COLOR} Slot: {sstore_slot} | Value: {sstore_val}')
-                    else:
-                        _log = f' [w] Slot: {sstore_slot} | Value: {sstore_val}'
-                        res = ''
-                        for c in _log:
-                            res = res + c + STRIKETHROUGH
-                        print(f'{res} ❌')
+                    print(f' {YELLOW_COLOR}[w]{RESET_COLOR} Slot: {sstore_slot} | Value: {sstore_val}')
 
     @only_when_started
     def do_sloads(self, arg):
@@ -767,8 +760,8 @@ class EthDbgShell(cmd.Cmd):
 
     def _handle_revert(self):
         # We'll mark the sstores as reverted
-        curr_storage_contract = '0x'+self.comp.msg.storage_address.hex()
-        curr_code_contracts = '0x'+self.comp.msg.code_address.hex()
+        curr_storage_contract = self.w3.to_checksum_address('0x'+self.comp.msg.storage_address.hex())
+        curr_code_contracts = self.w3.to_checksum_address('0x'+self.comp.msg.code_address.hex())
 
         reverting_contracts = [curr_storage_contract, curr_code_contracts]
         self.reverted_contracts.add(curr_storage_contract)
@@ -923,8 +916,8 @@ class EthDbgShell(cmd.Cmd):
         title = f'{message:{fill}{align}{width}}'+'\n'
 
         # Fetching the metadata from the state of the computation
-        curr_account_code = '0x' + self.comp.msg.code_address.hex()
-        curr_account_storage = '0x' + self.comp.msg.storage_address.hex()
+        curr_account_code = self.w3.to_checksum_address('0x' + self.comp.msg.code_address.hex())
+        curr_account_storage = self.w3.to_checksum_address('0x' + self.comp.msg.storage_address.hex())
         curr_balance = self.comp.state.get_balance(self.comp.msg.storage_address)
         curr_balance_eth = int(curr_balance) / 10**18
 
@@ -1080,10 +1073,7 @@ class EthDbgShell(cmd.Cmd):
             if ref_account in self.sstores:
                 ref_account_sstores = self.sstores[ref_account]
                 for slot, val in ref_account_sstores.items():
-                    if ref_account in self.reverted_contracts:
-                        _sstore_log += f'{YELLOW_COLOR}[w] {slot} -> {val}{RESET_COLOR}\n'
-                    else:
-                        _sstore_log += f'{YELLOW_COLOR}[w]{RESET_COLOR} {slot} -> {val}\n'
+                    _sstore_log += f'{YELLOW_COLOR}[w]{RESET_COLOR} {slot} -> {val}\n'
 
         return title + legend + _sload_log + _sstore_log
 
@@ -1243,6 +1233,8 @@ class EthDbgShell(cmd.Cmd):
 
             slot_id = computation._stack.values[-1]
             slot_id = HexBytes(slot_id[1]).hex()
+            if slot_id == '0x':
+                slot_id = '0x0'
 
             slot_val = computation._stack.values[-2]
             slot_val = HexBytes(slot_val[1]).hex()
@@ -1258,10 +1250,11 @@ class EthDbgShell(cmd.Cmd):
 
             slot_id = computation._stack.values[-1]
             slot_id = HexBytes(slot_id[1]).hex()
+            if slot_id == '0x':
+                slot_id = '0x00'
 
             # CHECK THIS
             slot_val = computation.state.get_storage(computation.msg.storage_address, int(slot_id,16))
-
             if ref_account not in self.sloads.keys():
                 self.sloads[ref_account] = {}
                 self.sloads[ref_account][slot_id] = slot_val
