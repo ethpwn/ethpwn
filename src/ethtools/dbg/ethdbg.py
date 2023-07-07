@@ -1388,9 +1388,8 @@ def main():
 
     # parse optional argument
     parser.add_argument("--txid", help="address of the smart contract we are debugging", default=None)
-    parser.add_argument("--full-context", help="weather we should replay the previous tx before the target one", action='store_true')
+    parser.add_argument("--full-context", help="weather we should replay the previous txs before the target one", action='store_true')
     parser.add_argument("--sender", help="address of the sender", default=None)
-    parser.add_argument("--chain", help="chain name", default=None)
     parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=DEFAULT_NODE_URL)
     parser.add_argument("--target", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--block", help="reference block", default=None)
@@ -1417,11 +1416,11 @@ def main():
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, full_context=args.full_context)
+        debug_target.replay_transaction(args.txid, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, full_context=args.full_context)
     else:
         # interactive mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.new_transaction(to=args.target, sender=args.sender, calldata=args.calldata, chain=args.chain, block_number=args.block, wallet_conf=wallet_conf)
+        debug_target.new_transaction(to=args.target, sender=args.sender, calldata=args.calldata, block_number=args.block, wallet_conf=wallet_conf)
 
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target)
     ethdbgshell.print_license()

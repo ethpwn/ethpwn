@@ -273,7 +273,6 @@ class TransactionDebugTarget:
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
 
-        self.chain = kwargs.pop('chain', hex(self.w3.eth.chain_id))
         self.chain_id = self.w3.eth.chain_id
 
         for k, v in kwargs.items():
