@@ -1208,7 +1208,7 @@ class EthDbgShell(cmd.Cmd):
 
 
         if self.log_op:
-            print(f'{_opcode_str}q')
+            print(f'{_opcode_str}')
 
         self.history.append(_opcode_str)
 
@@ -1395,6 +1395,7 @@ def main():
     parser.add_argument("--txid", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--full-context", help="weather we should replay the previous txs before the target one", action='store_true')
     parser.add_argument("--sender", help="address of the sender", default=None)
+    parser.add_argument("--value",  help="amount of ETH to send", default=None)
     parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=DEFAULT_NODE_URL)
     parser.add_argument("--target", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--block", help="reference block", default=None)
@@ -1421,11 +1422,17 @@ def main():
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, full_context=args.full_context)
+        debug_target.replay_transaction(args.txid, sender=args.sender, to=args.target, 
+                                                   block_number=args.block, calldata=args.calldata, full_context=args.full_context)
     else:
         # interactive mode
+        # is the target an address?
+        if not re.match(ETH_ADDRESS, args.target):
+            print(f"{RED_COLOR}Invalid ETH address provided as target: {args.target}{RESET_COLOR}")
+            sys.exit()
         debug_target = TransactionDebugTarget(w3)
-        debug_target.new_transaction(to=args.target, sender=args.sender, calldata=args.calldata, block_number=args.block, wallet_conf=wallet_conf)
+        debug_target.new_transaction(to=args.target, sender=args.sender, value=int(args.value), 
+                                        calldata=args.calldata, block_number=args.block, wallet_conf=wallet_conf)
 
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target)
     ethdbgshell.print_license()
