@@ -14,10 +14,10 @@ EXTRAS:
 44- ui terminal
 20- Support execution of TX from top of block, end, or specific position (more advanced)
     - Executing always at the top might not work in some cases (balance of tokens for a contract)
+27- registry should name contracts pulling from etherscan or just manually and display it in callhistory.
 
 PRIORITY:
 39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
-18- stabilize breakpoints
 20- Documentation
 25- Polishing!
-26- deployers
+26- history of commands inter-session
