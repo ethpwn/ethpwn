@@ -530,7 +530,12 @@ class EthDbgShell(cmd.Cmd):
 
     def do_calldata(self, arg):
         if arg and not self.started:
-            self.debug_target.calldata = arg
+            try:
+                self.debug_target.calldata = arg
+            except Exception:
+                print(f'Invalid calldata: {arg}')
+        elif not arg and not self.started:
+            print(f'{self.debug_target.calldata}')
         else:
             print(f'{self.comp.msg.data.hex()}')
 
