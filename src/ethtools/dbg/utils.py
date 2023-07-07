@@ -21,7 +21,7 @@ STRIKETHROUGH = "\u0336"
 
 FOUR_BYTE_URL = "https://raw.githubusercontent.com/ethereum-lists/4bytes/master/signatures/{}"
 
-# Enum for the different types of chain 
+# Enum for the different types of chain
 # that are supported by the tool
 class ChainName:
     MAINNET = 1
@@ -72,3 +72,14 @@ def get_chain_name(id):
         return "sepolia"
     else:
         raise Exception("Unknown chain id")
+
+
+
+def read_stack_int(computation, pos: int) -> int:
+    """
+    Read a value from the stack on the given computation, at the given position (1 = top)
+    """
+    val_type, val = computation._stack.values[-pos]
+    if val_type == bytes:
+        val = int.from_bytes(val, byteorder='big', signed=False)
+    return val

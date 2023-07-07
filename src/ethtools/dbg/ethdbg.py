@@ -421,7 +421,6 @@ class EthDbgShell(cmd.Cmd):
                         prev_tx_target.replay_transaction(prev_tx)
                         prev_tx_target.set_default('fork', vm.fork)
                         txn = prev_tx_target.get_transaction_dict()
-                        #mport ipdb; ipdb.set_trace()
 
                         def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
                             return bytes(HexBytes(source_address))
@@ -1264,8 +1263,7 @@ class EthDbgShell(cmd.Cmd):
         if opcode.mnemonic in CALL_OPCODES:
 
             if opcode.mnemonic == "CALL":
-                contract_target = computation._stack.values[-2]
-                contract_target = HexBytes(contract_target[1]).hex()
+                contract_target = hex(read_stack_int(computation, 2))
                 contract_target = '0x' + contract_target.replace('0x','').zfill(40)
                 contract_target = self.w3.to_checksum_address(contract_target)
 
@@ -1287,8 +1285,7 @@ class EthDbgShell(cmd.Cmd):
                 self.list_tree_nodes.append(new_tree_node)
 
             elif opcode.mnemonic == "DELEGATECALL":
-                contract_target = computation._stack.values[-2]
-                contract_target = HexBytes(contract_target[1]).hex()
+                contract_target = hex(read_stack_int(computation, 2))
                 contract_target = '0x' + contract_target.replace('0x','').zfill(40)
                 contract_target = self.w3.to_checksum_address(contract_target)
                 value_sent = 0
@@ -1307,8 +1304,7 @@ class EthDbgShell(cmd.Cmd):
                 self.list_tree_nodes.append(new_tree_node)
 
             elif opcode.mnemonic == "STATICCALL":
-                contract_target = computation._stack.values[-2]
-                contract_target = HexBytes(contract_target[1]).hex()
+                contract_target = hex(read_stack_int(computation, 2))
                 contract_target = '0x' + contract_target.replace('0x','').zfill(40)
                 contract_target = self.w3.to_checksum_address(contract_target)
 
@@ -1428,7 +1424,7 @@ def main():
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, full_context=args.full_context, wallet_conf=wallet_conf)
+        debug_target.replay_transaction(args.txid, chain=args.chain, sender=args.sender, to=args.target, block_number=args.block, calldata=args.calldata, full_context=args.full_context)
     else:
         # interactive mode
         debug_target = TransactionDebugTarget(w3)
