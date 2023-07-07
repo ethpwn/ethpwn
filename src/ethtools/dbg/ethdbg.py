@@ -8,6 +8,7 @@ import sys
 import cmd
 import sha3
 import string
+import readline 
 
 from hexdump import hexdump
 from typing import List
@@ -304,6 +305,11 @@ class EthDbgShell(cmd.Cmd):
         self.logs = list()
 
         self.reverted_contracts = set()
+
+    def precmd(self, line):
+        with open('/tmp/.ethdbg_history', 'a') as history_file:
+            history_file.write(line + '\n')
+        return line
 
     def only_when_started(func):
         def wrapper(self, *args, **kwargs):
@@ -1419,6 +1425,14 @@ def main():
 
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target)
     ethdbgshell.print_license()
+
+    if os.path.exists("/tmp/.ethdbg_history"):
+        # TODO, polish the history in order to keep MAX 10 entries.
+        with open("/tmp/.ethdbg_history", "r") as f:
+            cmds = f.read().splitlines()
+            for cmd in cmds:
+                if cmd != '':
+                    readline.add_history(cmd)
 
     while True:
         try:
