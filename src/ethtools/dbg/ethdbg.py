@@ -852,7 +852,7 @@ class EthDbgShell(cmd.Cmd):
             callsite_string = call.callsite.rjust(max_pc_length)
             call_addr = call.address
             msg_sender = call.msg_sender
-            calls_view += f'{call_addr} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:44} | {call.value} \n'
+            calls_view += f'{call_addr:44} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:44} | {call.value} \n'
 
         return title + legend + calls_view
 
@@ -1230,13 +1230,8 @@ class EthDbgShell(cmd.Cmd):
         if opcode.mnemonic == "SSTORE":
             ref_account = '0x' + computation.msg.storage_address.hex()
 
-            slot_id = computation._stack.values[-1]
-            slot_id = HexBytes(slot_id[1]).hex()
-            if slot_id == '0x':
-                slot_id = '0x00'
-
-            slot_val = computation._stack.values[-2]
-            slot_val = HexBytes(slot_val[1]).hex()
+            slot_id = hex(read_stack_int(computation, 1))
+            slot_val = hex(read_stack_int(computation, 2))
 
             if ref_account not in self.sstores.keys():
                 self.sstores[ref_account] = {}
@@ -1246,11 +1241,7 @@ class EthDbgShell(cmd.Cmd):
 
         if opcode.mnemonic == "SLOAD":
             ref_account = '0x' + computation.msg.storage_address.hex()
-
-            slot_id = computation._stack.values[-1]
-            slot_id = HexBytes(slot_id[1]).hex()
-            if slot_id == '0x':
-                slot_id = '0x00'
+            slot_id = hex(read_stack_int(computation, 1))
 
             # CHECK THIS
             slot_val = computation.state.get_storage(computation.msg.storage_address, int(slot_id,16))
@@ -1267,7 +1258,7 @@ class EthDbgShell(cmd.Cmd):
                 contract_target = '0x' + contract_target.replace('0x','').zfill(40)
                 contract_target = self.w3.to_checksum_address(contract_target)
 
-                value_sent = int.from_bytes(HexBytes(computation._stack.values[-3][1]), byteorder='big')
+                value_sent = read_stack_int(computation, 3)
 
                 # We gotta parse the callstack according to the *CALL opcode
                 new_callframe = CallFrame(
@@ -1327,9 +1318,10 @@ class EthDbgShell(cmd.Cmd):
                     self.curr_tree_node.add(f"{BLUE_COLOR}STATICCALL{RESET_COLOR} {contract_target}")
 
             elif opcode.mnemonic == "CREATE":
-                contract_value = HexBytes(computation._stack.values[-1][1]).hex()
-                code_offset = HexBytes(computation._stack.values[-2][1]).hex()
-                code_size = HexBytes(computation._stack.values[-3][1]).hex()
+                contract_value = hex(read_stack_int(computation, 1))
+                code_offset = hex(read_stack_int(computation, 2))
+                code_size = hex(read_stack_int(computation, 3))
+
                 new_callframe = CallFrame(
                     '0x' + '0' * 40,
                     '0x' + computation.msg.code_address.hex(),
@@ -1344,10 +1336,11 @@ class EthDbgShell(cmd.Cmd):
                 self.list_tree_nodes.append(new_tree_node)
 
             elif opcode.mnemonic == "CREATE2":
-                contract_value = HexBytes(computation._stack.values[-1][1]).hex()
-                code_offset = HexBytes(computation._stack.values[-2][1]).hex()
-                code_size = HexBytes(computation._stack.values[-3][1]).hex()
-                salt = HexBytes(computation._stack.values[-4][1]).hex()
+                contract_value = hex(read_stack_int(computation, 1))
+                code_offset = hex(read_stack_int(computation, 2))
+                code_size = hex(read_stack_int(computation, 3))
+                salt = hex(read_stack_int(computation, 4))
+
                 new_callframe = CallFrame(
                     '0x' + '0' * 40,
                     '0x' + computation.msg.code_address.hex(),
