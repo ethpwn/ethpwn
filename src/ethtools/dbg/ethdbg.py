@@ -490,23 +490,6 @@ class EthDbgShell(cmd.Cmd):
         else:
             self._display_context(cmdloop=False, with_message=f'✔️ {GREEN_BACKGROUND} Execution Terminated!{RESET_COLOR}')
 
-
-    def do_snapshot(self, arg):
-        self.checkpoints.add(self.analyzer.checkpoint())
-
-    def do_restore(self, arg):
-        # TODO: check if the checkpoint is valid
-        if arg == "":
-            print("Please specify the checkpoint number to restore")
-            return
-        else:
-            checkpoint = int(arg)
-            self.analyzer.restore(checkpoint)
-
-    def do_snapshots(self, arg):
-        for i, checkpoint in enumerate(self.checkpoints):
-            print(f"{i}: {checkpoint}")
-
     def do_context(self, arg):
         if self.started:
             metadata_view = self._get_metadata()
@@ -547,7 +530,7 @@ class EthDbgShell(cmd.Cmd):
 
     def do_ethtowei(self, arg):
         try:
-            print(f'{float(arg) * 10**18} wei')
+            print(f'{int(float(arg) * 10**18)} wei')
         except Exception:
             print(f'Invalid ETH amount')
 
