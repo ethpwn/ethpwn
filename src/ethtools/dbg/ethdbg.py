@@ -1398,14 +1398,10 @@ def main():
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethtools/pwn/wallets.json )", default=None)
 
     args = parser.parse_args()
-
-    wallet_conf = get_wallet(args.wallet)
-
-    # TODO if wallet_conf is None, we should create a new wallet for the chain in use
-    # with a random key.
-
     w3 = get_w3_provider(args.node_url)
 
+    wallet_conf = get_wallet(w3, args.wallet)
+    
     # Check if we support the chain
     if w3.eth.chain_id not in SUPPORTED_CHAINS:
         print(f'{RED_COLOR}Unsupported chain: [{w3.eth.chain_id}] {RESET_COLOR}')

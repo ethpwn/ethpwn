@@ -38,3 +38,11 @@ def show_diff(a, b, show_old_new=False):
         for diff_path, diff_value in diff_paths.items():
             table.add_row(diff_type, diff_path, diff_value['diff'])
     print(table)
+
+def get_chain_name(id):
+    if id == 1:
+        return "mainnet"
+    elif id == 11155111:
+        return "sepolia"
+    else:
+        raise Exception("Unknown chain id")
