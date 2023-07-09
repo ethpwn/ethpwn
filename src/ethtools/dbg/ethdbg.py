@@ -912,7 +912,11 @@ class EthDbgShell(cmd.Cmd):
         title = f'{message:{fill}{align}{width}}'+'\n'
 
         # Fetching the metadata from the state of the computation
-        curr_account_code = self.w3.to_checksum_address('0x' + self.comp.msg.code_address.hex())
+        try:
+            curr_account_code = self.w3.to_checksum_address('0x' + self.comp.msg.code_address.hex())
+        except Exception as e:
+            curr_account_code = '0x'
+
         curr_account_storage = self.w3.to_checksum_address('0x' + self.comp.msg.storage_address.hex())
         curr_balance = self.comp.state.get_balance(self.comp.msg.storage_address)
         curr_balance_eth = int(curr_balance) / 10**18
@@ -1042,6 +1046,7 @@ class EthDbgShell(cmd.Cmd):
             return title + '\n'.join(_stack) + '\n' + '\n'.join(_more_stack)
         else:
             return title + _stack
+
 
     def _get_storage(self):
         ref_account = self.w3.to_checksum_address('0x' + self.comp.msg.storage_address.hex())
@@ -1191,7 +1196,6 @@ class EthDbgShell(cmd.Cmd):
             assert insn is not None, "64 bytes was not enough to disassemble?? or this is somehow an invalid opcode??"
             if insn.mnemonic != opcode.mnemonic:
                 print(f"disassembled opcode does not match the opcode we're currently executing??")
-                assert(False)
             hex_bytes = ' '.join(f'{b:02x}' for b in insn.bytes[:5])
             if insn.size > 5: hex_bytes += ' ...'
             if self.show_opcodes_desc:
@@ -1378,11 +1382,8 @@ class EthDbgShell(cmd.Cmd):
         print("Copyright (c) [2023] [Shellphish]")
         print("For a copy, see <https://opensource.org/licenses/MIT>")
 
-# We require a .ethdbg config file in ~/.ethdbg
-# This will pull the account to use for the transaction and related private key
+
 def main():
-    # Check if there is an argument
-    # Parse the argument using argparse
     parser = argparse.ArgumentParser()
 
     # parse optional argument
