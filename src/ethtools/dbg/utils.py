@@ -1,6 +1,10 @@
 
 import platform
+import readline
 import struct
+import os
+
+from pathlib import Path
 
 RED_COLOR = "\033[31m"
 GREEN_COLOR = "\033[32m"
@@ -73,7 +77,35 @@ def get_chain_name(id):
     else:
         raise Exception("Unknown chain id")
 
+def load_cmds_history():
+    target_folder = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
 
+    if os.path.exists(target_folder):
+
+        # First, keep only the last 20 commands
+        # (to avoid having a huge history file)
+        with open(target_folder) as f:
+            cmds = f.read().splitlines()
+            cmds = cmds[-20:]
+        # Overwrite the file
+        with open(target_folder, 'w') as f:
+            f.write('\n'.join(cmds))
+        
+        # Then, load the history!
+        with open(target_folder) as f:
+            cmds = f.read().splitlines()
+            for cmd in cmds:
+                if cmd != '':
+                    readline.add_history(cmd)
+
+def save_cmds_history(cmd):
+    target_folder = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
+    if os.path.exists(target_folder):
+        with open(target_folder, 'a') as f:
+            f.write(cmd + '\n')
+    else:
+        with open(target_folder, 'w') as f:
+            f.write(cmd + '\n')
 
 def read_stack_int(computation, pos: int) -> int:
     """

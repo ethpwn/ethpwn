@@ -223,6 +223,7 @@ class CallFrame():
         self.calltype = calltype
         self.callsite = callsite
 
+# Save the original implementation of the function that extracts the message sender
 ORIGINAL_extract_transaction_sender = eth._utils.transactions.extract_transaction_sender
 
 class EthDbgShell(cmd.Cmd):
@@ -284,10 +285,6 @@ class EthDbgShell(cmd.Cmd):
 
         #  History of executed opcodes
         self.history = list()
-        #  The analyzer object
-        self.analyzer = None
-        #  Checkpoint for the analyzer
-        self.checkpoints = set()
         #  The computation object of py-evm
         self.comp = None
         #  The name of the fork we are using
@@ -298,19 +295,18 @@ class EthDbgShell(cmd.Cmd):
         self.temp_break = False
         #  Whether we want to display the execute ops
         self.log_op = False
-
         # Whether we want to stop on RETURN/STOP operations
         self.stop_on_returns = False
-
-        self.logs = list()
-
+        # List of addresses of contracts that reverted
         self.reverted_contracts = set()
 
     def precmd(self, line):
-        with open('/tmp/.ethdbg_history', 'a') as history_file:
-            history_file.write(line + '\n')
+        # Check if the command is valid, if yes, we save it 
+        if line != None and line != '' and "do_" + line.split(' ')[0] in [c for c in self.get_names() if "do" in c]:
+            save_cmds_history(line)
         return line
 
+    # === DECORATORS ===
     def only_when_started(func):
         def wrapper(self, *args, **kwargs):
             if self.started:
@@ -319,7 +315,7 @@ class EthDbgShell(cmd.Cmd):
                 print("You need to start the debugger first. Use 'start' command")
         return wrapper
 
-    # COMMANDS
+    # === COMMANDS ===
     def do_chain(self, arg):
         print(f'{self.debug_target.chain}@{self.debug_target.block_number}:{self.w3.provider.endpoint_uri}')
 
@@ -428,6 +424,7 @@ class EthDbgShell(cmd.Cmd):
                         prev_tx_target.set_default('fork', vm.fork)
                         txn = prev_tx_target.get_transaction_dict()
 
+                        # Dirty hack, I'm sorry for this.
                         def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
                             return bytes(HexBytes(source_address))
                         eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, prev_tx_target.source_address)
@@ -448,9 +445,8 @@ class EthDbgShell(cmd.Cmd):
             vm = analyzer.vm
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 
-        self.analyzer = analyzer
-
         if self.debug_target.debug_type == "replay":
+            # Dirty hack, I'm sorry for this.
             def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
                 return bytes(HexBytes(source_address))
             eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, self.debug_target.source_address)
@@ -516,6 +512,7 @@ class EthDbgShell(cmd.Cmd):
             print(storage_view)
         else:
             quick_view = self._get_quick_view(arg)
+            print(quick_view)
 
     def do_calldata(self, arg):
         if arg and not self.started:
@@ -747,7 +744,9 @@ class EthDbgShell(cmd.Cmd):
                 hexdump(data.tobytes())
             except Exception as e:
                 print(f'{RED_COLOR}Error reading memory: {e}{RESET_COLOR}')
-    # INTERNALS
+    
+    # === INTERNALS ===
+    
     def _resume(self):
         raise ExitCmdException()
 
@@ -1419,6 +1418,7 @@ def main():
         if not re.match(ETH_ADDRESS, args.target):
             print(f"{RED_COLOR}Invalid ETH address provided as target: {args.target}{RESET_COLOR}")
             sys.exit()
+    
         debug_target = TransactionDebugTarget(w3)
         debug_target.new_transaction(to=args.target, sender=args.sender, value=int(args.value), 
                                         calldata=args.calldata, block_number=args.block, wallet_conf=wallet_conf)
@@ -1426,13 +1426,8 @@ def main():
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target)
     ethdbgshell.print_license()
 
-    if os.path.exists("/tmp/.ethdbg_history"):
-        # TODO, polish the history in order to keep MAX 10 entries.
-        with open("/tmp/.ethdbg_history", "r") as f:
-            cmds = f.read().splitlines()
-            for cmd in cmds:
-                if cmd != '':
-                    readline.add_history(cmd)
+    load_cmds_history()
+    #load_ethdbg_opts()
 
     while True:
         try:
