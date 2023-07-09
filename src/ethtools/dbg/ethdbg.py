@@ -425,7 +425,6 @@ class EthDbgShell(cmd.Cmd):
                         prev_tx_target.set_default('fork', vm.fork)
                         txn = prev_tx_target.get_transaction_dict()
 
-                        # Dirty hack, I'm sorry for this.
                         def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
                             return bytes(HexBytes(source_address))
                         eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, prev_tx_target.source_address)
@@ -447,12 +446,15 @@ class EthDbgShell(cmd.Cmd):
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 
         if self.debug_target.debug_type == "replay":
-            # Dirty hack, I'm sorry for this.
+
             def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
                 return bytes(HexBytes(source_address))
             eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, self.debug_target.source_address)
         else:
             eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
+
+        if self.debug_target.custom_balance:
+            vm.state.set_balance(to_canonical_address(self.debug_target.source_address), int(self.debug_target.custom_balance))
 
         assert self.debug_target.fork is None or self.debug_target.fork == vm.fork
         self.vm_fork_name = vm.fork
@@ -476,10 +478,16 @@ class EthDbgShell(cmd.Cmd):
 
         self.temp_break = True
 
-        receipt, comp = vm.apply_transaction(
-            header=vm.get_header(),
-            transaction=txn,
-        )
+        try:
+            receipt, comp = vm.apply_transaction(
+                header=vm.get_header(),
+                transaction=txn,
+            )
+        except eth.exceptions.InsufficientFunds:
+            print(f'❌ ERROR: Insufficient funds for account {self.debug_target.source_address}')
+            sys.exit(0)
+        # Overwrite the origin attribute
+        comp.transaction_context._origin = to_canonical_address(self.debug_target.source_address)
 
         if hasattr(comp, 'error'):
             if type(comp.error) == eth.exceptions.OutOfGas:
@@ -916,6 +924,7 @@ class EthDbgShell(cmd.Cmd):
             curr_account_code = '0x'
 
         curr_account_storage = self.w3.to_checksum_address('0x' + self.comp.msg.storage_address.hex())
+        curr_origin = self.w3.to_checksum_address('0x' + self.comp.transaction_context.origin.hex())
         curr_balance = self.comp.state.get_balance(self.comp.msg.storage_address)
         curr_balance_eth = int(curr_balance) / 10**18
 
@@ -923,7 +932,7 @@ class EthDbgShell(cmd.Cmd):
         gas_used = self.debug_target.gas - self.comp.get_gas_remaining() - self.comp.get_gas_refund()
         gas_limit = self.comp.state.gas_limit
 
-        _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number}\n'
+        _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number} | Origin: {curr_origin}\n'
         _metadata += f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
         _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Used: {gas_used} | ⛽ Gas Remaining: {gas_remaining} '
 
@@ -1178,6 +1187,10 @@ class EthDbgShell(cmd.Cmd):
     def _myhook(self, opcode: Opcode, computation: ComputationAPI):
         # Store a reference to the computation to make it
         # accessible to the comamnds
+        
+        # Overwriting the origin
+        computation.transaction_context._origin = to_canonical_address(self.debug_target.source_address)
+
         self.comp = computation
         self.curr_opcode = opcode
 
@@ -1388,6 +1401,7 @@ def main():
     parser.add_argument("--txid", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--full-context", help="weather we should replay the previous txs before the target one", action='store_true')
     parser.add_argument("--sender", help="address of the sender", default=None)
+    parser.add_argument("--balance", help="set a custom balance for the sender", default=None)
     parser.add_argument("--value",  help="amount of ETH to send", default=None)
     parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=DEFAULT_NODE_URL)
     parser.add_argument("--target", help="address of the smart contract we are debugging", default=None)
@@ -1417,7 +1431,8 @@ def main():
         debug_target.replay_transaction(args.txid, 
                                         sender=args.sender, to=args.target, 
                                         block_number=args.block, calldata=args.calldata, 
-                                        full_context=args.full_context)
+                                        full_context=args.full_context, 
+                                        custom_balance=args.balance)
     else:
         # interactive mode
         # is the target an address?
@@ -1429,7 +1444,8 @@ def main():
         debug_target.new_transaction(to=args.target, 
                                      sender=args.sender, value=int(args.value), 
                                      calldata=args.calldata, block_number=args.block, 
-                                     wallet_conf=wallet_conf, full_context=False)
+                                     wallet_conf=wallet_conf, full_context=False, 
+                                     custom_balance=args.balance)
 
     load_cmds_history()
     ethdbg_cfg = load_ethdbg_config()

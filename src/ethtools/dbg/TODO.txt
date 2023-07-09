@@ -20,3 +20,4 @@ PRIORITY:
 39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
 20- Documentation
 25- Polishing!
+26- fix origin problem! 
