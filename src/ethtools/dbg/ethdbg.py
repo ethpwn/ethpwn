@@ -538,19 +538,19 @@ class EthDbgShell(cmd.Cmd):
         except Exception:
             print(f'Invalid ETH amount')
 
-    def do_storageat(self, arg1):
-        if not arg1:
+    def do_storageat(self, arg):
+        if not arg:
             print("Usage: storageat [<address>:]<slot>[:<count>]")
             return
 
         address = None
-        if ':' in arg1:
-            address, slot = arg1.split(':')
+        if ':' in arg:
+            address, slot = arg.split(':')
             address = HexBytes(address)
             slot = int(slot, 16)
         else:
             address = self.comp.msg.storage_address if self.started else self.debug_target.target_address
-            slot = int(arg1, 16)
+            slot = int(arg, 16)
         try:
             if self.started:
                 value_read = self.comp.state.get_storage(address, slot)
@@ -827,21 +827,19 @@ class EthDbgShell(cmd.Cmd):
         callsite_string_legend = 'CallSite'.rjust(max_pc_length)
         legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | msg.value ]\n'
         for call in self.callstack[::-1]:
-            color = ''
+            calltype_string = f'{call.calltype}'
             if call.calltype == "CALL":
-                color = PURPLE_COLOR
-                calltype_string = f'{call.calltype}'
+                color = PURPLE_COLOR       
             elif call.calltype == "DELEGATECALL" or call.calltype == "CODECALL":
                 color = RED_COLOR
-                calltype_string = f'{call.calltype}'
             elif call.calltype == "STATICCALL":
                 color = BLUE_COLOR
-                calltype_string = f'{call.calltype}'
             elif call.calltype == "CREATE":
-                color = ORANGE_COLOR
-                calltype_string = f'{call.calltype}'
+                color = GREEN_COLOR
+            elif call.calltype == "CREATE2":
+                color = PURPLE_COLOR
             else:
-                calltype_string = f'{call.calltype}'
+                color = ''
             calltype_string = calltype_string.ljust(max_call_opcode_length)
             callsite_string = call.callsite.rjust(max_pc_length)
             call_addr = call.address
@@ -1369,7 +1367,7 @@ class EthDbgShell(cmd.Cmd):
         if opcode.mnemonic == "REVERT":
             self._handle_revert()
 
-        # Execute the opcode!
+        # Execute the opcode finally!
         try:
             opcode(computation=computation)
         except eth.exceptions.OutOfGas:
@@ -1398,8 +1396,8 @@ def main():
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethtools/pwn/wallets.json )", default=None)
 
     args = parser.parse_args()
-    w3 = get_w3_provider(args.node_url)
 
+    w3 = get_w3_provider(args.node_url)
     wallet_conf = get_wallet(w3, args.wallet)
     
     # Check if we support the chain
