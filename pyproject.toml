@@ -71,6 +71,4 @@ classifiers = [
 "Bug Tracker" = "https://github.com/shellphish/ethtools/issues"
 
 [project.scripts]
-txdecode = "ethtools.pwn.console_scripts.txdecode:main"
-txdo = "ethtools.pwn.console_scripts.txdo:main"
 ethdbg = "ethtools.dbg.ethdbg:main"

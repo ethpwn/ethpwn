@@ -4,12 +4,10 @@ EXTRAS:
 9- watchpoints on storage location or memory
 12- support for multiple transactions
 21- Add explain to see where a value come from
-22- We have to stub ecrecover and every freaking call that expects that the signer was actually a real account when impersonating.
 23- Modifying storage and memory on demand
-35- do a vmmap command to show current usage of the whole memory!
 37- Visualize logs
 38- cache to avoid burn all the calls for Infura (LATER)
-42- merge snapshots
+42- merge Yon's snapshots
 43- undo command
 44- ui terminal
 20- Support execution of TX from top of block, end, or specific position (more advanced)
@@ -20,4 +18,3 @@ PRIORITY:
 39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
 20- Documentation
 25- Polishing!
-26- history of commands inter-session

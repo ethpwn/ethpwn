@@ -230,7 +230,7 @@ class EthDbgShell(cmd.Cmd):
 
     prompt = f'{RED_COLOR}ethdbg{RESET_COLOR}➤ '
 
-    def __init__(self, wallet_conf, w3, debug_target, breaks=None, **kwargs):
+    def __init__(self, wallet_conf, w3, debug_target, ethdbg_cfg, breaks=None, **kwargs):
         # call the parent class constructor
         super().__init__(**kwargs)
 
@@ -239,6 +239,7 @@ class EthDbgShell(cmd.Cmd):
         self.wallet_conf = wallet_conf
         self.account = Account.from_key(self.wallet_conf.private_key)
 
+        self.show_opcodes_desc = ethdbg_cfg['show_opcodes_desc'] if 'show_opcodes_desc' in ethdbg_cfg.keys() else True
         # EVM stuff
         self.w3 = w3
 
@@ -265,12 +266,12 @@ class EthDbgShell(cmd.Cmd):
         # per account so we can keep track of what storages slots have
         # been modified for every single contract that the transaction touched
         self.sstores = {}
-        self.hide_sstores = False
+        self.hide_sstores = ethdbg_cfg['hide_sstores'] if 'hide_sstores' in ethdbg_cfg.keys() else False
         # Recording here the SLOADs, the dictionary is organized
         # per account so we can keep track of what storages slots have
         # been modified for every single contract that the transaction touched
         self.sloads = {}
-        self.hide_sloads = False
+        self.hide_sloads = ethdbg_cfg['hide_sloads'] if 'hide_sloads' in ethdbg_cfg.keys() else False
 
         # Debugger state
         # ==============
@@ -296,7 +297,7 @@ class EthDbgShell(cmd.Cmd):
         #  Whether we want to display the execute ops
         self.log_op = False
         # Whether we want to stop on RETURN/STOP operations
-        self.stop_on_returns = False
+        self.stop_on_returns = ethdbg_cfg['stop_on_returns'] if 'stop_on_returns' in ethdbg_cfg.keys() else False
         # List of addresses of contracts that reverted
         self.reverted_contracts = set()
 
@@ -892,7 +893,10 @@ class EthDbgShell(cmd.Cmd):
                 assert insn is not None, "64 bytes was not enough to disassemble?? or this is somehow an invalid opcode??"
                 hex_bytes = ' '.join(f'{b:02x}' for b in insn.bytes[:5])
                 if insn.size > 5: hex_bytes += ' ...'
-                _next_opcodes_str += f'  {pc:#06x}  {hex_bytes:18} {str(insn):20}    // {insn.description}\n'
+                if self.show_opcodes_desc:
+                    _next_opcodes_str += f'  {pc:#06x}  {hex_bytes:18} {str(insn):20}    // {insn.description}\n'
+                else:
+                    _next_opcodes_str += f'  {pc:#06x}  {hex_bytes:18} {str(insn):20}\n'
             else:
                 break
 
@@ -1190,7 +1194,10 @@ class EthDbgShell(cmd.Cmd):
                 assert(False)
             hex_bytes = ' '.join(f'{b:02x}' for b in insn.bytes[:5])
             if insn.size > 5: hex_bytes += ' ...'
-            _opcode_str = f'{pc:#06x}  {hex_bytes:18} {str(insn):20}    // {insn.description}'
+            if self.show_opcodes_desc:
+                _opcode_str = f'{pc:#06x}  {hex_bytes:18} {str(insn):20}    // {insn.description}'
+            else:
+                _opcode_str = f'{pc:#06x}  {hex_bytes:18} {str(insn):20}'
         else:
             _opcode_str = f'{pc:#06x}  {"":18} {opcode.mnemonic:15} [WARNING: no code]'
 
@@ -1374,7 +1381,6 @@ class EthDbgShell(cmd.Cmd):
 # We require a .ethdbg config file in ~/.ethdbg
 # This will pull the account to use for the transaction and related private key
 def main():
-
     # Check if there is an argument
     # Parse the argument using argparse
     parser = argparse.ArgumentParser()
@@ -1421,13 +1427,13 @@ def main():
     
         debug_target = TransactionDebugTarget(w3)
         debug_target.new_transaction(to=args.target, sender=args.sender, value=int(args.value), 
-                                        calldata=args.calldata, block_number=args.block, wallet_conf=wallet_conf)
-
-    ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target)
-    ethdbgshell.print_license()
+                                        calldata=args.calldata, block_number=args.block, wallet_conf=wallet_conf, full_context=False)
 
     load_cmds_history()
-    #load_ethdbg_opts()
+    ethdbg_cfg = load_ethdbg_config()
+
+    ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, ethdbg_cfg=ethdbg_cfg)
+    ethdbgshell.print_license()
 
     while True:
         try:
@@ -1440,7 +1446,15 @@ def main():
             continue
         except RestartDbgException:
             old_breaks = ethdbgshell.breakpoints
-            ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, breaks=old_breaks)
+            # If user overwritten the ethdbg config, let's be nice
+            # and keep it :) 
+            new_ethdbg_config = dict()
+            for k in ethdbg_cfg.keys():
+                val = getattr(ethdbgshell, k)
+                new_ethdbg_config[k] = val
+
+            ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, 
+                                        ethdbg_cfg=new_ethdbg_config, breaks=old_breaks)
             ethdbgshell.cmdqueue.append("start\n")
 
 if __name__ == '__main__':

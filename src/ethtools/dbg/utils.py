@@ -1,4 +1,5 @@
 
+import json
 import platform
 import readline
 import struct
@@ -78,34 +79,42 @@ def get_chain_name(id):
         raise Exception("Unknown chain id")
 
 def load_cmds_history():
-    target_folder = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
+    target_file = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
 
-    if os.path.exists(target_folder):
+    if os.path.exists(target_file):
 
         # First, keep only the last 20 commands
         # (to avoid having a huge history file)
-        with open(target_folder) as f:
+        with open(target_file) as f:
             cmds = f.read().splitlines()
             cmds = cmds[-20:]
         # Overwrite the file
-        with open(target_folder, 'w') as f:
+        with open(target_file, 'w') as f:
             f.write('\n'.join(cmds))
         
         # Then, load the history!
-        with open(target_folder) as f:
+        with open(target_file) as f:
             cmds = f.read().splitlines()
             for cmd in cmds:
                 if cmd != '':
                     readline.add_history(cmd)
 
 def save_cmds_history(cmd):
-    target_folder = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
-    if os.path.exists(target_folder):
-        with open(target_folder, 'a') as f:
+    target_file = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
+    if os.path.exists(target_file):
+        with open(target_file, 'a') as f:
             f.write(cmd + '\n')
     else:
-        with open(target_folder, 'w') as f:
+        with open(target_file, 'w') as f:
             f.write(cmd + '\n')
+
+def load_ethdbg_config():
+    target_file = Path().home() / ".config" / "ethtools" / ".ethdbg_config"
+    if os.path.exists(target_file):
+        with open(target_file) as f:
+            return json.load(f)
+    else:
+        return dict
 
 def read_stack_int(computation, pos: int) -> int:
     """
