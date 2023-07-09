@@ -146,7 +146,10 @@ def all_wallets() -> Dict[str, Wallet]:
 def get_wallet(w3, address_or_name) -> Wallet:
     from . import GLOBAL_CONFIG
     if address_or_name is None:
-        return next(iter(GLOBAL_CONFIG['wallets'].values()), create_new_default_wallet(w3, get_default_wallet_path()))
+        if len(GLOBAL_CONFIG['wallets'].values()) == 0:
+            return create_new_default_wallet(w3, get_default_wallet_path())
+        else:
+            return next(iter(GLOBAL_CONFIG['wallets'].values()), None)
     if wallet := get_wallet_by_name(address_or_name):
         return wallet
     if wallet := get_wallet_by_address(address_or_name):
