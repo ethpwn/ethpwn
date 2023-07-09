@@ -1044,7 +1044,7 @@ class EthDbgShell(cmd.Cmd):
             return title + _stack
 
     def _get_storage(self):
-        ref_account = '0x' + self.comp.msg.storage_address.hex()
+        ref_account = self.w3.to_checksum_address('0x' + self.comp.msg.storage_address.hex())
         message = f"{GREEN_COLOR}Last Active Storage Slots [{ref_account}]{RESET_COLOR}"
 
         fill = HORIZONTAL_LINE
@@ -1416,8 +1416,10 @@ def main():
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, sender=args.sender, to=args.target, 
-                                                   block_number=args.block, calldata=args.calldata, full_context=args.full_context)
+        debug_target.replay_transaction(args.txid, 
+                                        sender=args.sender, to=args.target, 
+                                        block_number=args.block, calldata=args.calldata, 
+                                        full_context=args.full_context)
     else:
         # interactive mode
         # is the target an address?
@@ -1426,8 +1428,10 @@ def main():
             sys.exit()
     
         debug_target = TransactionDebugTarget(w3)
-        debug_target.new_transaction(to=args.target, sender=args.sender, value=int(args.value), 
-                                        calldata=args.calldata, block_number=args.block, wallet_conf=wallet_conf, full_context=False)
+        debug_target.new_transaction(to=args.target, 
+                                     sender=args.sender, value=int(args.value), 
+                                     calldata=args.calldata, block_number=args.block, 
+                                     wallet_conf=wallet_conf, full_context=False)
 
     load_cmds_history()
     ethdbg_cfg = load_ethdbg_config()
