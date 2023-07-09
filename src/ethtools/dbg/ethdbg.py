@@ -1401,6 +1401,9 @@ def main():
 
     wallet_conf = get_wallet(args.wallet)
 
+    # TODO if wallet_conf is None, we should create a new wallet for the chain in use
+    # with a random key.
+
     w3 = get_w3_provider(args.node_url)
 
     # Check if we support the chain

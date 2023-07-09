@@ -13,6 +13,8 @@ EXTRAS:
 20- Support execution of TX from top of block, end, or specific position (more advanced)
     - Executing always at the top might not work in some cases (balance of tokens for a contract)
 27- registry should name contracts pulling from etherscan or just manually and display it in callhistory.
+28- Decode strings if they look like strings when printing the disassembly or the stack
+
 
 PRIORITY:
 39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
