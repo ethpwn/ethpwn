@@ -486,6 +486,10 @@ class EthDbgShell(cmd.Cmd):
         except eth.exceptions.InsufficientFunds:
             print(f'❌ ERROR: Insufficient funds for account {self.debug_target.source_address}')
             sys.exit(0)
+        except Exception as e:
+            print(f'❌ Transaction erorr: {e}')
+            sys.exit(0)
+
         # Overwrite the origin attribute
         comp.transaction_context._origin = to_canonical_address(self.debug_target.source_address)
 
