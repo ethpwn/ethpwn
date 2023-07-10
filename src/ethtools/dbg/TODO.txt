@@ -1,23 +1,22 @@
 EXTRAS:
-4- Telescope command and automatic abi decoding for opcodes
-6- Display if we are taking next jump or not through emulation
-9- watchpoints on storage location or memory
-12- support for multiple transactions
-21- Add explain to see where a value come from
-23- Modifying storage and memory on demand
-37- Visualize logs
-38- cache to avoid burn all the calls for Infura (LATER)
-42- merge Yon's snapshots
-43- undo command
-44- ui terminal
-20- Support execution of TX from top of block, end, or specific position (more advanced)
+1 - Telescope command and automatic abi decoding for opcodes
+2 - Display if we are taking next jump or not through emulation
+3 - watchpoints on storage location or memory
+4 - support for multiple transactions
+5 - Add explain to see where a value come from
+6 - Modifying storage and memory on demand
+7 - Visualize logs
+8 - cache to avoid burn all the calls for Infura (LATER)
+9 - merge Yon's snapshots
+10- undo command
+11- ui terminal
+12- Support execution of TX from top of block, end, or specific position (more advanced)
     - Executing always at the top might not work in some cases (balance of tokens for a contract)
-27- registry should name contracts pulling from etherscan or just manually and display it in callhistory.
-28- Decode strings if they look like strings when printing the disassembly or the stack
-
+13- registry should name contracts pulling from etherscan or just manually and display it in callhistory.
+14- Decode strings if they look like strings when printing the disassembly or the stack
+15- Custom gas for transactions
 
 PRIORITY:
-39- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
-20- Documentation
-25- Polishing!
-26- fix origin problem! 
+1- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
+2- Documentation
+3- Polishing!
