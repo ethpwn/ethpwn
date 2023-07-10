@@ -615,7 +615,8 @@ class EthDbgShell(cmd.Cmd):
         break_args = arg.split(",")
         try:
             bp = Breakpoint(break_args)
-            self.breakpoints.append(bp)
+            if bp.signature not in [b.signature for b in self.breakpoints]:
+                self.breakpoints.append(bp)
         except InvalidBreakpointException:
             print(f'{RED_COLOR}Invalid breakpoint{RESET_COLOR}:')
             print(f'{RED_COLOR} Valid syntax is: <what><when><value>,<what><when><value>{RESET_COLOR}')
@@ -627,7 +628,8 @@ class EthDbgShell(cmd.Cmd):
         break_args = arg.split(",")
         try:
             bp = Breakpoint(break_args, temp=True)
-            self.breakpoints.append(bp)
+            if bp.signature not in [b.signature for b in self.breakpoints]:
+                self.breakpoints.append(bp)
         except InvalidBreakpointException:
             print(f'{RED_COLOR}Invalid breakpoint{RESET_COLOR}:')
             print(f'{RED_COLOR} Valid syntax is: <what><when><value>,<what><when><value>{RESET_COLOR}')

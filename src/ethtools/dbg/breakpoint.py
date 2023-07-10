@@ -1,5 +1,6 @@
 
 import re
+import hashlib
 from .ethdbg_exceptions import InvalidBreakpointException
 from .analyzer import ALL_EVM_OPCODES, ComputationAPI, OpcodeAPI
 
@@ -18,6 +19,9 @@ class Breakpoint():
         self.temp = temp
         self.simple_bp = False
 
+        # signature of the breakpoint to avoid duplicate
+        self.signature = None
+
         # Is this a simple breakpoint?
         # This is the case if len(break_args) == 1 and none of the ALLOWED_COND_BPS is in break_args[0]
         if len(break_args) == 1 and not any(cond_keyword in break_args[0] for cond_keyword in ALLOWED_COND_BPS):
@@ -29,6 +33,7 @@ class Breakpoint():
                 # Is it a valid pc?
                 try:
                     self.pc = int(break_args[0],16)
+                    self.signature = hashlib.sha256(str(self.pc).encode("utf-8")).hexdigest()        
                 except Exception as e:
                     #print(f'Invalid breakpoint condition: {e}. Skipping.')
                     raise InvalidBreakpointException()
@@ -46,6 +51,11 @@ class Breakpoint():
                     # Validation of the breakpoints parameters here
                     if self._validate_bp(what, when, value):
                         self.conditions.append((what, when, value))
+                        sha256_hash = hashlib.sha256()
+                        sha256_hash.update(what.encode('utf-8'))
+                        sha256_hash.update(when.encode('utf-8'))
+                        sha256_hash.update(value.encode('utf-8'))
+                        self.signature = sha256_hash.hexdigest()
                     else:
                         raise InvalidBreakpointException()
 
