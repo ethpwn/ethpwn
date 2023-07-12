@@ -8,6 +8,7 @@ import logging
 from web3 import Web3, middleware
 from web3.gas_strategies.time_based import construct_time_based_gas_price_strategy
 
+
 class Web3Context:
     '''
     A context holding global state used by ethpwn.

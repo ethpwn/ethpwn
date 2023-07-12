@@ -15,6 +15,10 @@ EXTRAS:
 13- registry should name contracts pulling from etherscan or just manually and display it in callhistory.
 14- Decode strings if they look like strings when printing the disassembly or the stack
 15- Custom gas for transactions
+16- Order sstores and sloads temporarly (otherwise it's impossible to understand in which order this things happened)
+17- Probably need this to support Avalanche:
+    - https://stackoverflow.com/questions/69334835/get-avalanche-block-data-by-block-hash-with-web3-py
+
 
 PRIORITY:
 1- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)

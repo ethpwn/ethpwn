@@ -8,7 +8,7 @@ import sys
 import cmd
 import sha3
 import string
-import readline 
+import readline
 
 from hexdump import hexdump
 from typing import List
@@ -302,7 +302,7 @@ class EthDbgShell(cmd.Cmd):
         self.reverted_contracts = set()
 
     def precmd(self, line):
-        # Check if the command is valid, if yes, we save it 
+        # Check if the command is valid, if yes, we save it
         if line != None and line != '' and "do_" + line.split(' ')[0] in [c for c in self.get_names() if "do" in c]:
             save_cmds_history(line)
         return line
@@ -486,8 +486,12 @@ class EthDbgShell(cmd.Cmd):
         except eth.exceptions.InsufficientFunds:
             print(f'❌ ERROR: Insufficient funds for account {self.debug_target.source_address}')
             sys.exit(0)
+        except RestartDbgException:
+            # If it's our restart, let's just re-raise it.
+            raise RestartDbgException()
         except Exception as e:
-            print(f'❌ Transaction erorr: {e}')
+            # Otherwise, something is terribly wrong, print and exit.
+            print(f'❌ Transaction error: {e}')
             sys.exit(0)
 
         # Overwrite the origin attribute
@@ -572,7 +576,7 @@ class EthDbgShell(cmd.Cmd):
             print("Something went wrong while fetching storage:")
             print(f' Error: {RED_COLOR}{e}{RESET_COLOR}')
 
-        print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {slot} | Value: {HexBytes(value_read).hex()}')
+        print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {hex(slot)} | Value: {HexBytes(value_read).hex()}')
 
     def do_callhistory(self, arg):
         rich_print(self.root_tree_node)
@@ -722,11 +726,9 @@ class EthDbgShell(cmd.Cmd):
         print(f'Stopping on returns: {self.stop_on_returns}')
 
     def do_quit(self, arg):
-        print()
         sys.exit()
 
     def do_EOF(self, arg):
-        print()
         # quit if user says yes or hits ctrl-d again
         try:
             if input(f" {BLUE_COLOR}[+] EOF, are you sure you want to quit? (y/n) {RESET_COLOR}") == 'y':
@@ -735,8 +737,7 @@ class EthDbgShell(cmd.Cmd):
             self.do_quit(arg)
         except KeyboardInterrupt:
             pass
-        finally:
-            print()
+
 
     do_q = do_quit
 
@@ -759,9 +760,9 @@ class EthDbgShell(cmd.Cmd):
                 hexdump(data.tobytes())
             except Exception as e:
                 print(f'{RED_COLOR}Error reading memory: {e}{RESET_COLOR}')
-    
+
     # === INTERNALS ===
-    
+
     def _resume(self):
         raise ExitCmdException()
 
@@ -843,7 +844,7 @@ class EthDbgShell(cmd.Cmd):
         for call in self.callstack[::-1]:
             calltype_string = f'{call.calltype}'
             if call.calltype == "CALL":
-                color = PURPLE_COLOR       
+                color = PURPLE_COLOR
             elif call.calltype == "DELEGATECALL" or call.calltype == "CODECALL":
                 color = RED_COLOR
             elif call.calltype == "STATICCALL":
@@ -961,7 +962,7 @@ class EthDbgShell(cmd.Cmd):
 
             entry_val = int.from_bytes(HexBytes(entry_val), byteorder='big')
 
-            _stack += f'{hex(entry_slot)}│ {hex(entry_val)}\n'
+            _stack += f'{hex(entry_slot)}│ {"0x"+hex(entry_val).replace("0x", "").zfill(64)}\n'
 
         # Decoration of the stack given the current opcode
         if self.curr_opcode.mnemonic == "CALL":
@@ -975,8 +976,8 @@ class EthDbgShell(cmd.Cmd):
 
             argSizeHuge = False
 
-            if argSize > 50:
-                argSize = 50
+            if argSize > 20:
+                argSize = 20
                 argSizeHuge = True
 
             _stack[0] += f' ({gas}) {BRIGHT_YELLOW_COLOR} (gas) {RESET_COLOR}'
@@ -1193,7 +1194,7 @@ class EthDbgShell(cmd.Cmd):
     def _myhook(self, opcode: Opcode, computation: ComputationAPI):
         # Store a reference to the computation to make it
         # accessible to the comamnds
-        
+
         # Overwriting the origin
         computation.transaction_context._origin = to_canonical_address(self.debug_target.source_address)
 
@@ -1434,10 +1435,10 @@ def main():
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
-        debug_target.replay_transaction(args.txid, 
-                                        sender=args.sender, to=args.target, 
-                                        block_number=args.block, calldata=args.calldata, 
-                                        full_context=args.full_context, 
+        debug_target.replay_transaction(args.txid,
+                                        sender=args.sender, to=args.target,
+                                        block_number=args.block, calldata=args.calldata,
+                                        full_context=args.full_context,
                                         custom_balance=args.balance)
     else:
         # interactive mode
@@ -1445,12 +1446,12 @@ def main():
         if not re.match(ETH_ADDRESS, args.target):
             print(f"{RED_COLOR}Invalid ETH address provided as target: {args.target}{RESET_COLOR}")
             sys.exit()
-    
+
         debug_target = TransactionDebugTarget(w3)
-        debug_target.new_transaction(to=args.target, 
-                                     sender=args.sender, value=int(args.value), 
-                                     calldata=args.calldata, block_number=args.block, 
-                                     wallet_conf=wallet_conf, full_context=False, 
+        debug_target.new_transaction(to=args.target,
+                                     sender=args.sender, value=int(args.value),
+                                     calldata=args.calldata, block_number=args.block,
+                                     wallet_conf=wallet_conf, full_context=False,
                                      custom_balance=args.balance)
 
     load_cmds_history()
@@ -1471,13 +1472,13 @@ def main():
         except RestartDbgException:
             old_breaks = ethdbgshell.breakpoints
             # If user overwritten the ethdbg config, let's be nice
-            # and keep it :) 
+            # and keep it :)
             new_ethdbg_config = dict()
             for k in ethdbg_cfg.keys():
                 val = getattr(ethdbgshell, k)
                 new_ethdbg_config[k] = val
 
-            ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, 
+            ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target,
                                         ethdbg_cfg=new_ethdbg_config, breaks=old_breaks)
             ethdbgshell.cmdqueue.append("start\n")
 

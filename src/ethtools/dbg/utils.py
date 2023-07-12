@@ -16,7 +16,7 @@ BLUE_COLOR = "\033[34m"
 CYAN_COLOR = "\033[36m"
 PURPLE_COLOR = "\033[35m"
 ORANGE_COLOR = "\033[38;5;208m"
-# Purple 
+# Purple
 PURPLE_COLOR = "\033[38;5;141m"
 YELLOW_BACKGROUND = "\033[43m"
 RED_BACKGROUND = "\033[41m"
@@ -33,8 +33,9 @@ FOUR_BYTE_URL = "https://raw.githubusercontent.com/ethereum-lists/4bytes/master/
 class ChainName:
     MAINNET = 1
     SEPOLIA = 11155111
+    AVALANCHE = 43114
 
-SUPPORTED_CHAINS = [ChainName.MAINNET, ChainName.SEPOLIA]
+SUPPORTED_CHAINS = [ChainName.MAINNET, ChainName.SEPOLIA, ChainName.AVALANCHE]
 
 def to_snake_case(s: str) -> str:
     s = s.replace('-', '_')
@@ -77,6 +78,8 @@ def get_chain_name(id):
         return "mainnet"
     elif id == 11155111:
         return "sepolia"
+    elif id == 43114:
+        return "avalanche"
     else:
         raise Exception("Unknown chain id")
 
@@ -93,7 +96,7 @@ def load_cmds_history():
         # Overwrite the file
         with open(target_file, 'w') as f:
             f.write('\n'.join(cmds))
-        
+
         # Then, load the history!
         with open(target_file) as f:
             cmds = f.read().splitlines()
