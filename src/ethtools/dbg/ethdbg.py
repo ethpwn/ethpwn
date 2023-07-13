@@ -489,10 +489,11 @@ class EthDbgShell(cmd.Cmd):
         except RestartDbgException:
             # If it's our restart, let's just re-raise it.
             raise RestartDbgException()
-        except Exception as e:
+        #except Exception as e:
             # Otherwise, something is terribly wrong, print and exit.
-            print(f'❌ Transaction error: {e}')
-            sys.exit(0)
+            #print(f'❌ Transaction error: {e}')
+            #sys.exit(0)
+        #    print(e)
 
         # Overwrite the origin attribute
         comp.transaction_context._origin = to_canonical_address(self.debug_target.source_address)
@@ -1395,7 +1396,7 @@ class EthDbgShell(cmd.Cmd):
 
 
     def print_license(self):
-        print(f"{YELLOW_COLOR}⧫ {BOLD_TEXT}ethdbg 0.1 ⧫ - The CLI Ethereum Debugger{RESET_COLOR}")
+        print(f"{YELLOW_COLOR}⧫ {BOLD_TEXT}ethdbg 0.1 ⧫ - The CLI EVM Debugger{RESET_COLOR}")
         print("License: MIT License")
         print("Copyright (c) [2023] [Shellphish]")
         print("For a copy, see <https://opensource.org/licenses/MIT>")

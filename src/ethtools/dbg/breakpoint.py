@@ -29,13 +29,14 @@ class Breakpoint():
             # Is it a valid opcode
             if break_args[0].upper() in ALL_EVM_OPCODES:
                 self.op = break_args[0].upper()
+                self.signature = hashlib.sha256(str(self.op).encode("utf-8")).hexdigest()
             else:
                 # Is it a valid pc?
                 try:
                     self.pc = int(break_args[0],16)
-                    self.signature = hashlib.sha256(str(self.pc).encode("utf-8")).hexdigest()        
+                    self.signature = hashlib.sha256(str(self.pc).encode("utf-8")).hexdigest()
+                    print(f'signature: {self.signature}')
                 except Exception as e:
-                    #print(f'Invalid breakpoint condition: {e}. Skipping.')
                     raise InvalidBreakpointException()
         else:
             for break_arg in break_args:
@@ -56,6 +57,7 @@ class Breakpoint():
                         sha256_hash.update(when.encode('utf-8'))
                         sha256_hash.update(value.encode('utf-8'))
                         self.signature = sha256_hash.hexdigest()
+
                     else:
                         raise InvalidBreakpointException()
 

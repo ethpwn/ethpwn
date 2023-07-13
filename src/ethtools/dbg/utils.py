@@ -88,11 +88,11 @@ def load_cmds_history():
 
     if os.path.exists(target_file):
 
-        # First, keep only the last 20 commands
+        # First, keep only the last 100 unique commands
         # (to avoid having a huge history file)
         with open(target_file) as f:
             cmds = f.read().splitlines()
-            cmds = cmds[-20:]
+            cmds = set(cmds[-100:])
         # Overwrite the file
         with open(target_file, 'w') as f:
             f.write('\n'.join(cmds))
