@@ -582,6 +582,17 @@ class EthDbgShell(cmd.Cmd):
     def do_callhistory(self, arg):
         rich_print(self.root_tree_node)
 
+    def do_stack_fix(self, arg):
+        if not arg:
+            print("Usage: stack_fix <index> <value>")
+            return
+
+        index = int(arg.split(' ')[0])
+        value = arg.split(' ')[1]
+
+        import ipdb; ipdb.set_trace()
+        self.comp._stack[index] = value
+
     @only_when_started
     def do_sstores(self, arg):
          # Check if there is an argument
