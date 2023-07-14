@@ -18,7 +18,7 @@ EXTRAS:
 16- Order sstores and sloads temporarly (otherwise it's impossible to understand in which order this things happened)
 17- Probably need this to support Avalanche:
     - https://stackoverflow.com/questions/69334835/get-avalanche-block-data-by-block-hash-with-web3-py
-
+18- Collect the pre-image and show them when there is an sstore on a map/array.
 
 PRIORITY:
 1- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)

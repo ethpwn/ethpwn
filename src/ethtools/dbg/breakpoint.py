@@ -35,7 +35,6 @@ class Breakpoint():
                 try:
                     self.pc = int(break_args[0],16)
                     self.signature = hashlib.sha256(str(self.pc).encode("utf-8")).hexdigest()
-                    print(f'signature: {self.signature}')
                 except Exception as e:
                     raise InvalidBreakpointException()
         else:

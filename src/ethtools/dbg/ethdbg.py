@@ -577,21 +577,11 @@ class EthDbgShell(cmd.Cmd):
             print("Something went wrong while fetching storage:")
             print(f' Error: {RED_COLOR}{e}{RESET_COLOR}')
 
-        print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {hex(slot)} | Value: {HexBytes(value_read).hex()}')
+        value_read = "0x" + hex(value_read).replace("0x",'').zfill(64)
+        print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {hex(slot)} | Value: {value_read}')
 
     def do_callhistory(self, arg):
         rich_print(self.root_tree_node)
-
-    def do_stack_fix(self, arg):
-        if not arg:
-            print("Usage: stack_fix <index> <value>")
-            return
-
-        index = int(arg.split(' ')[0])
-        value = arg.split(' ')[1]
-
-        import ipdb; ipdb.set_trace()
-        self.comp._stack[index] = value
 
     @only_when_started
     def do_sstores(self, arg):
@@ -977,7 +967,45 @@ class EthDbgShell(cmd.Cmd):
             _stack += f'{hex(entry_slot)}│ {"0x"+hex(entry_val).replace("0x", "").zfill(64)}\n'
 
         # Decoration of the stack given the current opcode
-        if self.curr_opcode.mnemonic == "CALL":
+        if self.curr_opcode.mnemonic == "SLOAD":
+            _more_stack = _stack.split("\n")[1:]
+            _stack = _stack.split("\n")[0:1]
+
+            slot_id = int(_stack[0].split(" ")[1],16)
+            _stack[0] += f'{BRIGHT_YELLOW_COLOR} (slot_id) {RESET_COLOR}'
+            value_at_slot = self.comp.state.get_storage(self.comp.msg.storage_address, slot_id)
+            value_at_slot = "0x"+hex(value_at_slot).replace("0x",'').zfill(64)
+            _stack[0] += f'→ {ORANGE_COLOR}{value_at_slot}{RESET_COLOR}'
+
+            return title + '\n'.join(_stack) + '\n' + '\n'.join(_more_stack)
+
+        elif self.curr_opcode.mnemonic == "SSTORE":
+            _more_stack = _stack.split("\n")[2:]
+            _stack = _stack.split("\n")[0:2]
+
+            slot_id = int(_stack[0].split(" ")[1],16)
+            new_value = int(_stack[1].split(" ")[1],16)
+            new_value = "0x"+hex(new_value).replace("0x",'').zfill(64)
+            _stack[0] += f'{BRIGHT_YELLOW_COLOR} (slot_id) {RESET_COLOR}'
+            value_at_slot = self.comp.state.get_storage(self.comp.msg.storage_address, slot_id)
+            value_at_slot = "0x"+hex(value_at_slot).replace("0x",'').zfill(64)
+            _stack[0] += f'→ {ORANGE_COLOR}{value_at_slot}{RESET_COLOR}'
+            _stack[1] += f'{BRIGHT_YELLOW_COLOR} (slotval){RESET_COLOR} → '
+
+            _diff_string = ''
+            for idx, byte in enumerate(value_at_slot):
+                if byte != new_value[idx]:
+                    _diff_string += f'{RED_COLOR}{new_value[idx]}{RESET_COLOR}'
+                else:
+                    _diff_string += f'{GREEN_COLOR}{byte}{RESET_COLOR}'
+            _stack[1] += _diff_string
+
+            # do a diff between the value at the slot and the new value and print 
+            # every byte of the new value in green if they are the same, in red if they are different
+    
+            return title + '\n'.join(_stack) + '\n' + '\n'.join(_more_stack)
+        
+        elif self.curr_opcode.mnemonic == "CALL":
             _more_stack = _stack.split("\n")[7:]
             _stack = _stack.split("\n")[0:7]
 
