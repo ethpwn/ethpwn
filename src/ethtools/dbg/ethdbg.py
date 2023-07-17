@@ -740,7 +740,7 @@ class EthDbgShell(cmd.Cmd):
             self.do_quit(arg)
         except KeyboardInterrupt:
             pass
-        
+
     def do_clear(self, arg):
         # just clear the screen
         os.system('clear')
@@ -1004,11 +1004,11 @@ class EthDbgShell(cmd.Cmd):
                     _diff_string += f'{GREEN_COLOR}{byte}{RESET_COLOR}'
             _stack[1] += _diff_string
 
-            # do a diff between the value at the slot and the new value and print 
+            # do a diff between the value at the slot and the new value and print
             # every byte of the new value in green if they are the same, in red if they are different
-    
+
             return title + '\n'.join(_stack) + '\n' + '\n'.join(_more_stack)
-        
+
         elif self.curr_opcode.mnemonic == "CALL":
             _more_stack = _stack.split("\n")[7:]
             _stack = _stack.split("\n")[0:7]
@@ -1294,7 +1294,7 @@ class EthDbgShell(cmd.Cmd):
             self._display_context(with_message=f'🎯 {YELLOW_BACKGROUND}Breakpoint [stop/return] reached{RESET_COLOR}')
 
         if opcode.mnemonic == "SSTORE":
-            ref_account = '0x' + computation.msg.storage_address.hex()
+            ref_account = self.w3.to_checksum_address('0x' + computation.msg.storage_address.hex())
 
             slot_id = hex(read_stack_int(computation, 1))
             slot_val = hex(read_stack_int(computation, 2))
@@ -1306,7 +1306,7 @@ class EthDbgShell(cmd.Cmd):
                 self.sstores[ref_account][slot_id] = slot_val
 
         if opcode.mnemonic == "SLOAD":
-            ref_account = '0x' + computation.msg.storage_address.hex()
+            ref_account = self.w3.to_checksum_address('0x' + computation.msg.storage_address.hex())
             slot_id = hex(read_stack_int(computation, 1))
 
             # CHECK THIS
@@ -1461,7 +1461,7 @@ def main():
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethtools/pwn/wallets.json )", default=None)
 
     args = parser.parse_args()
-    
+
     ethdbg_cfg = load_ethdbg_config()
 
     if args.node_url is not None:
@@ -1515,7 +1515,7 @@ def main():
                                      custom_balance=args.balance)
 
     load_cmds_history()
-    
+
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, ethdbg_cfg=ethdbg_cfg)
     ethdbgshell.print_license()
 
@@ -1534,6 +1534,8 @@ def main():
             # and keep it :)
             new_ethdbg_config = dict()
             for k in ethdbg_cfg.keys():
+                if k == 'node_url': # skip this key
+                    continue
                 val = getattr(ethdbgshell, k)
                 new_ethdbg_config[k] = val
 
