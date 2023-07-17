@@ -43,5 +43,5 @@ NEW:
           ethdbg➤ break op=sstore,saddr=0x838bf9E95CB12Dd76a54C9f9D2E3082EAF928270
           ethdbg➤ break op=sstor,sa,saddr=0x838bf9E95CB12Dd76a54C9f9D2E3082EAF928270
           ethdbg➤ break op=sload,saddr=0x838bf9E95CB12Dd76a54C9f9D2E3082EAF928270
-          This doesn't put the sloads :(
+          This doesn't put the breaks on sloads :(
 14- Get rid of pyevmasm-fixed in pwn.
