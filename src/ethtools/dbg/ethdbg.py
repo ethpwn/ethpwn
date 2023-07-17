@@ -36,8 +36,6 @@ from .ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, Res
 
 from eth_utils.curried import to_canonical_address
 
-DEFAULT_NODE_URL = "ws://172.17.0.1:8546"
-
 def get_w3_provider(web3_host):
     if web3_host.startswith('http'):
         context.connect_http(
@@ -489,11 +487,14 @@ class EthDbgShell(cmd.Cmd):
         except RestartDbgException:
             # If it's our restart, let's just re-raise it.
             raise RestartDbgException()
-        #except Exception as e:
-            # Otherwise, something is terribly wrong, print and exit.
-            #print(f'❌ Transaction error: {e}')
-            #sys.exit(0)
-        #    print(e)
+        except Exception as e:
+            if "Account Balance cannot be negative" in str(e):
+                print(f'❌ ERROR: Insufficient funds for account {self.debug_target.source_address}. Try with option --balance.')
+                sys.exit(0)
+            else:
+                # Otherwise, something is terribly wrong, print and exit.
+                print(f'❌ Transaction validation error: {e}')
+                sys.exit(0)
 
         # Overwrite the origin attribute
         comp.transaction_context._origin = to_canonical_address(self.debug_target.source_address)
@@ -739,7 +740,10 @@ class EthDbgShell(cmd.Cmd):
             self.do_quit(arg)
         except KeyboardInterrupt:
             pass
-
+        
+    def do_clear(self, arg):
+        # just clear the screen
+        os.system('clear')
 
     do_q = do_quit
 
@@ -1450,15 +1454,31 @@ def main():
     parser.add_argument("--sender", help="address of the sender", default=None)
     parser.add_argument("--balance", help="set a custom balance for the sender", default=None)
     parser.add_argument("--value",  help="amount of ETH to send", default=None)
-    parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=DEFAULT_NODE_URL)
+    parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=None)
     parser.add_argument("--target", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--block", help="reference block", default=None)
     parser.add_argument("--calldata", help="calldata to use for the transaction", default=None)
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethtools/pwn/wallets.json )", default=None)
 
     args = parser.parse_args()
+    
+    ethdbg_cfg = load_ethdbg_config()
 
-    w3 = get_w3_provider(args.node_url)
+    if args.node_url is not None:
+        # user specified a different node, let's use it first.
+        try:
+            w3 = get_w3_provider(args.node_url)
+        except Exception:
+            print(f"{RED_COLOR} ❌ Invalid node url provided: {args.node_url}{RESET_COLOR}")
+            sys.exit()
+    else:
+        # user did not specify a node, let's use the one in the config
+        try:
+            w3 = get_w3_provider(ethdbg_cfg['node_url'])
+        except Exception:
+            print(f"{RED_COLOR} ❌ Invalid node url in ethdg_config: {args.node_url}{RESET_COLOR}")
+            sys.exit()
+
     wallet_conf = get_wallet(w3, args.wallet)
 
     # Check if we support the chain
@@ -1495,8 +1515,7 @@ def main():
                                      custom_balance=args.balance)
 
     load_cmds_history()
-    ethdbg_cfg = load_ethdbg_config()
-
+    
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, ethdbg_cfg=ethdbg_cfg)
     ethdbgshell.print_license()
 
