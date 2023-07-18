@@ -38,6 +38,7 @@ class Breakpoint():
                 except Exception as e:
                     raise InvalidBreakpointException()
         else:
+            sha256_hash = hashlib.sha256()
             for break_arg in break_args:
                 break_arg = break_arg.replace(' ', '')
                 matches = re.findall(BPS_RE_PATTERN, break_arg)[0]
@@ -51,14 +52,12 @@ class Breakpoint():
                     # Validation of the breakpoints parameters here
                     if self._validate_bp(what, when, value):
                         self.conditions.append((what, when, value))
-                        sha256_hash = hashlib.sha256()
                         sha256_hash.update(what.encode('utf-8'))
                         sha256_hash.update(when.encode('utf-8'))
                         sha256_hash.update(value.encode('utf-8'))
-                        self.signature = sha256_hash.hexdigest()
-
                     else:
                         raise InvalidBreakpointException()
+            self.signature = sha256_hash.hexdigest()
 
     def __str__(self):
         _bp_str = ''

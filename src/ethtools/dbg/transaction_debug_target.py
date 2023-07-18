@@ -242,11 +242,7 @@ class TransactionDebugTarget:
 
         self.source_address = kwargs.pop('sender', None) or tx_data.get('from', None)
         self.calldata = kwargs.pop('calldata', None) or kwargs.pop('input', None) or tx_data.get('input', None)
-        self.block_number = kwargs.pop('block_number', None) or self.w3.eth.block_number
         self.custom_balance = kwargs.pop('custom_balance', None) or None
-
-        if type(self.block_number) == str:
-            self.block_number = int(self.block_number, 10)
 
         for k, v in tx_data.items():
             k_snake = to_snake_case(k)
@@ -256,8 +252,12 @@ class TransactionDebugTarget:
             except AttributeError:
                 pass
 
+        if type(self.block_number) == str:
+            self.block_number = int(self.block_number, 10)
+    
         for k, v in kwargs.items():
             if v is not None:
+                print(f'k: {k}, v: {v}')
                 setattr(self, k, v)
 
         self.debug_type = "replay"
@@ -269,6 +269,7 @@ class TransactionDebugTarget:
         self.calldata = calldata
 
         self.source_address = kwargs.pop('sender', None) or wallet_conf.address
+        print(f'self.source_address: {self.source_address}')
         self.block_number = kwargs.pop('block_number', None) or  self.w3.eth.block_number
         self.custom_balance = kwargs.pop('custom_balance', None) or None
 
@@ -285,7 +286,7 @@ class TransactionDebugTarget:
             except AttributeError:
                 pass
         self.debug_type = "new"
-        
+
         return self
 
 

@@ -1,3 +1,4 @@
+
 EXTRAS:
 1 - Telescope command and automatic abi decoding for opcodes
 2 - Display if we are taking next jump or not through emulation
@@ -19,6 +20,8 @@ EXTRAS:
 17- Probably need this to support Avalanche:
     - https://stackoverflow.com/questions/69334835/get-avalanche-block-data-by-block-hash-with-web3-py
 18- Collect the pre-image and show them when there is an sstore on a map/array.
+19- Printing of storage slots might be too big for some monitors 
+
 
 PRIORITY:
 1- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
@@ -27,21 +30,7 @@ PRIORITY:
 
 NEW:
 
-4- Printing of storage slots might be too big for some monitors 
-6- Overwrite of block doesn't work in txid mode.
-7- If wallet chain and node-url don't match chainname, abort.
-8- ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000  --block 11469711 this is looking for 
-   'sender'.
-9- sloads 0x14413419452Aaf089762A0c5e95eD2A13bBC488C doesn't work if you provide a checksummed address.
-10- does the command finish works?
+
 11- solve glitch in input shell when going back to history 
 12- cross-session history it's shit now.
-13- Bug:  ethdbg➤ break op=sstore,saddr=0x250e76987d838a75310c34bf422ea9f1AC4Cc906
-          ethdbg➤ break op=sload,saddr=0x250e76987d838a75310c34bf422ea9f1AC4Cc906
-          ethdbg➤ break op=sstore,saddr=0xcF2afe102057bA5c16f899271045a0A37fCb10f2
-          ethdbg➤ break op=sload,saddr=0xcF2afe102057bA5c16f899271045a0A37fCb10f2
-          ethdbg➤ break op=sstore,saddr=0x838bf9E95CB12Dd76a54C9f9D2E3082EAF928270
-          ethdbg➤ break op=sstor,sa,saddr=0x838bf9E95CB12Dd76a54C9f9D2E3082EAF928270
-          ethdbg➤ break op=sload,saddr=0x838bf9E95CB12Dd76a54C9f9D2E3082EAF928270
-          This doesn't put the breaks on sloads :(
 14- Get rid of pyevmasm-fixed in pwn.

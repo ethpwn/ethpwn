@@ -231,13 +231,14 @@ class EthDbgShell(cmd.Cmd):
     def __init__(self, wallet_conf, w3, debug_target, ethdbg_cfg, breaks=None, **kwargs):
         # call the parent class constructor
         super().__init__(**kwargs)
-
+    
         # The config for ethdbg
         self.tty_rows, self.tty_columns = get_terminal_size()
         self.wallet_conf = wallet_conf
         self.account = Account.from_key(self.wallet_conf.private_key)
 
         self.show_opcodes_desc = ethdbg_cfg['show_opcodes_desc'] if 'show_opcodes_desc' in ethdbg_cfg.keys() else True
+        
         # EVM stuff
         self.w3 = w3
 
@@ -1486,6 +1487,11 @@ def main():
         print(f'{RED_COLOR}Unsupported chain: [{w3.eth.chain_id}] {RESET_COLOR}')
         sys.exit(0)
 
+    # Check if wallet and node are referring to the same chain
+    if wallet_conf.network != get_chain_name(w3.eth.chain_id):
+        print(f'Wallet {wallet_conf.name} is on chain {wallet_conf.network}, but node is on chain {get_chain_name(w3.eth.chain_id)}')
+        sys.exit(0)
+
     if args.sender:
         # Validate ETH address using regexp
         if not re.match(ETH_ADDRESS, args.sender):
@@ -1506,15 +1512,20 @@ def main():
         if not re.match(ETH_ADDRESS, args.target):
             print(f"{RED_COLOR}Invalid ETH address provided as target: {args.target}{RESET_COLOR}")
             sys.exit()
-
+        
+        if args.value is None:
+            value = 0
+        else:
+            value = int(args.value)
+            
         debug_target = TransactionDebugTarget(w3)
         debug_target.new_transaction(to=args.target,
-                                     sender=args.sender, value=int(args.value),
+                                     sender=args.sender, value=value,
                                      calldata=args.calldata, block_number=args.block,
                                      wallet_conf=wallet_conf, full_context=False,
                                      custom_balance=args.balance)
 
-    load_cmds_history()
+    #load_cmds_history()
 
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, ethdbg_cfg=ethdbg_cfg)
     ethdbgshell.print_license()
