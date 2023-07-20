@@ -1441,7 +1441,6 @@ class EthDbgShell(cmd.Cmd):
     def print_license(self):
         print(f"{YELLOW_COLOR}⧫ {BOLD_TEXT}ethdbg 0.1 ⧫ - The CLI EVM Debugger{RESET_COLOR}")
         print("License: MIT License")
-        print("Copyright (c) [2023] [Shellphish]")
         print("For a copy, see <https://opensource.org/licenses/MIT>")
 
 
