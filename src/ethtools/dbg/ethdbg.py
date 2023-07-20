@@ -15,6 +15,7 @@ from alive_progress import alive_bar
 
 from hexbytes import HexBytes
 from web3.datastructures import AttributeDict
+from pyevmasm import disassemble_one, Instruction
 
 import rich
 from rich import print as rich_print
@@ -22,7 +23,6 @@ from rich.table import Table
 from rich.tree import Tree
 
 from ..pwn.prelude import *
-from ..pwn.pyevmasm_fixed import disassemble_one, Instruction
 from ..pwn.config.wallets import get_wallet
 
 from .breakpoint import Breakpoint, ETH_ADDRESS

@@ -4,7 +4,7 @@ and automatically.
 '''
 
 from hexbytes import HexBytes
-from .pyevmasm_fixed import assemble, disassemble_all
+from pyevmasm import assemble, disassemble_all
 
 def value_to_smallest_hexbytes(value):
     """Convert an integer to the smallest possible hexbytes"""

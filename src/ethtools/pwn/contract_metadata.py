@@ -22,8 +22,9 @@ from .serialization_utils import Serializable
 from .transactions import transact
 from .global_context import context
 from .srcmap import SymbolizedSourceMap, InstructionSourceInfo
-from .pyevmasm_fixed import disassemble_all, Instruction
 from .solidity_utils import SolidityCompiler
+
+from pyevmasm import disassemble_all, Instruction
 
 def _convert_sources(sources):
     sources_out = []
