@@ -1268,7 +1268,6 @@ class EthDbgShell(cmd.Cmd):
         else:
             _opcode_str = f'{pc:#06x}  {"":18} {opcode.mnemonic:15} [WARNING: no code]'
 
-
         if self.log_op:
             print(f'{_opcode_str}')
 
@@ -1386,7 +1385,7 @@ class EthDbgShell(cmd.Cmd):
                 code_size = hex(read_stack_int(computation, 3))
 
                 new_callframe = CallFrame(
-                    '0x' + '0' * 40,
+                    normalize_contract_address(0x0),
                     normalize_contract_address(computation.msg.code_address),
                     normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
@@ -1405,7 +1404,7 @@ class EthDbgShell(cmd.Cmd):
                 salt = hex(read_stack_int(computation, 4))
 
                 new_callframe = CallFrame(
-                    '0x' + '0' * 40,
+                    normalize_contract_address(0x0),
                     normalize_contract_address(computation.msg.code_address),
                     normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
