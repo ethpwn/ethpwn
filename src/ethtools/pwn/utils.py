@@ -9,6 +9,9 @@ def normalize_contract_address(address) -> str:
     if not address:
         return None
 
+    if type(address) == str:
+        address = "0x" + address.replace("0x", '').zfill(40)
+
     if Web3.is_checksum_address(address):
         return address
 

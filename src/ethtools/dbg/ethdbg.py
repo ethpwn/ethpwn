@@ -23,6 +23,7 @@ from rich.table import Table
 from rich.tree import Tree
 
 from ..pwn.prelude import *
+from ..pwn.utils import normalize_contract_address
 from ..pwn.config.wallets import get_wallet
 
 from .breakpoint import Breakpoint, ETH_ADDRESS
@@ -494,7 +495,7 @@ class EthDbgShell(cmd.Cmd):
             else:
                 # Otherwise, something is terribly wrong, print and exit.
                 print(f'❌ Transaction validation error: {e}')
-                sys.exit(0)
+                raise e
 
         # Overwrite the origin attribute
         comp.transaction_context._origin = to_canonical_address(self.debug_target.source_address)
@@ -590,7 +591,7 @@ class EthDbgShell(cmd.Cmd):
         if arg and arg in self.sstores.keys():
             sstores_account = self.sstores[arg]
             for sstore_slot, sstore_val in sstores_account.items():
-                if sstores_account not in self.reverted_contracts:
+                if arg not in self.reverted_contracts:
                     print(f' {YELLOW_COLOR}[w]{RESET_COLOR} Slot: {sstore_slot} | Value: {sstore_val}')
                 else:
                     _log = f' [w] Slot: {sstore_slot} | Value: {sstore_val}'
@@ -692,7 +693,7 @@ class EthDbgShell(cmd.Cmd):
             assert insn is not None, "64 bytes was not enough to disassemble?? or this is somehow an invalid opcode??"
             assert insn.mnemonic == self.curr_opcode.mnemonic, "disassembled opcode does not match the opcode we're currently executing??"
             next_pc = hex(pc + insn.size)
-            curr_account_code = '0x' + self.comp.msg.code_address.hex()
+            curr_account_code = normalize_contract_address(self.comp.msg.code_address)
             self.do_tbreak(f'pc={next_pc},addr={curr_account_code}')
             self._resume()
 
@@ -774,8 +775,8 @@ class EthDbgShell(cmd.Cmd):
 
     def _handle_revert(self):
         # We'll mark the sstores as reverted
-        curr_storage_contract = self.w3.to_checksum_address('0x'+self.comp.msg.storage_address.hex())
-        curr_code_contracts = self.w3.to_checksum_address('0x'+self.comp.msg.code_address.hex())
+        curr_storage_contract =  normalize_contract_address(self.comp.msg.storage_address)
+        curr_code_contracts = normalize_contract_address(self.comp.msg.code_address)
 
         reverting_contracts = [curr_storage_contract, curr_code_contracts]
         self.reverted_contracts.add(curr_storage_contract)
@@ -804,8 +805,8 @@ class EthDbgShell(cmd.Cmd):
 
     def _handle_out_of_gas(self):
         # We'll mark the sstores as reverted
-        curr_storage_contract = '0x'+self.comp.msg.storage_address.hex()
-        curr_code_contracts = '0x'+self.comp.msg.code_address.hex()
+        curr_storage_contract =  normalize_contract_address(self.comp.msg.storage_address)
+        curr_code_contracts = normalize_contract_address(self.comp.msg.code_address)
 
         reverting_contracts = [curr_storage_contract, curr_code_contracts]
         self.reverted_contracts.add(curr_storage_contract)
@@ -932,12 +933,12 @@ class EthDbgShell(cmd.Cmd):
 
         # Fetching the metadata from the state of the computation
         try:
-            curr_account_code = self.w3.to_checksum_address('0x' + self.comp.msg.code_address.hex())
+            curr_account_code =  normalize_contract_address(self.comp.msg.code_address)
         except Exception as e:
             curr_account_code = '0x'
 
-        curr_account_storage = self.w3.to_checksum_address('0x' + self.comp.msg.storage_address.hex())
-        curr_origin = self.w3.to_checksum_address('0x' + self.comp.transaction_context.origin.hex())
+        curr_account_storage = normalize_contract_address(self.comp.msg.storage_address)
+        curr_origin = normalize_contract_address(self.comp.transaction_context.origin)
         curr_balance = self.comp.state.get_balance(self.comp.msg.storage_address)
         curr_balance_eth = int(curr_balance) / 10**18
 
@@ -1107,7 +1108,7 @@ class EthDbgShell(cmd.Cmd):
 
 
     def _get_storage(self):
-        ref_account = self.w3.to_checksum_address('0x' + self.comp.msg.storage_address.hex())
+        ref_account = normalize_contract_address(self.comp.msg.storage_address)
         message = f"{GREEN_COLOR}Last Active Storage Slots [{ref_account}]{RESET_COLOR}"
 
         fill = HORIZONTAL_LINE
@@ -1128,7 +1129,7 @@ class EthDbgShell(cmd.Cmd):
         _sstore_log = ''
         # Iterate over sstore for this account
         if not self.hide_sstores:
-            ref_account = '0x' + self.comp.msg.storage_address.hex()
+            ref_account = normalize_contract_address(self.comp.msg.storage_address)
             if ref_account in self.sstores:
                 ref_account_sstores = self.sstores[ref_account]
                 for slot, val in ref_account_sstores.items():
@@ -1294,7 +1295,7 @@ class EthDbgShell(cmd.Cmd):
             self._display_context(with_message=f'🎯 {YELLOW_BACKGROUND}Breakpoint [stop/return] reached{RESET_COLOR}')
 
         if opcode.mnemonic == "SSTORE":
-            ref_account = self.w3.to_checksum_address('0x' + computation.msg.storage_address.hex())
+            ref_account = normalize_contract_address(computation.msg.storage_address)
 
             slot_id = hex(read_stack_int(computation, 1))
             slot_val = hex(read_stack_int(computation, 2))
@@ -1306,7 +1307,7 @@ class EthDbgShell(cmd.Cmd):
                 self.sstores[ref_account][slot_id] = slot_val
 
         if opcode.mnemonic == "SLOAD":
-            ref_account = self.w3.to_checksum_address('0x' + computation.msg.storage_address.hex())
+            ref_account = normalize_contract_address(computation.msg.storage_address)
             slot_id = hex(read_stack_int(computation, 1))
 
             # CHECK THIS
@@ -1321,16 +1322,14 @@ class EthDbgShell(cmd.Cmd):
 
             if opcode.mnemonic == "CALL":
                 contract_target = hex(read_stack_int(computation, 2))
-                contract_target = '0x' + contract_target.replace('0x','').zfill(40)
-                contract_target = self.w3.to_checksum_address(contract_target)
-
+                contract_target = normalize_contract_address(contract_target)
                 value_sent = read_stack_int(computation, 3)
 
                 # We gotta parse the callstack according to the *CALL opcode
                 new_callframe = CallFrame(
                                         contract_target,
-                                        '0x' + computation.msg.code_address.hex(),
-                                        '0x' + computation.transaction_context.origin.hex(),
+                                        normalize_contract_address(computation.msg.code_address),
+                                        normalize_contract_address(computation.transaction_context.origin),
                                         value_sent,
                                         "CALL",
                                         hex(pc)
@@ -1343,14 +1342,13 @@ class EthDbgShell(cmd.Cmd):
 
             elif opcode.mnemonic == "DELEGATECALL":
                 contract_target = hex(read_stack_int(computation, 2))
-                contract_target = '0x' + contract_target.replace('0x','').zfill(40)
-                contract_target = self.w3.to_checksum_address(contract_target)
+                contract_target = normalize_contract_address(contract_target)
                 value_sent = 0
                 # We gotta parse the callstack according to the *CALL opcode
                 new_callframe = CallFrame(
                                         contract_target,
                                         self.callstack[-1].msg_sender,
-                                        '0x' + computation.transaction_context.origin.hex(),
+                                        normalize_contract_address(computation.transaction_context.origin),
                                         value_sent,
                                         "DELEGATECALL",
                                         hex(pc)
@@ -1362,16 +1360,15 @@ class EthDbgShell(cmd.Cmd):
 
             elif opcode.mnemonic == "STATICCALL":
                 contract_target = hex(read_stack_int(computation, 2))
-                contract_target = '0x' + contract_target.replace('0x','').zfill(40)
-                contract_target = self.w3.to_checksum_address(contract_target)
+                contract_target = normalize_contract_address(contract_target)
 
                 value_sent = 0
                 if int(contract_target,16) not in PRECOMPILED_CONTRACTS.values():
                     # We gotta parse the callstack according to the *CALL opcode
                     new_callframe = CallFrame(
                                             contract_target,
-                                            '0x' + computation.msg.code_address.hex(),
-                                            '0x' + computation.transaction_context.origin.hex(),
+                                            normalize_contract_address(computation.msg.code_address),
+                                            normalize_contract_address(computation.transaction_context.origin),
                                             value_sent,
                                             "STATICCALL",
                                             hex(pc)
@@ -1390,8 +1387,8 @@ class EthDbgShell(cmd.Cmd):
 
                 new_callframe = CallFrame(
                     '0x' + '0' * 40,
-                    '0x' + computation.msg.code_address.hex(),
-                    '0x' + computation.transaction_context.origin.hex(),
+                    normalize_contract_address(computation.msg.code_address),
+                    normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
                     "CREATE",
                     hex(pc)
@@ -1409,8 +1406,8 @@ class EthDbgShell(cmd.Cmd):
 
                 new_callframe = CallFrame(
                     '0x' + '0' * 40,
-                    '0x' + computation.msg.code_address.hex(),
-                    '0x' + computation.transaction_context.origin.hex(),
+                    normalize_contract_address(computation.msg.code_address),
+                    normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
                     "CREATE2",
                     hex(pc)
@@ -1527,6 +1524,7 @@ def main():
                                      wallet_conf=wallet_conf, full_context=False,
                                      custom_balance=args.balance)
 
+    # Load previous sessions history.
     load_cmds_history()
 
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, ethdbg_cfg=ethdbg_cfg)

@@ -31,3 +31,8 @@ PRIORITY:
 
 NEW:
 1- Get rid of pyevmasm-fixed in pwn.
+2- ethdbg➤ sstores
+Account: 0xcF2afe102057bA5c16f899271045a0A37fCb10f2:
+ [w] Slot: 0xc0913a1f84ee84cbd7210c26860cc745ffa72c4681197bb95ffa8fddb01e6c05 | Value: 0x1
+ethdbg➤ sstores 0xcF2afe102057bA5c16f899271045a0A37fCb10f2
+❌ Transaction validation error: unhashable type: 'dict'
