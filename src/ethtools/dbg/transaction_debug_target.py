@@ -257,7 +257,6 @@ class TransactionDebugTarget:
     
         for k, v in kwargs.items():
             if v is not None:
-                print(f'k: {k}, v: {v}')
                 setattr(self, k, v)
 
         self.debug_type = "replay"

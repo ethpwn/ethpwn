@@ -21,7 +21,8 @@ EXTRAS:
     - https://stackoverflow.com/questions/69334835/get-avalanche-block-data-by-block-hash-with-web3-py
 18- Collect the pre-image and show them when there is an sstore on a map/array.
 19- Printing of storage slots might be too big for some monitors 
-
+20- add dynamic provenance
+21- add code_address:storage_address for each log in the log_op
 
 PRIORITY:
 1- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
@@ -29,8 +30,4 @@ PRIORITY:
 3- Polishing!
 
 NEW:
-
-
-11- solve glitch in input shell when going back to history 
-12- cross-session history it's shit now.
-14- Get rid of pyevmasm-fixed in pwn.
+1- Get rid of pyevmasm-fixed in pwn.

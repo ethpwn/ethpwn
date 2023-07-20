@@ -92,15 +92,22 @@ def load_cmds_history():
         # (to avoid having a huge history file)
         with open(target_file) as f:
             cmds = f.read().splitlines()
-            cmds = set(cmds[-100:])
+            cmds = cmds[-100:]
+
+        unique_cmds = []
+        for cmd in cmds:
+            if cmd not in unique_cmds:
+                unique_cmds.append(cmd)
+    
         # Overwrite the file
         with open(target_file, 'w') as f:
-            f.write('\n'.join(cmds))
+            f.write('\n'.join(unique_cmds))
 
         # Then, load the history!
         with open(target_file) as f:
             cmds = f.read().splitlines()
             for cmd in cmds:
+                cmd = cmd.strip()
                 if cmd != '':
                     readline.add_history(cmd)
 
@@ -108,10 +115,10 @@ def save_cmds_history(cmd):
     target_file = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
     if os.path.exists(target_file):
         with open(target_file, 'a') as f:
-            f.write(cmd + '\n')
+            f.write('\n'+cmd +'\n')
     else:
         with open(target_file, 'w') as f:
-            f.write(cmd + '\n')
+            f.write('\n'+cmd + '\n')
 
 def load_ethdbg_config():
     target_file = Path().home() / ".config" / "ethtools" / "ethdbg_config"

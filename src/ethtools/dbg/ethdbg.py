@@ -8,7 +8,6 @@ import sys
 import cmd
 import sha3
 import string
-import readline
 
 from hexdump import hexdump
 from typing import List
@@ -226,7 +225,7 @@ ORIGINAL_extract_transaction_sender = eth._utils.transactions.extract_transactio
 
 class EthDbgShell(cmd.Cmd):
 
-    prompt = f'{RED_COLOR}ethdbg{RESET_COLOR}➤ '
+    prompt = f'\001\033[1;31m\002ethdbg➤\001\033[0m\002 '
 
     def __init__(self, wallet_conf, w3, debug_target, ethdbg_cfg, breaks=None, **kwargs):
         # call the parent class constructor
@@ -1465,6 +1464,7 @@ def main():
 
     ethdbg_cfg = load_ethdbg_config()
 
+    # CHECK 1: do we have a valid chain RPC?
     if args.node_url is not None:
         # user specified a different node, let's use it first.
         try:
@@ -1480,6 +1480,7 @@ def main():
             print(f"{RED_COLOR} ❌ Invalid node url in ethdg_config: {args.node_url}{RESET_COLOR}")
             sys.exit()
 
+    # Get the wallet
     wallet_conf = get_wallet(w3, args.wallet)
 
     # Check if we support the chain
@@ -1492,12 +1493,14 @@ def main():
         print(f'Wallet {wallet_conf.name} is on chain {wallet_conf.network}, but node is on chain {get_chain_name(w3.eth.chain_id)}')
         sys.exit(0)
 
+    # CHECK 2: do we have a valid sender?
     if args.sender:
         # Validate ETH address using regexp
         if not re.match(ETH_ADDRESS, args.sender):
             print(f"{RED_COLOR}Invalid ETH address provided as sender: {args.sender}{RESET_COLOR}")
             sys.exit()
 
+    # CHECK 3: Are we re-tracing or starting a new transaction?
     if args.txid:
         # replay transaction mode
         debug_target = TransactionDebugTarget(w3)
@@ -1525,7 +1528,7 @@ def main():
                                      wallet_conf=wallet_conf, full_context=False,
                                      custom_balance=args.balance)
 
-    #load_cmds_history()
+    load_cmds_history()
 
     ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, ethdbg_cfg=ethdbg_cfg)
     ethdbgshell.print_license()
@@ -1541,8 +1544,7 @@ def main():
             continue
         except RestartDbgException:
             old_breaks = ethdbgshell.breakpoints
-            # If user overwritten the ethdbg config, let's be nice
-            # and keep it :)
+            # If user overwritten the ethdbg config let's keep it.
             new_ethdbg_config = dict()
             for k in ethdbg_cfg.keys():
                 if k == 'node_url': # skip this key
