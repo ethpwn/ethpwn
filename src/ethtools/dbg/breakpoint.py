@@ -5,6 +5,7 @@ from .ethdbg_exceptions import InvalidBreakpointException
 from .analyzer import ALL_EVM_OPCODES, ComputationAPI, OpcodeAPI
 
 ALLOWED_COND_BPS = ['addr', 'saddr', 'op', 'pc', 'value']
+ALLOWED_COND_WHEN = ['==', '!=', '<=', '>=', '>', '<', '=']
 BPS_RE_PATTERN = r'([a-zA-Z]*)(==|!=|<=|>=|>|<|=)(.*)'
 ETH_ADDRESS = r'^(0x)?[0-9a-fA-F]{40}$'
 
@@ -24,7 +25,7 @@ class Breakpoint():
 
         # Is this a simple breakpoint?
         # This is the case if len(break_args) == 1 and none of the ALLOWED_COND_BPS is in break_args[0]
-        if len(break_args) == 1 and not any(cond_keyword in break_args[0] for cond_keyword in ALLOWED_COND_BPS):
+        if len(break_args) == 1 and not any(cond_keyword in break_args[0] for cond_keyword in ALLOWED_COND_WHEN):
             self.simple_bp = True
             # Is it a valid opcode
             if break_args[0].upper() in ALL_EVM_OPCODES:

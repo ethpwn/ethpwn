@@ -775,7 +775,7 @@ class EthDbgShell(cmd.Cmd):
 
     def _handle_revert(self):
         # We'll mark the sstores as reverted
-        curr_storage_contract =  normalize_contract_address(self.comp.msg.storage_address)
+        curr_storage_contract = normalize_contract_address(self.comp.msg.storage_address)
         curr_code_contracts = normalize_contract_address(self.comp.msg.code_address)
 
         reverting_contracts = [curr_storage_contract, curr_code_contracts]
@@ -933,7 +933,7 @@ class EthDbgShell(cmd.Cmd):
 
         # Fetching the metadata from the state of the computation
         try:
-            curr_account_code =  normalize_contract_address(self.comp.msg.code_address)
+            curr_account_code = normalize_contract_address(self.comp.msg.code_address)
         except Exception as e:
             curr_account_code = '0x'
 
