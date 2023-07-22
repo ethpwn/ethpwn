@@ -122,11 +122,19 @@ def save_cmds_history(cmd):
 
 def load_ethdbg_config():
     target_file = Path().home() / ".config" / "ethtools" / "ethdbg_config"
+    print(target_file)
     if os.path.exists(target_file):
         with open(target_file) as f:
             return json.load(f)
     else:
-        return dict
+        # create an empty config file 
+        # with default values
+        with open(target_file, 'w') as f:
+            json.dump({
+                "node_url": "<PLEASE-SET-THIS-VALUE>",
+            }, f)
+        with open(target_file) as f:
+            return json.load(f)
 
 def read_stack_int(computation, pos: int) -> int:
     """
