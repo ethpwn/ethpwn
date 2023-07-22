@@ -25,7 +25,7 @@ dependencies = [
     "hexbytes",
 
     # pyevmasm from github, not pypi
-    "pyevmasm @ git+https://github.com/shellphish/pyevmasm.git",
+    "pyevmasm @ git+https://github.com/ethpwn/pyevmasm.git",
     "py-evm @ git+https://github.com/ucsb-seclab/py-evm.git",
 
     "ansi",
@@ -68,8 +68,8 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/shellphish/ethtools"
-"Bug Tracker" = "https://github.com/shellphish/ethtools/issues"
+"Homepage" = "https://github.com/ethpwn/ethtools"
+"Bug Tracker" = "https://github.com/ethpwn/ethtools/issues"
 
 [project.scripts]
 ethdbg = "ethtools.dbg.ethdbg:main"
