@@ -1504,7 +1504,7 @@ def main():
                                         block_number=args.block, calldata=args.calldata,
                                         full_context=args.full_context,
                                         custom_balance=args.balance)
-    else:
+    elif args.target:
         # interactive mode
         # is the target an address?
         if not re.match(ETH_ADDRESS, args.target):
@@ -1522,6 +1522,9 @@ def main():
                                      calldata=args.calldata, block_number=args.block,
                                      wallet_conf=wallet_conf, full_context=False,
                                      custom_balance=args.balance)
+    else:
+        print(f"{YELLOW_COLOR}No target address or txid provided.{RESET_COLOR}")
+        sys.exit()
 
     # Load previous sessions history.
     load_cmds_history()
