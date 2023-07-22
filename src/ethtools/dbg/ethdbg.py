@@ -1471,8 +1471,8 @@ def main():
         # user did not specify a node, let's use the one in the config
         try:
             w3 = get_w3_provider(ethdbg_cfg['node_url'])
-        except Exception:
-            print(f"{RED_COLOR} ❌ Invalid node url in ethdg_config: {args.node_url}{RESET_COLOR}")
+        except Exception as e:
+            print(f"{RED_COLOR} ❌ Invalid node url in ethdg_config: {ethdbg_cfg['node_url']}{RESET_COLOR}")
             sys.exit()
 
     # Get the wallet
