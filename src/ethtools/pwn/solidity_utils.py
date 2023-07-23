@@ -41,7 +41,7 @@ def merge_pragma_lines(pragma_lines: List[str]):
         return None
     if len(pragma_lines) == 1:
         return pragma_lines[0]
-    pragma_lines = sorted(pragma_lines, key=lambda x: tuple(int(y) for y in x.split()[2].rstrip(';').strip().lstrip('^=').split('.')))
+    pragma_lines = sorted(pragma_lines, key=lambda x: tuple(int(y) for y in x.split()[2].rstrip(';').strip().lstrip('><^=').split('.')))
     return pragma_lines[-1] # take the highest requested one
 
 class SolidityCompiler:

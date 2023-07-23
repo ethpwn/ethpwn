@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 import os
 import time
@@ -123,7 +124,13 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
             assert result['OptimizationUsed'] == opt_settings['enabled']
             assert result['Runs'] == opt_settings['runs']
 
-        CONTRACT_METADATA.add_solidity_sources_dict(output_json['sources'], **compiler_kwargs)
+        sources = dict(output_json['sources'])
+        for source_path, source_data in output_json['sources'].items():
+            if source_path.startswith('node_modules'):
+                source_path = source_path[len('contracts/'):]
+                sources[source_path] = source_data
+
+        CONTRACT_METADATA.add_solidity_sources_dict(sources, **compiler_kwargs)
     else:
         # we assume that it is just the text of the source code
         CONTRACT_METADATA.add_solidity_source(source, f'verified/{contract_address}.sol', **compiler_kwargs)

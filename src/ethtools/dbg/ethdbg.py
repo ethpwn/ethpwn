@@ -64,8 +64,12 @@ def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexB
     registry = contract_registry()
 
     if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
+        import ipdb; ipdb.set_trace()
         # try to fetch the verified contract
-        fetch_verified_source_code(contract_address, None) # auto-detect etherscan api key and fetch the code
+        try:
+            fetch_verified_source_code(contract_address, None) # auto-detect etherscan api key and fetch the code
+        except Exception as ex:
+            print(f"Failed to fetch verified source code for {contract_address}: {ex}")
         FETCHED_VERIFIED_CONTRACTS.add(contract_address)
 
     contract = registry.get(contract_address)
