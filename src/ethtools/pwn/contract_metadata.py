@@ -179,11 +179,11 @@ class ContractMetadata(Serializable):
         bin_runtime = HexBytes(output_json['evm']['deployedBytecode']['object'])
         srcmap = output_json['evm']['bytecode']['sourceMap']
         srcmap_runtime = output_json['evm']['deployedBytecode']['sourceMap']
-        generated_sources_constructor = output_json['evm']['bytecode']['generatedSources']
+        generated_sources_constructor = output_json['evm']['bytecode'].get('generatedSources', [])
         for src in generated_sources_constructor:
             del src['ast']
             src['generated'] = True
-        generated_sources_runtime = output_json['evm']['deployedBytecode']['generatedSources']
+        generated_sources_runtime = output_json['evm']['deployedBytecode'].get('generatedSources', [])
         for src in generated_sources_runtime:
             del src['ast']
             src['generated'] = True

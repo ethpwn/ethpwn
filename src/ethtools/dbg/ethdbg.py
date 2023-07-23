@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import cmd
+import traceback
 import sha3
 import string
 
@@ -69,6 +70,8 @@ def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexB
         try:
             fetch_verified_source_code(contract_address, None) # auto-detect etherscan api key and fetch the code
         except Exception as ex:
+            # print traceback
+            traceback.print_exc()
             print(f"Failed to fetch verified source code for {contract_address}: {ex}")
         FETCHED_VERIFIED_CONTRACTS.add(contract_address)
 
@@ -101,11 +104,21 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
         value = value[int(storage_value['offset']):int(storage_value['offset']) + int(storage_type['numberOfBytes'])]
         value = value[::-1]
         # TODO format it out of the bytes based on the label?
-        if storage_type['label'] == 'address' or storage_type['label'].split()[0] == 'contract':
+        if storage_type['label'].split()[0] == 'address' or storage_type['label'].split()[0] == 'contract':
+            # so far seen: "address", "address payable", "contract <name>"
             return HexBytes(value).hex()
         elif storage_type['label'] == 'uint256':
             return int.from_bytes(value, byteorder='big')
+        elif storage_type['label'] == 'uint8':
+            assert len(value) == 1
+            assert storage_type['numberOfBytes'] == '1'
+            return int.from_bytes(value, byteorder='big')
+        elif storage_type['label'] == 'bool':
+            assert len(value) == 1
+            assert storage_type['numberOfBytes'] == '1'
+            return int.from_bytes(value, byteorder='big') != 0
         else:
+            import ipdb; ipdb.set_trace()
             assert False, "Don't know how to handle this yet"
         return HexBytes(value)
 
