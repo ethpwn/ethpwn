@@ -56,11 +56,18 @@ def get_w3_provider(web3_host):
     assert w3.is_connected()
     return w3
 
+FETCHED_VERIFIED_CONTRACTS = set()
+
 def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexBytes, pc: int):
-
+    global FETCHED_VERIFIED_CONTRACTS
     contract_address = normalize_contract_address(contract_address)
-
     registry = contract_registry()
+
+    if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
+        # try to fetch the verified contract
+        fetch_verified_source_code(contract_address, None) # auto-detect etherscan api key and fetch the code
+        FETCHED_VERIFIED_CONTRACTS.add(contract_address)
+
     contract = registry.get(contract_address)
 
     if contract is None:

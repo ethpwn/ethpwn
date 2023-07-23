@@ -129,7 +129,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         CONTRACT_METADATA.add_solidity_source(source, f'verified/{contract_address}.sol', **compiler_kwargs)
 
 
-def add_verified_source_to_contract_registry(contract_address, api_key=None):
+def fetch_verified_source_code(contract_address, api_key=None):
     if contract_address in contract_registry():
         raise ValueError(f"Contract address {contract_address} is already in the contract registry.")
     
