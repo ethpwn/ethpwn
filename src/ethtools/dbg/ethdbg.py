@@ -1219,12 +1219,15 @@ class EthDbgShell(cmd.Cmd):
         if with_message != '':
             metadata_view += f'\nStatus: {with_message}'
 
-        print(metadata_view)
-        disass_view = self._get_disass()
-        print(disass_view)
         source_view = self._get_source_view()
         if source_view is not None:
             print(source_view)
+
+        print(metadata_view)
+        
+        disass_view = self._get_disass()
+        print(disass_view)
+        
         stack_view = self._get_stack()
         print(stack_view)
         callstack_view = self._get_callstack()
