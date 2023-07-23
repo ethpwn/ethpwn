@@ -1,2 +1,0 @@
-
-# def get_default_verified_accounts_csv

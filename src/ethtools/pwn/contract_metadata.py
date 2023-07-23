@@ -26,19 +26,27 @@ from .solidity_utils import SolidityCompiler
 
 from pyevmasm import disassemble_all, Instruction
 
-def _convert_sources(sources):
+def _unify_sources(input_sources, output_sources):
+    # import ipdb; ipdb.set_trace()
+    assert input_sources.keys() == output_sources.keys()
     sources_out = []
-    for file, values in sources.items():
-        with open(file, 'r', encoding='utf-8') as file_obj:
-            abspath = Path(file).resolve()
-            sources_out.append({
-                'id': int(values['id']),
-                'contents': file_obj.read(),
-                'full_path': str(abspath),
-                'name': abspath.name,
-                'language': 'Solidity',
-                'generated': False,
-            })
+    for file, values in output_sources.items():
+        result = {
+            'id': int(values['id']),
+            'name': file,
+            'file_name': os.path.basename(file),
+            'language': 'Solidity',
+            'generated': False,
+        }
+        if input_sources[file]['content'] is None:
+            with open(file, 'r', encoding='utf-8') as file_obj:
+                result['content'] = file_obj.read()
+            result['local_path'] = Path(file).resolve()
+        else:
+            result['content'] = input_sources[file]['content']
+            result['local_path'] = None
+        result['contents'] = result['content']
+        sources_out.append(result)
     return list(sorted(sources_out, key=lambda s: s['id']))
 
 class ContractMetadata(Serializable):
@@ -101,6 +109,15 @@ class ContractMetadata(Serializable):
                     ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
                     '',
                 )
+            elif entry['type'] == 'event':
+                table.add_row(
+                    entry['type'],
+                    entry['name'],
+                    '',
+                    ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
+                    '',
+                )
+
             else:
                 assert False, f"Unknown ABI entry type: {entry['type']}"
         return table
@@ -149,13 +166,13 @@ class ContractMetadata(Serializable):
         yield tree
 
     @staticmethod
-    def from_solidity(source_file, contract_name, output_json, sources):
+    def from_solidity(source_file, contract_name, output_json, input_sources, output_sources):
         '''
         Constructs a ContractMetadata object for a contract in `source_file` with
         name `contract_name` from the Compiler `output_json` and the `sources` dict.
         '''
         source_file = str(Path(source_file).resolve())
-        sources = _convert_sources(sources)
+        sources = _unify_sources(input_sources, output_sources)
         # import ipdb; ipdb.set_trace()
         abi = output_json['abi']
         bin_constructor = HexBytes(output_json['evm']['bytecode']['object'])
@@ -395,6 +412,13 @@ class ContractMetadataRegistry:
         '''
         self._process_solc_output_json(self.compiler.compile_source(source, file_name, **kwargs))
 
+    def add_solidity_sources_dict(self, sources: Dict[str, str], **kwargs):
+        '''
+        Compiles the given solidity source dict `'sources'` in the input json and adds the
+        resulting metadata of all contracts to the registry.
+        '''
+        self._process_solc_output_json(self.compiler.compile_sources(sources, **kwargs))
+
     def add_contracts_from_solidity_files(self, files: List[Union[str, Path]], **kwargs):
         '''
         Compiles the given files and adds the resulting metadata of all contracts to the registry.
@@ -414,7 +438,9 @@ class ContractMetadataRegistry:
         if compilation_error:
             raise ValueError("Compilation error")
 
-    def _process_solc_output_json(self, output_json):
+    def _process_solc_output_json(self, result):
+
+        input_json, output_json = result
 
         self._handle_solidity_errors(output_json)
 
@@ -422,7 +448,7 @@ class ContractMetadataRegistry:
             for contract_name in output_json['contracts'][source_file]:
                 contract_data = output_json['contracts'][source_file][contract_name]
                 self.contracts[source_file][contract_name] = ContractMetadata.from_solidity(
-                    source_file, contract_name, contract_data, output_json['sources']
+                    source_file, contract_name, contract_data, input_json['sources'], output_json['sources']
                 )
                 self.contracts[''][contract_name] = self.contracts[source_file][contract_name]
 

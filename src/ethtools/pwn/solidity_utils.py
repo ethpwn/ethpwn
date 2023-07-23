@@ -36,6 +36,14 @@ def get_pragma_lines(files: List[str]):
                 pragma_lines.add(solidity_pragma_line)
     return list(pragma_lines)
 
+def merge_pragma_lines(pragma_lines: List[str]):
+    if len(pragma_lines) == 0:
+        return None
+    if len(pragma_lines) == 1:
+        return pragma_lines[0]
+    pragma_lines = sorted(pragma_lines, key=lambda x: tuple(int(y) for y in x.split()[2].rstrip(';').strip().lstrip('^=').split('.')))
+    return pragma_lines[-1] # take the highest requested one
+
 class SolidityCompiler:
     def __init__(self) -> None:
         self.import_remappings: Dict[str, str] = {}
@@ -63,7 +71,7 @@ class SolidityCompiler:
     def get_allow_paths(self):
         return self.allowed_directories
 
-    def get_optimizer_settings(self, optimizer_runs=1000):
+    def get_default_optimizer_settings(self, optimizer_runs=1000):
         return {'enabled': True, 'runs': optimizer_runs}
 
     def get_solc_input_json(self, sources_entry, remappings, optimizer_settings=None):
@@ -79,29 +87,62 @@ class SolidityCompiler:
         }
 
     def compile_source(self,
-                       source: str, file_name: Union[Path, str],
+                       input_json: str, file_name: Union[Path, str],
                        optimizer_settings=None,
                        no_default_import_remappings=False, extra_import_remappings=None,
                        **kwargs):
 
-        configure_solcx_for_pragma(find_pragma_line(source))
+        configure_solcx_for_pragma(find_pragma_line(input_json))
 
         if optimizer_settings is None:
-            optimizer_settings = self.get_optimizer_settings()
+            optimizer_settings = self.get_default_optimizer_settings()
 
-        source = self.get_solc_input_json(
-            {str(file_name): {'content': source}},
+        input_json = self.get_solc_input_json(
+            {str(file_name): {'content': input_json}},
             remappings=self.get_import_remappings(no_default_import_remappings, extra_import_remappings),
             optimizer_settings=optimizer_settings,
         )
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
 
-        return solcx.compile_standard(
-            source,
+        output_json = solcx.compile_standard(
+            input_json,
             allow_paths=self.get_allow_paths(),
             **kwargs
             )
+    
+        return input_json, output_json
+
+    def compile_sources(self,
+                        sources: Dict[str, str],
+                        optimizer_settings=None,
+                        no_default_import_remappings=False, extra_import_remappings=None,
+                        **kwargs):
+        
+        pragma_lines = [find_pragma_line(s['content']) for file, s in sources.items()]
+        
+        configure_solcx_for_pragma(merge_pragma_lines(pragma_lines))
+
+        if optimizer_settings is None:
+            optimizer_settings = self.get_default_optimizer_settings()
+
+        # sources should already be in the right format
+        input_json = self.get_solc_input_json(
+            sources,
+            remappings=self.get_import_remappings(
+                no_default_import_remappings, extra_import_remappings
+            ),
+            optimizer_settings=optimizer_settings,
+        )
+
+        kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
+
+        output_json = solcx.compile_standard(
+            input_json,
+            allow_paths=self.get_allow_paths(),
+            **kwargs
+        )
+        return input_json, output_json
 
     def compile_files(self,
                       files: List[Union[str, Path]],
@@ -114,9 +155,9 @@ class SolidityCompiler:
         configure_solcx_for_pragma(pragma_lines[0] if len(pragma_lines) == 1 else None)
 
         if optimizer_settings is None:
-            optimizer_settings = self.get_optimizer_settings()
+            optimizer_settings = self.get_default_optimizer_settings()
 
-        source = self.get_solc_input_json(
+        input_json = self.get_solc_input_json(
             {str(path): {"urls": [str(path)]} for path in files},
             remappings=self.get_import_remappings(
                 no_default_import_remappings, extra_import_remappings
@@ -126,11 +167,12 @@ class SolidityCompiler:
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
 
-        return solcx.compile_standard(
-            source,
+        output_json = solcx.compile_standard(
+            input_json,
             allow_paths=self.get_allow_paths() + [os.path.dirname(file) for file in files],
             **kwargs
-            )
+        )
+        return input_json, output_json
 
 solc_binary_cache = {}
 def _add_cached_solc_binary_to_kwargs(kwargs):

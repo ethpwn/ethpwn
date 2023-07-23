@@ -41,6 +41,9 @@ def dbg_config_root_dir():
 def get_default_wallet_path() -> Path:
     return ethtools_config_root_dir() / 'wallets.json'
 
+def get_default_global_config_path() -> Path:
+    return pwn_config_root_dir() / 'config.json'
+
 def get_logged_deployed_contracts_dir() -> Path:
     d = pwn_config_root_dir() / 'deployed_contracts'
     d.mkdir(parents=True, exist_ok=True)
@@ -69,14 +72,22 @@ def reload_default_config():
 
 def load_default_config():
     from .wallets import load_default_wallets
-    return {
-        'wallets': load_default_wallets(),
+    wallets = load_default_wallets()
+    result = {
+        'wallets': wallets,
     }
+    if os.path.isfile(get_default_global_config_path()):
+        with open(get_default_global_config_path(), 'r') as f:
+            result = json.load(f)
+
+    if 'wallets' not in result:
+        result['wallets'] = wallets
+    return result
 
 GLOBAL_CONFIG = None
 GLOBAL_CONFIG = load_default_config()
 
 from . import wallets
-from . import verified_contracts
+from . import credentials
 
 
