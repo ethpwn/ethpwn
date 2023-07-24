@@ -97,7 +97,10 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
 
     # read_storage = function taking a slot and returning a value
     if storage_type['encoding'] == 'inplace':
-        assert int(storage_type['numberOfBytes']) <= 32, "Don't know how to handle this yet"
+        if int(storage_type['numberOfBytes']) > 32:
+            import ipdb; ipdb.set_trace()
+            # assert False, "Don't know how to handle this yet"
+            return None
         value = read_storage(int(storage_value['slot']))
         # lower-order-alignment means it's easier to flip it, index, flip it back
         value = value[::-1]
@@ -124,7 +127,8 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
             return value
         else:
             import ipdb; ipdb.set_trace()
-            assert False, "Don't know how to handle this yet"
+            # assert False, "Don't know how to handle this yet"
+            return None
         return HexBytes(value)
 
     elif storage_type['encoding'] == 'mapping':
