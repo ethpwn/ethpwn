@@ -888,7 +888,7 @@ class EthDbgShell(cmd.Cmd):
         max_pc_length = max(len('CallSite'), max((len(call.callsite) for call in self.callstack), default=0))
         calltype_string_legend = 'CallType'.ljust(max_call_opcode_length)
         callsite_string_legend = 'CallSite'.rjust(max_pc_length)
-        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | msg.value ]\n'
+        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Registry Name ]\n'
         for call in self.callstack[::-1]:
             calltype_string = f'{call.calltype}'
             if call.calltype == "CALL":
@@ -906,8 +906,10 @@ class EthDbgShell(cmd.Cmd):
             calltype_string = calltype_string.ljust(max_call_opcode_length)
             callsite_string = call.callsite.rjust(max_pc_length)
             call_addr = call.address
+            registry_contract = contract_registry().get(call_addr)
+            contract_name = registry_contract.metadata.contract_name if registry_contract else ''
             msg_sender = call.msg_sender
-            calls_view += f'{call_addr:44} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:44} | {call.value} \n'
+            calls_view += f'{call_addr:44} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:44} | {call.value:12} | {contract_name}\n'
 
         return title + legend + calls_view
 
