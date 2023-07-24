@@ -410,23 +410,23 @@ class ContractMetadataRegistry:
         Compiles the given solidity source code and adds the resulting metadata
         of all contracts to the registry.
         '''
-        self._process_solc_output_json(self.compiler.compile_source(source, file_name, **kwargs))
+        self._process_compiler_output_json(self.compiler.compile_source(source, file_name, **kwargs))
 
     def add_solidity_sources_dict(self, sources: Dict[str, str], **kwargs):
         '''
         Compiles the given solidity source dict `'sources'` in the input json and adds the
         resulting metadata of all contracts to the registry.
         '''
-        self._process_solc_output_json(self.compiler.compile_sources(sources, **kwargs))
+        self._process_compiler_output_json(self.compiler.compile_sources(sources, **kwargs))
 
     def add_contracts_from_solidity_files(self, files: List[Union[str, Path]], **kwargs):
         '''
         Compiles the given files and adds the resulting metadata of all contracts to the registry.
         '''
-        self._process_solc_output_json(self.compiler.compile_files(files, **kwargs))
+        self._process_compiler_output_json(self.compiler.compile_files(files, **kwargs))
 
     # pylint: disable=line-too-long
-    def _handle_solidity_errors(self, output_json):
+    def _handle_errors(self, output_json):
         compilation_error = False
         for error in output_json.get('errors', []):
             log = getattr(context.logger, error['severity'], context.logger.info)
@@ -438,11 +438,11 @@ class ContractMetadataRegistry:
         if compilation_error:
             raise ValueError("Compilation error")
 
-    def _process_solc_output_json(self, result):
+    def _process_compiler_output_json(self, result):
 
         input_json, output_json = result
 
-        self._handle_solidity_errors(output_json)
+        self._handle_errors(output_json)
 
         for source_file in output_json['contracts']:
             for contract_name in output_json['contracts'][source_file]:
