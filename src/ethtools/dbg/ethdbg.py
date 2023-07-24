@@ -150,7 +150,7 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
         num_elements = int.from_bytes(num_elements, byteorder='big')
         element_type = storage_layout['types'][storage_type['base']]
         element_size = int(element_type['numberOfBytes'])
-        num_slots = (num_elements * element_size) // 32
+        num_slots = (num_elements * element_size + 31) // 32
         slot_start = int.from_bytes(keccak(int.to_bytes(int(storage_value['slot']), 32, byteorder='big')), byteorder='big')
         # TODO: Lukas: decode nicer
         slots = [HexBytes(read_storage(slot_start + i))[-element_size:] for i in range(num_slots)]
