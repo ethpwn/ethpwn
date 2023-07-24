@@ -100,7 +100,7 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
         if int(storage_type['numberOfBytes']) > 32:
             import ipdb; ipdb.set_trace()
             # assert False, "Don't know how to handle this yet"
-            return None
+            return "<UNSUPPORTED STORAGE TYPE>"
         value = read_storage(int(storage_value['slot']))
         # lower-order-alignment means it's easier to flip it, index, flip it back
         value = value[::-1]
@@ -128,7 +128,7 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
         else:
             import ipdb; ipdb.set_trace()
             # assert False, "Don't know how to handle this yet"
-            return None
+            return "<UNSUPPORTED STORAGE TYPE>"
         return HexBytes(value)
 
     elif storage_type['encoding'] == 'mapping':
