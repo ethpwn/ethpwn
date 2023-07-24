@@ -114,25 +114,33 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         solidity_version = solidity_version[1:]
         compiler_kwargs['solc_version'] = solidity_version
     
-    if source.strip()[:2] == '{{' and source.strip()[-2:] == '}}':
-        output_json = json.loads(source.strip()[1:-1])
-        if output_json['language'] != 'Solidity':
+    # import ipdb; ipdb.set_trace()
+    if source[:2] == '{"':
+        # solidity multi-file version, this is basically the sources dict
+        sources_dict = json.loads(source)
+        CONTRACT_METADATA.add_solidity_sources_dict(sources_dict, **compiler_kwargs)
+    elif source.strip()[:2] == '{{' and source.strip()[-2:] == '}}':
+        # solidity input-json format
+        input_json = json.loads(source.strip()[1:-1])
+        if input_json['language'] != 'Solidity':
             raise ValueError(f"Verified source code from {origin} is not in Solidity, unsupported.")
 
-        opt_settings = output_json.get('settings', {}).get('optimizer', None)
+        opt_settings = input_json.get('settings', {}).get('optimizer', None)
         if opt_settings is not None:
             assert result['OptimizationUsed'] == opt_settings['enabled']
             assert result['Runs'] == opt_settings['runs']
 
-        sources = dict(output_json['sources'])
-        for source_path, source_data in output_json['sources'].items():
-            if source_path.startswith('node_modules'):
-                source_path = source_path[len('contracts/'):]
-                sources[source_path] = source_data
+        sources = dict(input_json['sources'])
+        for source_path, source_data in input_json['sources'].items():
+            prefixes_to_trim = ['node_modules/', 'es/', 'lib/', 'contracts/']
+            for prefix in prefixes_to_trim:
+                if source_path.startswith(prefix):
+                    source_path = source_path[len(prefix):]
+                    sources[source_path] = source_data
 
         CONTRACT_METADATA.add_solidity_sources_dict(sources, **compiler_kwargs)
     else:
-        # we assume that it is just the text of the source code
+        # solidity single-file version
         CONTRACT_METADATA.add_solidity_source(source, f'verified/{contract_address}.sol', **compiler_kwargs)
 
 

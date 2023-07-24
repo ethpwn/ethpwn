@@ -107,16 +107,21 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
         if storage_type['label'].split()[0] == 'address' or storage_type['label'].split()[0] == 'contract':
             # so far seen: "address", "address payable", "contract <name>"
             return HexBytes(value).hex()
-        elif storage_type['label'] == 'uint256':
-            return int.from_bytes(value, byteorder='big')
-        elif storage_type['label'] == 'uint8':
-            assert len(value) == 1
-            assert storage_type['numberOfBytes'] == '1'
+        elif re.fullmatch('uint[0-9]+', storage_type['label']):
+            num_bits = int(storage_type['label'][4:])
+            assert num_bits % 8 == 0
+            num_bytes = num_bits // 8
+            assert len(value) == num_bytes
+            assert storage_type['numberOfBytes'] == str(num_bytes)
             return int.from_bytes(value, byteorder='big')
         elif storage_type['label'] == 'bool':
             assert len(value) == 1
             assert storage_type['numberOfBytes'] == '1'
             return int.from_bytes(value, byteorder='big') != 0
+        elif storage_type['label'] == 'bytes32':
+            assert len(value) == 32
+            assert storage_type['numberOfBytes'] == '32'
+            return value
         else:
             import ipdb; ipdb.set_trace()
             assert False, "Don't know how to handle this yet"
@@ -142,9 +147,9 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
         element_type = storage_layout['types'][storage_type['base']]
         element_size = int(element_type['numberOfBytes'])
         num_slots = (num_elements * element_size) // 32
-        slot_start = keccak(int.to_bytes(int(storage_value['slot']), 32, byteorder='big'))
-        # TODO decode more
-        slots = [HexBytes(read_storage(slot_start + i)) for i in range(num_slots)]
+        slot_start = int.from_bytes(keccak(int.to_bytes(int(storage_value['slot']), 32, byteorder='big')), byteorder='big')
+        # TODO: Lukas: decode nicer
+        slots = [HexBytes(read_storage(slot_start + i))[-element_size:] for i in range(num_slots)]
         return {
             'data_start_slot': slot_start,
             'num_elements': num_elements,

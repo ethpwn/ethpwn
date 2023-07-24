@@ -187,7 +187,7 @@ class ContractMetadata(Serializable):
         for src in generated_sources_runtime:
             del src['ast']
             src['generated'] = True
-        storage_layout = output_json['storageLayout']
+        storage_layout = output_json.get('storageLayout', {'types': [], 'storage': []})
 
         return ContractMetadata(
             source_file=source_file,
