@@ -657,6 +657,10 @@ class EthDbgShell(cmd.Cmd):
 
     def do_break(self, arg):
         # parse the arg
+        if not arg.strip():
+            self.do_breaks(arg)
+            return
+        
         break_args = arg.split(",")
         try:
             bp = Breakpoint(break_args)
@@ -666,9 +670,13 @@ class EthDbgShell(cmd.Cmd):
             print(f'{RED_COLOR}Invalid breakpoint{RESET_COLOR}:')
             print(f'{RED_COLOR} Valid syntax is: <what><when><value>,<what><when><value>{RESET_COLOR}')
             print(f'{RED_COLOR}  <when> in (=, ==, !=, >, <, >=, <=){RESET_COLOR}')
-            print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value){RESET_COLOR}')
+            print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value, gas_remaining){RESET_COLOR}')
 
     def do_tbreak(self, arg):
+        if not arg.strip():
+            self.do_breaks(arg)
+            return
+
         # parse the arg
         break_args = arg.split(",")
         try:
@@ -679,7 +687,7 @@ class EthDbgShell(cmd.Cmd):
             print(f'{RED_COLOR}Invalid breakpoint{RESET_COLOR}:')
             print(f'{RED_COLOR} Valid syntax is: <what><when><value>,<what><when><value>{RESET_COLOR}')
             print(f'{RED_COLOR}  <when> in (=, ==, !=, >, <, >=, <=){RESET_COLOR}')
-            print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value){RESET_COLOR}')
+            print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value, gas_remaining){RESET_COLOR}')
 
     do_b = do_break
     do_tb = do_tbreak

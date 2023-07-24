@@ -4,9 +4,9 @@ import hashlib
 from .ethdbg_exceptions import InvalidBreakpointException
 from .analyzer import ALL_EVM_OPCODES, ComputationAPI, OpcodeAPI
 
-ALLOWED_COND_BPS = ['addr', 'saddr', 'op', 'pc', 'value']
+ALLOWED_COND_BPS = ['addr', 'saddr', 'op', 'pc', 'value', 'gas_remaining']
 ALLOWED_COND_WHEN = ['==', '!=', '<=', '>=', '>', '<', '=']
-BPS_RE_PATTERN = r'([a-zA-Z]*)(==|!=|<=|>=|>|<|=)(.*)'
+BPS_RE_PATTERN = r'([a-zA-Z_]*)(==|!=|<=|>=|>|<|=)(.*)'
 ETH_ADDRESS = r'^(0x)?[0-9a-fA-F]{40}$'
 
 class Breakpoint():
@@ -107,6 +107,12 @@ class Breakpoint():
                 int(storage_index,16)
             except Exception:
                 return False
+        elif what == 'gas_remaining':
+            try:
+                int(value,0)
+            except Exception:
+                return False
+            return True
         else:
             return False
 
@@ -162,6 +168,13 @@ class Breakpoint():
                     expr = f'{msg_val} {when} {last_frame.value}'
                     if not eval(expr):
                         return False
+                    
+                elif what == 'gas_remaining':
+                    gas_remaining = comp.get_gas_remaining() + comp.get_gas_refund()
+                    expr = f'{gas_remaining} {when} {int(value, 0)}'
+                    if not eval(expr):
+                        return False
+
                 else:
                     return False
 
