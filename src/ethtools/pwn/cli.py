@@ -9,6 +9,7 @@ from .contract_metadata import CONTRACT_METADATA
 from .global_context import context
 from .utils import normalize_contract_address
 from .transactions import transact, transfer_funds
+from .verified_source_code import fetch_verified_contract_source
 
 def add_default_node_url(node_url):
     '''
@@ -90,3 +91,11 @@ def contract_at(contract_name, _address,
 
     contract = CONTRACT_METADATA[contract_name]
     return contract.get_contract_at(_address)
+
+def verified_contract_at(address, api_key=None):
+    '''
+    Fetch the verified source code for the contract at `address` from Etherscan and register it in
+    the code-registry. If the contract is not verified, an error is raised. If the contract is
+    already registered, it is returned.
+    '''
+    fetch_verified_contract_source(address, api_key=api_key)
