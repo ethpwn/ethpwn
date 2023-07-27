@@ -10,3 +10,4 @@ from .transactions import transact, transfer_funds, TransactionFailedError, Insu
 from .alchemy_utils import simulate_execution, decode_simulation_trace, pretty_print_simulation_trace
 from .assembly_utils import asm_push_value, asm_codecopy, asm_return, create_shellcode_deployer_bin, asm_mload, asm_mstore, assemble, value_to_smallest_hexbytes, disassemble_pro
 from .utils import normalize_contract_address, show_diff
+from .solidity_utils import SolidityCompiler
