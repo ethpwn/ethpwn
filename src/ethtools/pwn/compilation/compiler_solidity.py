@@ -75,8 +75,8 @@ class SolidityCompiler:
     def get_default_optimizer_settings(self, optimizer_runs=1000):
         return {'enabled': True, 'runs': optimizer_runs}
 
-    def get_solc_input_json(self, sources_entry, remappings, optimizer_settings=None):
-        return {
+    def get_solc_input_json(self, sources_entry, remappings, optimizer_settings=None, libraries=None):
+        result = {
             "language": "Solidity",
             'sources': sources_entry,
             'settings': {
@@ -84,12 +84,18 @@ class SolidityCompiler:
                 'outputSelection': { "*": { "*": [ "*" ], "": [ "*" ] } },
                 'optimizer': optimizer_settings if optimizer_settings is not None else {'enabled': False},
             },
-
         }
+        if libraries:
+            libs = {"": libraries}
+            for file in sources_entry.keys():
+                libs[file] = libraries
+            result['settings']['libraries'] = libs
+        return result
 
     def compile_source(self,
                        input_json: str, file_name: Union[Path, str],
                        optimizer_settings=None,
+                       libraries=None,
                        no_default_import_remappings=False, extra_import_remappings=None,
                        **kwargs):
 
@@ -102,6 +108,7 @@ class SolidityCompiler:
             {str(file_name): {'content': input_json}},
             remappings=self.get_import_remappings(no_default_import_remappings, extra_import_remappings),
             optimizer_settings=optimizer_settings,
+            libraries=libraries,
         )
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
@@ -116,6 +123,7 @@ class SolidityCompiler:
 
     def compile_sources(self,
                         sources: Dict[str, str],
+                        libraries=None,
                         optimizer_settings=None,
                         no_default_import_remappings=False, extra_import_remappings=None,
                         **kwargs):
@@ -134,6 +142,7 @@ class SolidityCompiler:
                 no_default_import_remappings, extra_import_remappings
             ),
             optimizer_settings=optimizer_settings,
+            libraries=libraries,
         )
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
@@ -147,6 +156,7 @@ class SolidityCompiler:
 
     def compile_files(self,
                       files: List[Union[str, Path]],
+                      libraries=None,
                       optimizer_settings=None,
                       no_default_import_remappings=False, extra_import_remappings=None,
                       **kwargs):
@@ -164,11 +174,12 @@ class SolidityCompiler:
                 no_default_import_remappings, extra_import_remappings
             ),
             optimizer_settings=optimizer_settings,
+            libraries=libraries,
         )
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
 
-        output_json = ethcx.compile_standard(
+        output_json = ethcx.compile_solidity_standard(
             input_json,
             allow_paths=self.get_allow_paths() + [os.path.dirname(file) for file in files],
             **kwargs

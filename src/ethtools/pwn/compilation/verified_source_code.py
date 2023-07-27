@@ -6,14 +6,19 @@ import time
 from typing import Any, Dict, Tuple
 from hexbytes import HexBytes
 import requests
+
+from ..utils import normalize_contract_address
 from ..config.credentials import get_etherscan_api_key
 from ..contract_metadata import CONTRACT_METADATA
-from ..contract_registry import contract_registry
+from ..contract_registry import Contract, contract_registry
 
 class EtherscanAPIError(Exception):
     pass
 
 class NotVerifiedError(Exception):
+    pass
+
+class AlreadyVerifiedError(Exception):
     pass
 
 class VerifiedSourceCode:
@@ -51,8 +56,6 @@ def _pull_verified_source_from_etherscan(contract_address, api_key):
         assert not result['ConstructorArguments']
         assert not result['Library']
         assert result['LicenseType'] == 'Unknown'
-        assert result['Proxy'] == "0"
-        assert not result['Implementation']
         assert not result['SwarmSource']
         assert not result['ContractName']
         assert result['EVMVersion'] == 'Default'
@@ -98,6 +101,9 @@ def pull_verified_source_from_etherscan(contract_address, api_key=None):
         return None
 
 def _parse_verified_source_code_into_registry(contract_address, result, origin='etherscan'):
+
+    # TODO: should verify that the bytecode at the end matches
+
     source = result['SourceCode']
     source = source.strip().replace('\r\n', '\n')
     assert origin == 'etherscan'
@@ -128,12 +134,19 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         assert re.match('v[0-9]+\.[0-9]+\.[0-9]+', solidity_version)    
         solidity_version = solidity_version[1:]
         compiler_kwargs['solc_version'] = solidity_version
-    
+
+    libraries = None
+    if result['Library']:
+        libraries = {}
+        for lib in result['Library'].split(';'):
+            lib_name, lib_address = lib.split(':')
+            libraries[lib_name] = normalize_contract_address(lib_address)
+
     # import ipdb; ipdb.set_trace()
     if source[:2] == '{"':
         # solidity multi-file version, this is basically the sources dict
         sources_dict = json.loads(source)
-        CONTRACT_METADATA.add_sources_dict(sources_dict, compiler=compiler, **compiler_kwargs)
+        CONTRACT_METADATA.add_sources_dict(sources_dict, compiler=compiler, libraries=libraries, **compiler_kwargs)
     elif source.strip()[:2] == '{{' and source.strip()[-2:] == '}}':
         # solidity input-json format
         input_json = json.loads(source.strip()[1:-1])
@@ -142,7 +155,8 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
 
         opt_settings = input_json.get('settings', {}).get('optimizer', None)
         if opt_settings is not None:
-            assert result['OptimizationUsed'] == opt_settings['enabled']
+            # 'enabled' is not always present, see e.g. https://etherscan.io/address/0xC4B599043a5479398eb8Af387b1E36D9A924F8C2#code
+            assert result['OptimizationUsed'] == opt_settings.get('enabled', False)
             assert result['Runs'] == opt_settings['runs']
 
         sources = dict(input_json['sources'])
