@@ -156,7 +156,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         CONTRACT_METADATA.add_sources_dict(sources, compiler=compiler, **compiler_kwargs)
     else:
         # solidity single-file version
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         contract_name = result['ContractName']
         CONTRACT_METADATA.add_source(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, **compiler_kwargs)
 

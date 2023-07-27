@@ -59,7 +59,7 @@ def get_w3_provider(web3_host):
 
 FETCHED_VERIFIED_CONTRACTS = set()
 
-def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexBytes, pc: int):
+def get_contract_for(contract_address: HexBytes):
     global FETCHED_VERIFIED_CONTRACTS
     contract_address = normalize_contract_address(contract_address)
     registry = contract_registry()
@@ -76,10 +76,15 @@ def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexB
             print(f"Failed to fetch verified source code for {contract_address}: {ex}")
         FETCHED_VERIFIED_CONTRACTS.add(contract_address)
 
-    contract = registry.get(contract_address)
+    return registry.get(contract_address)
 
+
+def get_source_code_view_for_pc(debug_target: TransactionDebugTarget, contract_address: HexBytes, pc: int=None):
+    contract = get_contract_for(contract_address)
     if contract is None:
         return None
+    
+    # import ipdb; ipdb.set_trace()
 
     if debug_target.target_address is None or int.from_bytes(HexBytes(debug_target.target_address), byteorder='big') == 0:
         closest_instruction_idx = contract.metadata.closest_instruction_index_for_constructor_pc(pc, fork=debug_target.fork)
@@ -798,13 +803,9 @@ class EthDbgShell(cmd.Cmd):
             return
         else:
             try:
-                # check  if lenght is a decimal number or hex number
                 offset, length = args.split(" ")[0], args.split(" ")[1]
 
-                if read_args[1].startswith("0x"):
-                    length = int(read_args[1],16)
-                else:
-                    length = int(read_args[1],10)
+                length = int(read_args[1], 0)
                 data = self.comp._memory.read(int(offset,16), length)
                 hexdump(data.tobytes())
             except Exception as e:
@@ -1214,7 +1215,7 @@ class EthDbgShell(cmd.Cmd):
         # print the chain context and the transaction context
         # import ipdb; ipdb.set_trace()
         try:
-            source = get_source_code(self.debug_target, self.comp.msg.code_address, self.comp.code.program_counter - 1)
+            source = get_source_code_view_for_pc(self.debug_target, self.comp.msg.code_address, self.comp.code.program_counter - 1)
         except Exception as e:
             source = None
 

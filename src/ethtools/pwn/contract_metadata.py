@@ -29,7 +29,14 @@ from .compilation.compiler_vyper import VyperCompiler
 
 from pyevmasm import disassemble_all, Instruction
 
-def _unify_sources(input_sources, output_sources):
+def get_language_for_compiler(compiler):
+    if compiler.startswith('vyper-'):
+        return 'Vyper'
+    else:
+        assert compiler.startswith('solc-')
+        return 'Solidity'
+    
+def _unify_sources(compiler, input_sources, output_sources):
     # import ipdb; ipdb.set_trace()
     assert input_sources.keys() == output_sources.keys()
     sources_out = []
@@ -38,7 +45,7 @@ def _unify_sources(input_sources, output_sources):
             'id': int(values['id']),
             'name': file,
             'file_name': os.path.basename(file),
-            'language': 'Solidity',
+            'language': get_language_for_compiler(compiler),
             'generated': False,
         }
         if input_sources[file]['content'] is None:
@@ -58,6 +65,7 @@ class ContractMetadata(Serializable):
     Includes the ABI, the bytecode, the source code, and the source map.
     '''
     def __init__(self,
+                    compiler=None,
                     source_file=None,
                     contract_name=None,
                     sources_by_id=None,
@@ -72,6 +80,9 @@ class ContractMetadata(Serializable):
                     storage_layout=None,
                  ) -> None:
         super().__init__()
+
+        assert compiler is not None
+        self.compiler = compiler
         self.source_file = source_file
         self.contract_name = contract_name
         self.sources = sources_by_id
@@ -169,13 +180,14 @@ class ContractMetadata(Serializable):
         yield tree
 
     @staticmethod
-    def from_solidity(source_file, contract_name, output_json, input_sources, output_sources):
+    def from_compiler_output_json(compiler, source_file, contract_name, output_json, input_sources, output_sources):
         '''
         Constructs a ContractMetadata object for a contract in `source_file` with
         name `contract_name` from the Compiler `output_json` and the `sources` dict.
         '''
+        # import ipdb; ipdb.set_trace()
         source_file = str(Path(source_file).resolve())
-        sources = _unify_sources(input_sources, output_sources)
+        sources = _unify_sources(compiler, input_sources, output_sources)
         # import ipdb; ipdb.set_trace()
         abi = output_json['abi']
         bin_constructor = HexBytes(output_json['evm']['bytecode']['object'])
@@ -193,6 +205,7 @@ class ContractMetadata(Serializable):
         storage_layout = output_json.get('storageLayout', {'types': [], 'storage': []})
 
         return ContractMetadata(
+            compiler,
             source_file=source_file,
             contract_name=contract_name,
             sources_by_id=sources,
@@ -213,6 +226,7 @@ class ContractMetadata(Serializable):
         '''
         # dump file_name, contract_name, and json_dict
         return {
+            'compiler': self.compiler,
             'source_file': str(self.source_file),
             'contract_name': self.contract_name,
             'sources': self.sources,
@@ -232,6 +246,7 @@ class ContractMetadata(Serializable):
         Loads a ContractMetadata object back from a serialized dictionary.
         '''
         return ContractMetadata(
+            compiler=value['compiler'],
             source_file=value['source_file'],
             contract_name=value['contract_name'],
             sources_by_id=value['sources'],
@@ -245,6 +260,21 @@ class ContractMetadata(Serializable):
             storage_layout=value['storage-layout'],
         )
 
+    @property
+    def language(self):
+        if self.compiler.startswith('vyper-'):
+            return 'vyper'
+        else:
+            assert self.compiler.startswith('solc-')
+            return 'solidity'
+
+    @property
+    def compiler_name(self):
+        if self.compiler.startswith('vyper-'):
+            return 'vyper'
+        else:
+            assert self.compiler.startswith('solc-')
+            return 'solc'
 
     def constructor_source_by_id(self, _id):
         '''
@@ -471,7 +501,7 @@ class ContractMetadataRegistry:
         compilation_error = False
         for error in output_json.get('errors', []):
             log = getattr(context.logger, error['severity'], context.logger.info)
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             log(f"# {red}{bold}{error['severity'].upper()}:{error['type']} {error['formattedMessage']}{reset}")
             for location in error.get('secondarySourceLocations', []):
                 log(f"    {location['file']}:{location['start']}:{location['end']}: {location['message']}")
@@ -489,8 +519,11 @@ class ContractMetadataRegistry:
         for source_file in output_json['contracts']:
             for contract_name in output_json['contracts'][source_file]:
                 contract_data = output_json['contracts'][source_file][contract_name]
-                self.contracts[source_file][contract_name] = ContractMetadata.from_solidity(
-                    source_file, contract_name, contract_data, input_json['sources'], output_json['sources']
+                self.contracts[source_file][contract_name] = ContractMetadata.from_compiler_output_json(
+                    output_json['compiler'],
+                    source_file, contract_name,
+                    contract_data,
+                    input_json['sources'], output_json['sources']
                 )
                 self.contracts[''][contract_name] = self.contracts[source_file][contract_name]
 
