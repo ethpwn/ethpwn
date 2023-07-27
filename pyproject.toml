@@ -23,6 +23,7 @@ dependencies = [
     "requests",
     "pysha3",
     "hexbytes",
+    "virtualenv",
 
     # pyevmasm from github, not pypi
     "pyevmasm @ git+https://github.com/ethpwn/pyevmasm.git",

@@ -22,8 +22,8 @@ class SrcMapEntry(TypedDict):
 def parse_srcmap(srcmap: str) -> List[Tuple[int, int]]:
     if not srcmap:
         return []
+    # import ipdb; ipdb.set_trace()
     entries = srcmap.split(';')
-    result = []
 
     # src_start_character_index, num_chars, source_file_index, jumpType, modifierDepth
     # modifierDepth didn't used to exist so we initialize it to 0

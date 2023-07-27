@@ -18,11 +18,14 @@ from ansi.color.fg import red
 from rich.tree import Tree
 from rich.table import Table
 
+from ethtools.pwn.compilation.compiler_vyper import VyperCompiler
+
 from .serialization_utils import Serializable
 from .transactions import transact
 from .global_context import context
-from .srcmap import SymbolizedSourceMap, InstructionSourceInfo
-from .solidity_utils import SolidityCompiler
+from .compilation.srcmap import SymbolizedSourceMap, InstructionSourceInfo
+from .compilation.compiler_solidity import SolidityCompiler
+from .compilation.compiler_vyper import VyperCompiler
 
 from pyevmasm import disassemble_all, Instruction
 
@@ -177,7 +180,7 @@ class ContractMetadata(Serializable):
         abi = output_json['abi']
         bin_constructor = HexBytes(output_json['evm']['bytecode']['object'])
         bin_runtime = HexBytes(output_json['evm']['deployedBytecode']['object'])
-        srcmap = output_json['evm']['bytecode']['sourceMap']
+        srcmap = output_json['evm']['bytecode'].get('sourceMap', None)              # vyper contracts don't have this for the constructor
         srcmap_runtime = output_json['evm']['deployedBytecode']['sourceMap']
         generated_sources_constructor = output_json['evm']['bytecode'].get('generatedSources', [])
         for src in generated_sources_constructor:
@@ -271,7 +274,7 @@ class ContractMetadata(Serializable):
         '''
         Returns the symbolized source map for the constructor bytecode.
         '''
-        if self._symbolic_srcmap_constructor is None:
+        if self._symbolic_srcmap_constructor is None and self.srcmap is not None:
             self._symbolic_srcmap_constructor = SymbolizedSourceMap.from_src_map(
                 self.srcmap, self.constructor_source_by_id
             )
@@ -282,7 +285,7 @@ class ContractMetadata(Serializable):
         '''
         Returns the symbolized source map for the runtime bytecode.
         '''
-        if self._symbolic_srcmap_runtime is None:
+        if self._symbolic_srcmap_runtime is None and self.srcmap_runtime is not None:
             self._symbolic_srcmap_runtime = SymbolizedSourceMap.from_src_map(
                 self.srcmap_runtime, self.runtime_source_by_id
             )
@@ -400,36 +403,75 @@ class ContractMetadataRegistry:
     def __init__(self) -> None:
         self.contracts: Dict[str, Dict[str, ContractMetadata]] = defaultdict(dict)
         exp_template_dir = os.path.dirname(os.path.realpath(__file__)) + "/exploit_templates"
-        self.compiler: SolidityCompiler = SolidityCompiler()
-        self.compiler.add_import_remappings({
+        self.solidity_compiler: SolidityCompiler = SolidityCompiler()
+        self.solidity_compiler.add_import_remappings({
             "exploit_templates": exp_template_dir,
         })
+        self.vyper_compiler: VyperCompiler = VyperCompiler()
+
+    def add_source(self, source: str, file_name: Union[Path, str], compiler: str = None, **kwargs):
+        result = None
+        if compiler == 'vyper':
+            result = self.vyper_compiler.compile_source(source, file_name, **kwargs)
+        else:
+            assert compiler == 'solc' or compiler is None
+            result = self.solidity_compiler.compile_source(source, file_name, **kwargs)
+        self._process_compiler_output_json(result)
+
+    def add_sources_dict(self, sources: Dict[str, str], compiler: str = None, **kwargs):
+        result = None
+        if compiler == 'vyper':
+            result = self.vyper_compiler.compile_sources(sources, **kwargs)
+        else:
+            assert compiler == 'solc' or compiler is None
+            result = self.solidity_compiler.compile_sources(sources, **kwargs)
+        self._process_compiler_output_json(result)
+
+    def add_files(self, files: List[Union[str, Path]], compiler: str = None, **kwargs):
+        result = None
+        if compiler == 'vyper':
+            result = self.vyper_compiler.compile_files(files, **kwargs)
+        else:
+            assert compiler == 'solc' or compiler is None
+            result = self.solidity_compiler.compile_files(files, **kwargs)
+        self._process_compiler_output_json(result)
+
 
     def add_solidity_source(self, source: str, file_name: Union[Path, str], **kwargs):
         '''
         Compiles the given solidity source code and adds the resulting metadata
         of all contracts to the registry.
         '''
-        self._process_compiler_output_json(self.compiler.compile_source(source, file_name, **kwargs))
+        self._process_compiler_output_json(self.solidity_compiler.compile_source(source, file_name, **kwargs))
 
     def add_solidity_sources_dict(self, sources: Dict[str, str], **kwargs):
         '''
         Compiles the given solidity source dict `'sources'` in the input json and adds the
         resulting metadata of all contracts to the registry.
         '''
-        self._process_compiler_output_json(self.compiler.compile_sources(sources, **kwargs))
+        self._process_compiler_output_json(self.solidity_compiler.compile_sources(sources, **kwargs))
 
     def add_contracts_from_solidity_files(self, files: List[Union[str, Path]], **kwargs):
         '''
         Compiles the given files and adds the resulting metadata of all contracts to the registry.
         '''
-        self._process_compiler_output_json(self.compiler.compile_files(files, **kwargs))
+        self._process_compiler_output_json(self.solidity_compiler.compile_files(files, **kwargs))
+
+    def add_vyper_source(self, source: str, file_name: Union[Path, str], **kwargs):
+        self._process_compiler_output_json(self.vyper_compiler.compile_source(source, file_name, **kwargs))
+
+    def add_vyper_sources_dict(self, sources: Dict[str, str], **kwargs):
+        self._process_compiler_output_json(self.vyper_compiler.compile_sources(sources, **kwargs))
+
+    def add_contracts_from_vyper_files(self, files: List[Union[str, Path]], **kwargs):
+        self._process_compiler_output_json(self.vyper_compiler.compile_files(files, **kwargs))
 
     # pylint: disable=line-too-long
     def _handle_errors(self, output_json):
         compilation_error = False
         for error in output_json.get('errors', []):
             log = getattr(context.logger, error['severity'], context.logger.info)
+            import ipdb; ipdb.set_trace()
             log(f"# {red}{bold}{error['severity'].upper()}:{error['type']} {error['formattedMessage']}{reset}")
             for location in error.get('secondarySourceLocations', []):
                 log(f"    {location['file']}:{location['start']}:{location['end']}: {location['message']}")

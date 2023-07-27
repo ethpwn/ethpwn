@@ -4,12 +4,12 @@ Helpful functions available in the CLI.
 
 import functools
 
-from .solidity_utils import try_match_optimizer_settings
+from .compilation.compiler_solidity import try_match_optimizer_settings
 from .contract_metadata import CONTRACT_METADATA
 from .global_context import context
 from .utils import normalize_contract_address
 from .transactions import transact, transfer_funds
-from .verified_source_code import fetch_verified_contract_source
+from .compilation.verified_source_code import fetch_verified_contract_source
 
 def add_default_node_url(node_url):
     '''
@@ -40,7 +40,7 @@ def deploy(contract_name,
     compile the contract on the file.
     '''
     if import_remappings:
-        CONTRACT_METADATA.compiler.add_import_remappings(import_remappings)
+        CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
 
     if source is not None:
         CONTRACT_METADATA.add_solidity_source(source, source_filename)
@@ -60,7 +60,7 @@ def contract_at(contract_name, _address,
     Get a contract instance at the given address. Registers it in the contract registry.
     '''
     if import_remappings:
-        CONTRACT_METADATA.compiler.add_import_remappings(import_remappings)
+        CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
     assert source_files is None or (source is None and source_filename is None)
 
     best_kwargs = {}
@@ -68,14 +68,14 @@ def contract_at(contract_name, _address,
         # from .solidity_utils import try_match_optimizer_settings
         if source is None and source_filename is None:
             do_compile = functools.partial(
-                CONTRACT_METADATA.compiler.compile_source,
+                CONTRACT_METADATA.solidity_compiler.compile_source,
                 source,
                 source_filename
             )
         elif source_files is not None:
             assert type(source_files) is list
             do_compile = functools.partial(
-                CONTRACT_METADATA.compiler.compile_files,
+                CONTRACT_METADATA.solidity_compiler.compile_files,
                 source_files
             )
         else:

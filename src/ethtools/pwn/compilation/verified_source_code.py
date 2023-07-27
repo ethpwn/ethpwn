@@ -1,13 +1,14 @@
 from copy import deepcopy
 import json
 import os
+import re
 import time
 from typing import Any, Dict, Tuple
 from hexbytes import HexBytes
 import requests
-from .config.credentials import get_etherscan_api_key
-from .contract_metadata import CONTRACT_METADATA
-from .contract_registry import contract_registry
+from ..config.credentials import get_etherscan_api_key
+from ..contract_metadata import CONTRACT_METADATA
+from ..contract_registry import contract_registry
 
 class EtherscanAPIError(Exception):
     pass
@@ -108,9 +109,23 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         'runs': result['Runs']
     }
 
-    if result['CompilerVersion']:
+    assert result['CompilerVersion']
+
+    if result['CompilerVersion'].startswith('vyper:'):
+        # vyper
+        compiler = 'vyper'
+        extension = 'vy'
+
+        vyper_version = result['CompilerVersion'][len('vyper:'):]
+        compiler_kwargs['vyper_version'] = vyper_version
+    else:
+        # solidity
+        assert ':' not in result['CompilerVersion']
+        compiler = 'solc'
+        extension = 'sol'
+
         solidity_version = result['CompilerVersion'].split('+commit')[0]
-        assert solidity_version.startswith('v')
+        assert re.match('v[0-9]+\.[0-9]+\.[0-9]+', solidity_version)    
         solidity_version = solidity_version[1:]
         compiler_kwargs['solc_version'] = solidity_version
     
@@ -118,7 +133,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
     if source[:2] == '{"':
         # solidity multi-file version, this is basically the sources dict
         sources_dict = json.loads(source)
-        CONTRACT_METADATA.add_solidity_sources_dict(sources_dict, **compiler_kwargs)
+        CONTRACT_METADATA.add_sources_dict(sources_dict, compiler=compiler, **compiler_kwargs)
     elif source.strip()[:2] == '{{' and source.strip()[-2:] == '}}':
         # solidity input-json format
         input_json = json.loads(source.strip()[1:-1])
@@ -138,10 +153,12 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
                     source_path = source_path[len(prefix):]
                     sources[source_path] = source_data
 
-        CONTRACT_METADATA.add_solidity_sources_dict(sources, **compiler_kwargs)
+        CONTRACT_METADATA.add_sources_dict(sources, compiler=compiler, **compiler_kwargs)
     else:
         # solidity single-file version
-        CONTRACT_METADATA.add_solidity_source(source, f'verified/{contract_address}.sol', **compiler_kwargs)
+        import ipdb; ipdb.set_trace()
+        contract_name = result['ContractName']
+        CONTRACT_METADATA.add_source(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, **compiler_kwargs)
 
 
 def fetch_verified_contract_source(contract_address, api_key=None):

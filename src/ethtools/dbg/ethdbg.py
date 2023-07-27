@@ -68,7 +68,8 @@ def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexB
         import ipdb; ipdb.set_trace()
         # try to fetch the verified contract
         try:
-            fetch_verified_contract_source(contract_address, None) # auto-detect etherscan api key and fetch the code
+            with ipdb.launch_ipdb_on_exception():
+                fetch_verified_contract_source(contract_address, None) # auto-detect etherscan api key and fetch the code
         except Exception as ex:
             # print traceback
             traceback.print_exc()

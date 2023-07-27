@@ -9,18 +9,19 @@ import cbor
 import editdistance
 from hexbytes import HexBytes
 from simanneal import Annealer
-import solcx
+import ethcx
 import rich
 from rich.table import Table
 
-from .global_context import context
+from ..global_context import context
+from ..utils import get_shared_prefix_len
 
-def configure_solcx_for_pragma(pragma_line: str):
+def configure_ethcx_for_pragma(pragma_line: str):
     if pragma_line is None:
         return
 
-    solcx.install_solc_pragma(pragma_line)
-    solcx.set_solc_version_pragma(pragma_line)
+    ethcx.install_solc_pragma(pragma_line)
+    ethcx.set_solc_version_pragma(pragma_line)
 
 def find_pragma_line(content: str):
     for line in content.splitlines():
@@ -58,7 +59,7 @@ class SolidityCompiler:
 
     def get_output_values(self):
         output_values = ['abi','bin','bin-runtime','asm','hashes','metadata','srcmap','srcmap-runtime']
-        if solcx.get_solc_version().minor >= 6:
+        if ethcx.get_solc_version().minor >= 6:
             output_values.append('storage-layout')
         return output_values
 
@@ -92,7 +93,7 @@ class SolidityCompiler:
                        no_default_import_remappings=False, extra_import_remappings=None,
                        **kwargs):
 
-        configure_solcx_for_pragma(find_pragma_line(input_json))
+        configure_ethcx_for_pragma(find_pragma_line(input_json))
 
         if optimizer_settings is None:
             optimizer_settings = self.get_default_optimizer_settings()
@@ -105,7 +106,7 @@ class SolidityCompiler:
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
 
-        output_json = solcx.compile_standard(
+        output_json = ethcx.compile_solidity_standard(
             input_json,
             allow_paths=self.get_allow_paths(),
             **kwargs
@@ -121,7 +122,7 @@ class SolidityCompiler:
         
         pragma_lines = [find_pragma_line(s['content']) for file, s in sources.items()]
         
-        configure_solcx_for_pragma(merge_pragma_lines(pragma_lines))
+        configure_ethcx_for_pragma(merge_pragma_lines(pragma_lines))
 
         if optimizer_settings is None:
             optimizer_settings = self.get_default_optimizer_settings()
@@ -137,7 +138,7 @@ class SolidityCompiler:
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
 
-        output_json = solcx.compile_standard(
+        output_json = ethcx.compile_solidity_standard(
             input_json,
             allow_paths=self.get_allow_paths(),
             **kwargs
@@ -152,7 +153,7 @@ class SolidityCompiler:
 
         pragma_lines = get_pragma_lines(files)
         assert len(pragma_lines) <= 1, "Multiple solidity versions in files"
-        configure_solcx_for_pragma(pragma_lines[0] if len(pragma_lines) == 1 else None)
+        configure_ethcx_for_pragma(pragma_lines[0] if len(pragma_lines) == 1 else None)
 
         if optimizer_settings is None:
             optimizer_settings = self.get_default_optimizer_settings()
@@ -167,7 +168,7 @@ class SolidityCompiler:
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
 
-        output_json = solcx.compile_standard(
+        output_json = ethcx.compile_standard(
             input_json,
             allow_paths=self.get_allow_paths() + [os.path.dirname(file) for file in files],
             **kwargs
@@ -175,6 +176,7 @@ class SolidityCompiler:
         return input_json, output_json
 
 solc_binary_cache = {}
+vyper_binary_cache = {}
 def _add_cached_solc_binary_to_kwargs(kwargs):
     solc_binary_version = kwargs.get('solc_version', None)
     if solc_binary_version is None:
@@ -183,17 +185,11 @@ def _add_cached_solc_binary_to_kwargs(kwargs):
         if solc_binary_version in solc_binary_cache:
             solc_binary = solc_binary_cache[solc_binary_version]
         else:
-            solcx.install_solc(solc_binary_version)
-            solc_binary = solcx.install.get_executable(solc_binary_version)
+            ethcx.install_solc(solc_binary_version)
+            solc_binary = ethcx.compilers.solidity.install.get_executable(solc_binary_version)
             solc_binary_cache[solc_binary_version] = solc_binary
         kwargs['solc_binary'] = solc_binary
     return kwargs
-
-def _get_shared_prefix_len(a, b):
-    for i in range(min(len(a), len(b))):
-        if a[i] != b[i]:
-            return i
-    return min(len(a), len(b))
 
 def decode_solidity_metadata_from_bytecode(bytecode):
     '''
@@ -275,7 +271,7 @@ def try_match_optimizer_settings(compile, contract_name,
     def log_result(optimizer_settings, output_json, fitness):
         compiled = HexBytes(get_contract_bytecode_by_name(output_json, contract_name))
         _, compiled = decode_solidity_metadata_from_bytecode(compiled)
-        prefix_len = _get_shared_prefix_len(compiled, bin_data)
+        prefix_len = get_shared_prefix_len(compiled, bin_data)
 
         table = Table(title="Settings", show_header=False)
         table.add_column("Settings", justify="left", style="cyan")
@@ -327,7 +323,7 @@ def try_match_optimizer_settings(compile, contract_name,
     def try_settings(optimizer_settings, solc_version=None):
         output_json, _, compiled_bytecode = try_compile(optimizer_settings, solc_version)
 
-        component_prefix = len(bin_data) - _get_shared_prefix_len(compiled_bytecode, bin_data)
+        component_prefix = len(bin_data) - get_shared_prefix_len(compiled_bytecode, bin_data)
         component_size = abs(len(bin_data) - len(compiled_bytecode))
         edit_distance = editdistance.distance(HexBytes(bin_data), compiled_bytecode)
         fitness = component_prefix + component_size

@@ -21,6 +21,13 @@ def normalize_contract_address(address) -> str:
     return Web3.to_checksum_address(address)
 
 
+def get_shared_prefix_len(a, b):
+    for i in range(min(len(a), len(b))):
+        if a[i] != b[i]:
+            return i
+    return min(len(a), len(b))
+
+
 def to_snake_case(s: str) -> str:
     s = s.replace('-', '_')
     return ''.join(['_' + c.lower() if c.isupper() else c for c in s]).lstrip('_')
