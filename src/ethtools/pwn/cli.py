@@ -2,7 +2,9 @@
 Helpful functions available in the CLI.
 '''
 
+import argparse
 import functools
+import ipdb
 
 from .compilation.compiler_solidity import try_match_optimizer_settings
 from .contract_metadata import CONTRACT_METADATA
@@ -99,3 +101,44 @@ def verified_contract_at(address, api_key=None):
     already registered, it is returned.
     '''
     fetch_verified_contract_source(address, api_key=api_key)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    # add one subcommand per function defined above
+    subparsers = parser.add_subparsers(dest='subcommand')
+    subparsers.required = True
+
+    # add the `verified_contract_at` subcommand
+    verified_contract_at_parser = subparsers.add_parser('verified_contract_at')
+    verified_contract_at_parser.add_argument('address', type=address)
+    verified_contract_at_parser.add_argument('--api-key', type=str, default=None)
+
+    # add the `contract_at` subcommand
+    contract_at_parser = subparsers.add_parser('contract_at')
+    contract_at_parser.add_argument('contract_name', type=str)
+    contract_at_parser.add_argument('address', type=address)
+    contract_at_parser.add_argument('--source', type=str, default=None)
+    contract_at_parser.add_argument('--source-filename', type=str, default=None)
+    contract_at_parser.add_argument('--source-files', type=str, nargs='?', default=None)
+    contract_at_parser.add_argument('--import-remappings', type=str, nargs='?', default=None)
+    contract_at_parser.add_argument('--find-optimizer-settings-to-match-bytecode', action='store_true')
+
+    # add the `address` subcommand
+    address_parser = subparsers.add_parser('address')
+    address_parser.add_argument('address', type=address)
+
+    # add the `deploy` subcommand
+    # TODO: do later
+
+    ARGS = parser.parse_args()
+
+    # context.connect()
+
+    # dynamically call the subcommand function
+    subcommand_function = globals()[ARGS.subcommand]
+    # import ipdb; ipdb.set_trace()
+    with ipdb.launch_ipdb_on_exception():
+        subcommand_function(**{k: v for k, v in vars(ARGS).items() if k != 'subcommand'})
+

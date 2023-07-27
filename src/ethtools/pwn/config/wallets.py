@@ -7,7 +7,6 @@ from typing import Dict
 
 from hexbytes import HexBytes
 
-from ..global_context import context
 from ..utils import get_chain_name
 
 class Wallet:
@@ -22,6 +21,7 @@ class Wallet:
         return f"Wallet(address={self.address!r}, private_key=<blinded>, name={self.name!r}, description={self.description!r}, network={self.network!r})"
 
     def balance(self):
+        from ..global_context import context
         return context.w3.eth.get_balance(self.address)
 
     def to_string_repr(self) -> str:

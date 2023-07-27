@@ -1,7 +1,6 @@
 import functools
 from hexbytes import HexBytes
 from web3 import Web3
-from .global_context import context
 
 @functools.lru_cache(maxsize=1024)
 def normalize_contract_address(address) -> str:

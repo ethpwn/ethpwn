@@ -89,5 +89,6 @@ GLOBAL_CONFIG = load_default_config()
 
 from . import wallets
 from . import credentials
+from .misc import get_default_node_url_for_network, get_default_network
 
 
