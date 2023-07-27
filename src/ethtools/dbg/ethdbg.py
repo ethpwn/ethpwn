@@ -8,7 +8,7 @@ import sys
 import cmd
 import traceback
 import sha3
-import string
+import ipdb
 
 from hexdump import hexdump
 from typing import List
@@ -65,7 +65,6 @@ def get_contract_for(contract_address: HexBytes):
     registry = contract_registry()
 
     if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
-        import ipdb; ipdb.set_trace()
         # try to fetch the verified contract
         try:
             with ipdb.launch_ipdb_on_exception():
