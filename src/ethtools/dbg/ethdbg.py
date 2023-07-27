@@ -94,7 +94,7 @@ def get_source_code_view_for_pc(debug_target: TransactionDebugTarget, contract_a
         source_info = contract.metadata.source_info_for_runtime_instruction_idx(closest_instruction_idx)
     if source_info is None:
         return None
-    return source_info.pretty_print_source(context_lines=1)
+    return source_info.pretty_print_source(context_lines=3)
 
 
 def read_storage_typed_value(read_storage, storage_layout, storage_value):
