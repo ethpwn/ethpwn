@@ -10,7 +10,7 @@ from contextlib import contextmanager
 import os
 from pathlib import Path
 from time import sleep
-from typing import Dict, Iterator, List, Optional, Tuple, Union
+from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union
 from hexbytes import HexBytes
 from web3.contract import Contract
 from ansi.color.fx import reset, bold, faint as dim
@@ -18,35 +18,64 @@ from ansi.color.fg import red
 from rich.tree import Tree
 from rich.table import Table
 
+from ethtools.pwn.compilation.compiler_vyper import VyperCompiler
+
 from .serialization_utils import Serializable
 from .transactions import transact
 from .global_context import context
-from .srcmap import SymbolizedSourceMap, InstructionSourceInfo
-from .solidity_utils import SolidityCompiler
+from .compilation.srcmap import SymbolizedSourceMap, InstructionSourceInfo
+from .compilation.compiler_solidity import SolidityCompiler
+from .compilation.compiler_vyper import VyperCompiler
 
 from pyevmasm import disassemble_all, Instruction
 
-def _convert_sources(sources):
+def get_language_for_compiler(compiler):
+    '''
+    Extract a language identifier from a given compiler json_output['compiler'] string.
+    '''
+    if compiler.startswith('vyper-'):
+        return 'Vyper'
+    else:
+        assert compiler.startswith('solc-')
+        return 'Solidity'
+
+def _unify_sources(compiler, input_sources, output_sources):
+    '''
+    Unifies the input and output sources into a single list of sources with the same format
+    as the output sources. This ensures that all sources with their corresponding content
+    are present in the JSON output by reading them from their respective source files into
+    memory. This way, we can be sure that the source code is always available in the output
+    and does not change after the fact.
+    '''
+    # import ipdb; ipdb.set_trace()
+    assert input_sources.keys() == output_sources.keys()
     sources_out = []
-    for file, values in sources.items():
-        with open(file, 'r', encoding='utf-8') as file_obj:
-            abspath = Path(file).resolve()
-            sources_out.append({
-                'id': int(values['id']),
-                'contents': file_obj.read(),
-                'full_path': str(abspath),
-                'name': abspath.name,
-                'language': 'Solidity',
-                'generated': False,
-            })
+    for file, values in output_sources.items():
+        result = {
+            'id': int(values['id']),
+            'name': file,
+            'file_name': os.path.basename(file),
+            'language': get_language_for_compiler(compiler),
+            'generated': False,
+        }
+        if input_sources[file]['content'] is None:
+            with open(file, 'r', encoding='utf-8') as file_obj:
+                result['content'] = file_obj.read()
+            result['local_path'] = Path(file).resolve()
+        else:
+            result['content'] = input_sources[file]['content']
+            result['local_path'] = None
+        result['contents'] = result['content']
+        sources_out.append(result)
     return list(sorted(sources_out, key=lambda s: s['id']))
 
 class ContractMetadata(Serializable):
     '''
-    Holds all of the metadata about a contract class we have available.
+    Holds all of the available metadata about a contract.
     Includes the ABI, the bytecode, the source code, and the source map.
     '''
     def __init__(self,
+                    compiler=None,
                     source_file=None,
                     contract_name=None,
                     sources_by_id=None,
@@ -61,6 +90,9 @@ class ContractMetadata(Serializable):
                     storage_layout=None,
                  ) -> None:
         super().__init__()
+
+        assert compiler is not None
+        self.compiler = compiler
         self.source_file = source_file
         self.contract_name = contract_name
         self.sources = sources_by_id
@@ -101,6 +133,15 @@ class ContractMetadata(Serializable):
                     ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
                     '',
                 )
+            elif entry['type'] == 'event':
+                table.add_row(
+                    entry['type'],
+                    entry['name'],
+                    '',
+                    ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
+                    '',
+                )
+
             else:
                 assert False, f"Unknown ABI entry type: {entry['type']}"
         return table
@@ -149,30 +190,32 @@ class ContractMetadata(Serializable):
         yield tree
 
     @staticmethod
-    def from_solidity(source_file, contract_name, output_json, sources):
+    def from_compiler_output_json(compiler, source_file, contract_name, output_json, input_sources, output_sources):
         '''
         Constructs a ContractMetadata object for a contract in `source_file` with
         name `contract_name` from the Compiler `output_json` and the `sources` dict.
         '''
+        # import ipdb; ipdb.set_trace()
         source_file = str(Path(source_file).resolve())
-        sources = _convert_sources(sources)
+        sources = _unify_sources(compiler, input_sources, output_sources)
         # import ipdb; ipdb.set_trace()
         abi = output_json['abi']
         bin_constructor = HexBytes(output_json['evm']['bytecode']['object'])
         bin_runtime = HexBytes(output_json['evm']['deployedBytecode']['object'])
-        srcmap = output_json['evm']['bytecode']['sourceMap']
+        srcmap = output_json['evm']['bytecode'].get('sourceMap', None)              # vyper contracts don't have this for the constructor
         srcmap_runtime = output_json['evm']['deployedBytecode']['sourceMap']
-        generated_sources_constructor = output_json['evm']['bytecode']['generatedSources']
+        generated_sources_constructor = output_json['evm']['bytecode'].get('generatedSources', [])
         for src in generated_sources_constructor:
             del src['ast']
             src['generated'] = True
-        generated_sources_runtime = output_json['evm']['deployedBytecode']['generatedSources']
+        generated_sources_runtime = output_json['evm']['deployedBytecode'].get('generatedSources', [])
         for src in generated_sources_runtime:
             del src['ast']
             src['generated'] = True
-        storage_layout = output_json['storageLayout']
+        storage_layout = output_json.get('storageLayout', {'types': [], 'storage': []})
 
         return ContractMetadata(
+            compiler,
             source_file=source_file,
             contract_name=contract_name,
             sources_by_id=sources,
@@ -193,6 +236,7 @@ class ContractMetadata(Serializable):
         '''
         # dump file_name, contract_name, and json_dict
         return {
+            'compiler': self.compiler,
             'source_file': str(self.source_file),
             'contract_name': self.contract_name,
             'sources': self.sources,
@@ -212,6 +256,7 @@ class ContractMetadata(Serializable):
         Loads a ContractMetadata object back from a serialized dictionary.
         '''
         return ContractMetadata(
+            compiler=value['compiler'],
             source_file=value['source_file'],
             contract_name=value['contract_name'],
             sources_by_id=value['sources'],
@@ -225,6 +270,29 @@ class ContractMetadata(Serializable):
             storage_layout=value['storage-layout'],
         )
 
+    @property
+    def language(self) -> Union[Literal['vyper'], Literal['solidity']]:
+        '''
+        Based on the `compiler` property, return the language the given contract was written in.
+        Currently supports `vyper` and `solidity`.
+        '''
+        if self.compiler.startswith('vyper-'):
+            return 'vyper'
+        else:
+            assert self.compiler.startswith('solc-')
+            return 'solidity'
+
+    @property
+    def compiler_name(self) -> Union[Literal['vyper'], Literal['solc']]:
+        '''
+        Based on the `compiler` property, return the name of the compiler used to compile the
+        contract. Currently supports `vyper` and `solc`. Does not include version/commit information.
+        '''
+        if self.compiler.startswith('vyper-'):
+            return 'vyper'
+        else:
+            assert self.compiler.startswith('solc-')
+            return 'solc'
 
     def constructor_source_by_id(self, _id):
         '''
@@ -254,7 +322,7 @@ class ContractMetadata(Serializable):
         '''
         Returns the symbolized source map for the constructor bytecode.
         '''
-        if self._symbolic_srcmap_constructor is None:
+        if self._symbolic_srcmap_constructor is None and self.srcmap is not None:
             self._symbolic_srcmap_constructor = SymbolizedSourceMap.from_src_map(
                 self.srcmap, self.constructor_source_by_id
             )
@@ -265,7 +333,7 @@ class ContractMetadata(Serializable):
         '''
         Returns the symbolized source map for the runtime bytecode.
         '''
-        if self._symbolic_srcmap_runtime is None:
+        if self._symbolic_srcmap_runtime is None and self.srcmap_runtime is not None:
             self._symbolic_srcmap_runtime = SymbolizedSourceMap.from_src_map(
                 self.srcmap_runtime, self.runtime_source_by_id
             )
@@ -383,29 +451,90 @@ class ContractMetadataRegistry:
     def __init__(self) -> None:
         self.contracts: Dict[str, Dict[str, ContractMetadata]] = defaultdict(dict)
         exp_template_dir = os.path.dirname(os.path.realpath(__file__)) + "/exploit_templates"
-        self.compiler: SolidityCompiler = SolidityCompiler()
-        self.compiler.add_import_remappings({
+        self.solidity_compiler: SolidityCompiler = SolidityCompiler()
+        self.solidity_compiler.add_import_remappings({
             "exploit_templates": exp_template_dir,
         })
+        self.vyper_compiler: VyperCompiler = VyperCompiler()
+
+    def add_source(self, source: str, file_name: Union[Path, str], compiler: str = None, **kwargs):
+        result = None
+        if compiler == 'vyper':
+            result = self.vyper_compiler.compile_source(source, file_name, **kwargs)
+        else:
+            assert compiler == 'solc' or compiler is None
+            result = self.solidity_compiler.compile_source(source, file_name, **kwargs)
+        self._process_compiler_output_json(result)
+
+    def add_sources_dict(self, sources: Dict[str, str], compiler: str = None, **kwargs):
+        result = None
+        if compiler == 'vyper':
+            result = self.vyper_compiler.compile_sources(sources, **kwargs)
+        else:
+            assert compiler == 'solc' or compiler is None
+            result = self.solidity_compiler.compile_sources(sources, **kwargs)
+        self._process_compiler_output_json(result)
+
+    def add_files(self, files: List[Union[str, Path]], compiler: str = None, **kwargs):
+        result = None
+        if compiler == 'vyper':
+            result = self.vyper_compiler.compile_files(files, **kwargs)
+        else:
+            assert compiler == 'solc' or compiler is None
+            result = self.solidity_compiler.compile_files(files, **kwargs)
+        self._process_compiler_output_json(result)
+
 
     def add_solidity_source(self, source: str, file_name: Union[Path, str], **kwargs):
         '''
         Compiles the given solidity source code and adds the resulting metadata
         of all contracts to the registry.
         '''
-        self._process_solc_output_json(self.compiler.compile_source(source, file_name, **kwargs))
+        self._process_compiler_output_json(self.solidity_compiler.compile_source(source, file_name, **kwargs))
+
+    def add_solidity_sources_dict(self, sources: Dict[str, str], **kwargs):
+        '''
+        Compiles the given solidity source dict `'sources'` in the input json and adds the
+        resulting metadata of all contracts to the registry.
+        '''
+        self._process_compiler_output_json(self.solidity_compiler.compile_sources(sources, **kwargs))
 
     def add_contracts_from_solidity_files(self, files: List[Union[str, Path]], **kwargs):
         '''
         Compiles the given files and adds the resulting metadata of all contracts to the registry.
         '''
-        self._process_solc_output_json(self.compiler.compile_files(files, **kwargs))
+        self._process_compiler_output_json(self.solidity_compiler.compile_files(files, **kwargs))
+
+    def add_vyper_source(self, source: str, file_name: Union[Path, str], **kwargs):
+        '''
+        Compiles the given vyper source code and adds the resulting metadata
+        of all contracts to the registry.
+        '''
+        self._process_compiler_output_json(self.vyper_compiler.compile_source(source, file_name, **kwargs))
+
+    def add_vyper_sources_dict(self, sources: Dict[str, str], **kwargs):
+        '''
+        Compiles the given vyper source dict `'sources'` in the input json and adds the
+        resulting metadata of all contracts to the registry.
+        '''
+        self._process_compiler_output_json(self.vyper_compiler.compile_sources(sources, **kwargs))
+
+    def add_contracts_from_vyper_files(self, files: List[Union[str, Path]], **kwargs):
+        '''
+        Compiles the given files and adds the resulting metadata of all contracts to the registry.
+        '''
+        self._process_compiler_output_json(self.vyper_compiler.compile_files(files, **kwargs))
 
     # pylint: disable=line-too-long
-    def _handle_solidity_errors(self, output_json):
+    def _handle_errors(self, output_json):
+        '''
+        Handles errors in the compiler JSON output by printing them to the logger and raising an exception if
+        compilation failed.
+        '''
         compilation_error = False
         for error in output_json.get('errors', []):
             log = getattr(context.logger, error['severity'], context.logger.info)
+            # import ipdb; ipdb.set_trace()
             log(f"# {red}{bold}{error['severity'].upper()}:{error['type']} {error['formattedMessage']}{reset}")
             for location in error.get('secondarySourceLocations', []):
                 log(f"    {location['file']}:{location['start']}:{location['end']}: {location['message']}")
@@ -414,15 +543,23 @@ class ContractMetadataRegistry:
         if compilation_error:
             raise ValueError("Compilation error")
 
-    def _process_solc_output_json(self, output_json):
+    def _process_compiler_output_json(self, result):
+        '''
+        Parses out the metadata from the compiler output JSON and adds it to the `contracts` we know about.
+        '''
 
-        self._handle_solidity_errors(output_json)
+        input_json, output_json = result
+
+        self._handle_errors(output_json)
 
         for source_file in output_json['contracts']:
             for contract_name in output_json['contracts'][source_file]:
                 contract_data = output_json['contracts'][source_file][contract_name]
-                self.contracts[source_file][contract_name] = ContractMetadata.from_solidity(
-                    source_file, contract_name, contract_data, output_json['sources']
+                self.contracts[source_file][contract_name] = ContractMetadata.from_compiler_output_json(
+                    output_json['compiler'],
+                    source_file, contract_name,
+                    contract_data,
+                    input_json['sources'], output_json['sources']
                 )
                 self.contracts[''][contract_name] = self.contracts[source_file][contract_name]
 
@@ -437,17 +574,27 @@ class ContractMetadataRegistry:
     # and metadata_registry[('file', 'name')] returns the metadata for the contract of that name
     # in that file
     def __getitem__(self, key: Union[str, Tuple[str, str]]) -> ContractMetadata:
+        '''
+        Retrieve a contract's metadata either by `name` or by `(file_name, contract_name)`.
+        '''
         if isinstance(key, tuple):
             return self.contracts[key[0]][key[1]]
         else:
             return self.contracts[''][key]
+
     def __contains__(self, key: Union[str, Tuple[str, str]]) -> bool:
+        '''
+        Check if a contract's metadata is present either by `name` or by `(file_name, contract_name)`.
+        '''
         if isinstance(key, tuple):
             return key[1] in self.contracts[key[0]]
         else:
             return key in self.contracts['']
 
     def __iter__(self):
+        '''
+        Iterate over all contracts, yielding the file name, contract name, and metadata for each.
+        '''
         return self.all_contracts()
 
     def iter_find(self, predicate) -> Iterator[Tuple[str, str, ContractMetadata]]:

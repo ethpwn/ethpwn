@@ -7,6 +7,9 @@ from web3.types import TxReceipt
 from web3.datastructures import AttributeDict
 
 class InsufficientFundsError(Exception):
+    '''
+    An exception that is raised when a transaction fails due to insufficient funds.
+    '''
     def __init__(self, required_balance, actual_balance, cause) -> None:
         self.required_balance = required_balance
         self.actual_balance = actual_balance
@@ -20,6 +23,10 @@ class InsufficientFundsError(Exception):
         return f"InsufficientFundsError({self.required_balance}, {self.actual_balance}, {self.cause})"
 
 class TransactionFailedError(Exception):
+    '''
+    An exception that is raised when a transaction fails. This is usually due to an uncaught revert or violated assert
+    in the contract.
+    '''
     def __init__(self, tx_hash, tx_receipt) -> None:
         self.tx_hash = tx_hash
         self.tx_receipt = tx_receipt
@@ -32,6 +39,9 @@ class TransactionFailedError(Exception):
         return f"TransactionFailedError({self.tx_hash}, {self.tx_receipt})"
 
 def encode_transaction(contract_function=None, from_addr=None, **kwargs):
+    '''
+    Encode a transaction to call a `contract_function` or a raw transaction if `contract_function` is None.
+    '''
     if from_addr is None:
         from_addr = context.default_from_addr
     assert from_addr is not None
@@ -49,6 +59,9 @@ def encode_transaction(contract_function=None, from_addr=None, **kwargs):
     return tx
 
 def transfer_funds(from_addr, to_addr, value=None, **kwargs):
+    '''
+    Transfer funds from `from_addr` to `to_addr`. If `value` is None, transfer all available funds minus the transaction cost.
+    '''
     if 'gasPrice' not in kwargs:
         kwargs['gasPrice'] = context.pessimistic_gas_price_estimate()
 
@@ -65,6 +78,11 @@ def transfer_funds(from_addr, to_addr, value=None, **kwargs):
     return transact(to=to_addr, value=value, from_addr=from_addr, **kwargs)
 
 def debug_transaction(tx_hash, txdata):
+    '''
+    Simulate a transaction and attempt to debug the state using `ipdb` if it fails.
+
+    TODO: we would like this to automatically set up `ethdbg` to debug the transaction failure if requested.
+    '''
     try:
         context.w3.eth.call(txdata)
     except Exception as e:
@@ -73,6 +91,14 @@ def debug_transaction(tx_hash, txdata):
         raise e
 
 def transact(contract_function=None, private_key=None, force=False, wait_for_receipt=True, from_addr=None, **tx) -> (HexBytes, TxReceipt):
+    '''
+    Send a transaction to the blockchain. If `contract_function` is not None, call the contract function.
+
+    If `private_key` is None, use the default signing key from the global context.
+    If `from_addr` is None, use the default from address from the global context.
+    If `wait_for_receipt` is True, wait for the transaction receipt and return it.
+    If `force` is True, ignore simulated errors and push the transaction to the blockchain depite the likely revert.
+    '''
     if private_key is None:
         private_key = context.default_signing_key
     assert private_key is not None
@@ -116,6 +142,10 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
         return transaction_hash
 
 def deploy_bare_contract(bin, metadata=None, **tx_kwargs):
+    '''
+    Deploy a contract with the given constructor bytecode. If `metadata` is not None, use the ABI from the metadata to create a
+    contract object.
+    '''
     if metadata is None:
         abi = {}
     else:
@@ -126,7 +156,11 @@ def deploy_bare_contract(bin, metadata=None, **tx_kwargs):
 
     tx_hash, tx_receipt = transact(to='', data=HexBytes(bin).hex(), **tx_kwargs)
     print(tx_receipt)
-    return tx_hash, tx_receipt, context.w3.eth.contract(tx_receipt['contractAddress'])
+    return tx_hash, tx_receipt, context.w3.eth.contract(tx_receipt['contractAddress'], abi=abi)
 
 def deploy_shellcode_contract(shellcode, **tx_kwargs):
+    '''
+    Deploy a contract with the given shellcode. This will create a shellcode deployer constructor that will deploy the given shellcode
+    when called.
+    '''
     return deploy_bare_contract(create_shellcode_deployer_bin(shellcode), **tx_kwargs)

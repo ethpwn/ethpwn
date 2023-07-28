@@ -155,7 +155,7 @@ Deploys a contract and registers it with the contract registry.
 def deploy_destructible(*constructor_args, **tx_extras)
 ```
 
-Deploys a `Destructible` contract and `destroy()`s it after the context manager exits
+Deploys a `Destructible` contract and calls `destroy()` on it after the context manager exits
 to retrieve any held funds. Utility function for quick one-off contracts so you can
 easily get your funds back by default. The resulting deployed contract will also be
 automatically registered with the contract registry.

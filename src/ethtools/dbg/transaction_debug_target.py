@@ -2,7 +2,7 @@
 from hexbytes import HexBytes
 import web3
 
-from .utils import get_chain_name, get_chainid, to_snake_case
+from ..pwn.utils import get_chain_name, get_chainid, to_snake_case
 from .ethdbg_exceptions import InvalidTargetException
 
 class TransactionDebugTarget:

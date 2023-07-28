@@ -1,3 +1,7 @@
+'''
+This module handles the parsing of the solidity and vyper source maps. It decodes the compressed source map format and
+provides an interface for looking up the source code for a given instruction.
+'''
 
 from typing import Any, Dict, List, Tuple, TypedDict
 from enum import Enum
@@ -22,8 +26,8 @@ class SrcMapEntry(TypedDict):
 def parse_srcmap(srcmap: str) -> List[Tuple[int, int]]:
     if not srcmap:
         return []
+    # import ipdb; ipdb.set_trace()
     entries = srcmap.split(';')
-    result = []
 
     # src_start_character_index, num_chars, source_file_index, jumpType, modifierDepth
     # modifierDepth didn't used to exist so we initialize it to 0

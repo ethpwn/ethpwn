@@ -14,13 +14,30 @@ class Web3Context:
     A context holding global state used by ethpwn.
     '''
     # pylint: disable=invalid-name
-    def __init__(self, w3=None, from_addr=None, private_key=None, log_level=logging.WARNING):
+    def __init__(self, w3=None, from_addr=None, private_key=None, log_level=logging.WARNING, disable_autoconnect=False):
         self.w3 = w3
 
         self._default_from_addr = from_addr
         self._default_signing_key = private_key
         self.logger = logging.getLogger('Web3Context')
         self.logger.setLevel(log_level)
+
+        if w3 is None:
+            self.try_auto_connect()
+
+
+    def try_auto_connect(self):
+        '''
+        Try to auto connect to a node if the default network is set and autoconnect is not disabled.
+        '''
+        if get_disable_autoconnect():
+            return
+        default_network = get_default_network()
+        if default_network is not None:
+            default_node_url = get_default_node_url_for_network(default_network)
+            if default_node_url is not None:
+                self.connect(default_node_url)
+
 
     @property
     def default_from_addr(self):
@@ -69,7 +86,8 @@ class Web3Context:
 
     def connect(self, url, can_fail=False, **kwargs):
         '''
-        Connect to an Ethereum node via HTTP/HTTPS, Websocket, or IPC depending on the URL scheme.
+        Connect to the Ethereum node at `url` via HTTP/HTTPS, Websocket, or IPC depending on the URL scheme.
+        If `can_fail` is True, then the function will return False if it fails to connect instead of raising an exception.
         '''
         if url.startswith('http'):
             return self.connect_http(url, can_fail=can_fail, **kwargs)
@@ -127,6 +145,9 @@ class Web3Context:
             return True
 
     def _configure_w3(self):
+        '''
+        Set up some reasonable defaults for gas estimation in the web3 context.
+        '''
         self.w3.eth.set_gas_price_strategy(
             construct_time_based_gas_price_strategy(
                 60, # 1 minute
@@ -155,6 +176,8 @@ class Web3Context:
         '''
         return self.pessimistic_gas_price_estimate() * gas_used_estimate
 
+
+from .config.misc import get_default_node_url_for_network, get_default_network, get_disable_autoconnect
 context: Web3Context = Web3Context()
 
 @contextlib.contextmanager
@@ -169,3 +192,4 @@ def with_local_context(**kwargs):
     context = Web3Context(**kwargs)
     yield
     context = old_context
+

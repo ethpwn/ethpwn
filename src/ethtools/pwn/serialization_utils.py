@@ -9,6 +9,9 @@ from web3.datastructures import AttributeDict
 SERIALIZABLE_CLASSES = []
 
 class Serializable(abc.ABC):
+    '''
+    A class that can be serialized to JSON and deserialized from JSON.
+    '''
     def __init_subclass__(cls) -> None:
         register_serializable(cls)
         return super().__init_subclass__()
@@ -23,12 +26,19 @@ class Serializable(abc.ABC):
         raise NotImplementedError
 
 def register_serializable(cls):
+    '''
+    Register a class as serializable. This is done automatically when a class inherits from
+    Serializable.
+    '''
     if cls not in SERIALIZABLE_CLASSES:
         SERIALIZABLE_CLASSES.append(cls)
     return cls
 
 
 class CustomEncoder(json.JSONEncoder):
+    '''
+    A custom JSON encoder that can handle AttributeDict, HexBytes and Serializable objects.
+    '''
     def default(self, obj):
         if isinstance(obj, HexBytes):
             val = obj.hex()
@@ -44,6 +54,9 @@ class CustomEncoder(json.JSONEncoder):
         }
 
 def custom_decoder(obj):
+    '''
+    A custom JSON decoder that can handle AttributeDict, HexBytes and Serializable objects.
+    '''
     if '__type__' in obj:
         type_name = obj['__type__']
         value = obj['__value__']
@@ -58,16 +71,28 @@ def custom_decoder(obj):
     return obj
 
 def deserialize_from_file(path=None):
+    '''
+    Deserialize a JSON file to a Python object using the custom decoder.
+    '''
     with open(path, 'r') as f:
         return json.load(f, object_hook=custom_decoder)
 
 def deserialize_from_string(s):
+    '''
+    Deserialize a JSON string to a Python object using the custom decoder.
+    '''
     return json.loads(s, object_hook=custom_decoder)
 
 def serialize_to_file(obj, path):
+    '''
+    Serialize a Python object to a JSON file using the custom encoder.
+    '''
     serialized = serialize_to_string(obj)
     with open(path, 'w') as f:
         f.write(serialized)
 
 def serialize_to_string(obj):
+    '''
+    Serialize a Python object to a JSON string using the custom encoder.
+    '''
     return json.dumps(obj, cls=CustomEncoder)

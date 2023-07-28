@@ -6,8 +6,9 @@ import os
 import re
 import sys
 import cmd
+import traceback
 import sha3
-import string
+import ipdb
 
 from hexdump import hexdump
 from typing import List
@@ -56,15 +57,33 @@ def get_w3_provider(web3_host):
     assert w3.is_connected()
     return w3
 
-def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexBytes, pc: int):
+FETCHED_VERIFIED_CONTRACTS = set()
 
+def get_contract_for(contract_address: HexBytes):
+    global FETCHED_VERIFIED_CONTRACTS
     contract_address = normalize_contract_address(contract_address)
-
     registry = contract_registry()
-    contract = registry.get(contract_address)
 
+    if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
+        # try to fetch the verified contract
+        try:
+            with ipdb.launch_ipdb_on_exception():
+                fetch_verified_contract_source(contract_address, None) # auto-detect etherscan api key and fetch the code
+        except Exception as ex:
+            # print traceback
+            traceback.print_exc()
+            print(f"Failed to fetch verified source code for {contract_address}: {ex}")
+        FETCHED_VERIFIED_CONTRACTS.add(contract_address)
+
+    return registry.get(contract_address)
+
+
+def get_source_code_view_for_pc(debug_target: TransactionDebugTarget, contract_address: HexBytes, pc: int=None):
+    contract = get_contract_for(contract_address)
     if contract is None:
         return None
+    
+    # import ipdb; ipdb.set_trace()
 
     if debug_target.target_address is None or int.from_bytes(HexBytes(debug_target.target_address), byteorder='big') == 0:
         closest_instruction_idx = contract.metadata.closest_instruction_index_for_constructor_pc(pc, fork=debug_target.fork)
@@ -74,7 +93,7 @@ def get_source_code(debug_target: TransactionDebugTarget, contract_address: HexB
         source_info = contract.metadata.source_info_for_runtime_instruction_idx(closest_instruction_idx)
     if source_info is None:
         return None
-    return source_info.pretty_print_source(context_lines=1)
+    return source_info.pretty_print_source(context_lines=3)
 
 
 def read_storage_typed_value(read_storage, storage_layout, storage_value):
@@ -83,19 +102,38 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
 
     # read_storage = function taking a slot and returning a value
     if storage_type['encoding'] == 'inplace':
-        assert int(storage_type['numberOfBytes']) <= 32, "Don't know how to handle this yet"
+        if int(storage_type['numberOfBytes']) > 32:
+            import ipdb; ipdb.set_trace()
+            # assert False, "Don't know how to handle this yet"
+            return "<UNSUPPORTED STORAGE TYPE>"
         value = read_storage(int(storage_value['slot']))
         # lower-order-alignment means it's easier to flip it, index, flip it back
         value = value[::-1]
         value = value[int(storage_value['offset']):int(storage_value['offset']) + int(storage_type['numberOfBytes'])]
         value = value[::-1]
         # TODO format it out of the bytes based on the label?
-        if storage_type['label'] == 'address' or storage_type['label'].split()[0] == 'contract':
+        if storage_type['label'].split()[0] == 'address' or storage_type['label'].split()[0] == 'contract':
+            # so far seen: "address", "address payable", "contract <name>"
             return HexBytes(value).hex()
-        elif storage_type['label'] == 'uint256':
+        elif re.fullmatch('uint[0-9]+', storage_type['label']):
+            num_bits = int(storage_type['label'][4:])
+            assert num_bits % 8 == 0
+            num_bytes = num_bits // 8
+            assert len(value) == num_bytes
+            assert storage_type['numberOfBytes'] == str(num_bytes)
             return int.from_bytes(value, byteorder='big')
+        elif storage_type['label'] == 'bool':
+            assert len(value) == 1
+            assert storage_type['numberOfBytes'] == '1'
+            return int.from_bytes(value, byteorder='big') != 0
+        elif storage_type['label'] == 'bytes32':
+            assert len(value) == 32
+            assert storage_type['numberOfBytes'] == '32'
+            return value
         else:
-            assert False, "Don't know how to handle this yet"
+            import ipdb; ipdb.set_trace()
+            # assert False, "Don't know how to handle this yet"
+            return "<UNSUPPORTED STORAGE TYPE>"
         return HexBytes(value)
 
     elif storage_type['encoding'] == 'mapping':
@@ -117,10 +155,10 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
         num_elements = int.from_bytes(num_elements, byteorder='big')
         element_type = storage_layout['types'][storage_type['base']]
         element_size = int(element_type['numberOfBytes'])
-        num_slots = (num_elements * element_size) // 32
-        slot_start = keccak(int.to_bytes(int(storage_value['slot']), 32, byteorder='big'))
-        # TODO decode more
-        slots = [HexBytes(read_storage(slot_start + i)) for i in range(num_slots)]
+        num_slots = (num_elements * element_size + 31) // 32
+        slot_start = int.from_bytes(keccak(int.to_bytes(int(storage_value['slot']), 32, byteorder='big')), byteorder='big')
+        # TODO: Lukas: decode nicer
+        slots = [HexBytes(read_storage(slot_start + i))[-element_size:] for i in range(num_slots)]
         return {
             'data_start_slot': slot_start,
             'num_elements': num_elements,
@@ -624,6 +662,10 @@ class EthDbgShell(cmd.Cmd):
 
     def do_break(self, arg):
         # parse the arg
+        if not arg.strip():
+            self.do_breaks(arg)
+            return
+        
         break_args = arg.split(",")
         try:
             bp = Breakpoint(break_args)
@@ -633,9 +675,13 @@ class EthDbgShell(cmd.Cmd):
             print(f'{RED_COLOR}Invalid breakpoint{RESET_COLOR}:')
             print(f'{RED_COLOR} Valid syntax is: <what><when><value>,<what><when><value>{RESET_COLOR}')
             print(f'{RED_COLOR}  <when> in (=, ==, !=, >, <, >=, <=){RESET_COLOR}')
-            print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value){RESET_COLOR}')
+            print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value, gas_remaining){RESET_COLOR}')
 
     def do_tbreak(self, arg):
+        if not arg.strip():
+            self.do_breaks(arg)
+            return
+
         # parse the arg
         break_args = arg.split(",")
         try:
@@ -646,7 +692,7 @@ class EthDbgShell(cmd.Cmd):
             print(f'{RED_COLOR}Invalid breakpoint{RESET_COLOR}:')
             print(f'{RED_COLOR} Valid syntax is: <what><when><value>,<what><when><value>{RESET_COLOR}')
             print(f'{RED_COLOR}  <when> in (=, ==, !=, >, <, >=, <=){RESET_COLOR}')
-            print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value){RESET_COLOR}')
+            print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value, gas_remaining){RESET_COLOR}')
 
     do_b = do_break
     do_tb = do_tbreak
@@ -756,13 +802,9 @@ class EthDbgShell(cmd.Cmd):
             return
         else:
             try:
-                # check  if lenght is a decimal number or hex number
                 offset, length = args.split(" ")[0], args.split(" ")[1]
 
-                if read_args[1].startswith("0x"):
-                    length = int(read_args[1],16)
-                else:
-                    length = int(read_args[1],10)
+                length = int(read_args[1], 0)
                 data = self.comp._memory.read(int(offset,16), length)
                 hexdump(data.tobytes())
             except Exception as e:
@@ -847,7 +889,7 @@ class EthDbgShell(cmd.Cmd):
         max_pc_length = max(len('CallSite'), max((len(call.callsite) for call in self.callstack), default=0))
         calltype_string_legend = 'CallType'.ljust(max_call_opcode_length)
         callsite_string_legend = 'CallSite'.rjust(max_pc_length)
-        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | msg.value ]\n'
+        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Registry Name ]\n'
         for call in self.callstack[::-1]:
             calltype_string = f'{call.calltype}'
             if call.calltype == "CALL":
@@ -865,8 +907,10 @@ class EthDbgShell(cmd.Cmd):
             calltype_string = calltype_string.ljust(max_call_opcode_length)
             callsite_string = call.callsite.rjust(max_pc_length)
             call_addr = call.address
+            registry_contract = contract_registry().get(call_addr)
+            contract_name = registry_contract.metadata.contract_name if registry_contract else ''
             msg_sender = call.msg_sender
-            calls_view += f'{call_addr:44} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:44} | {call.value} \n'
+            calls_view += f'{call_addr:44} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:44} | {call.value:12} | {contract_name}\n'
 
         return title + legend + calls_view
 
@@ -1170,7 +1214,7 @@ class EthDbgShell(cmd.Cmd):
         # print the chain context and the transaction context
         # import ipdb; ipdb.set_trace()
         try:
-            source = get_source_code(self.debug_target, self.comp.msg.code_address, self.comp.code.program_counter - 1)
+            source = get_source_code_view_for_pc(self.debug_target, self.comp.msg.code_address, self.comp.code.program_counter - 1)
         except Exception as e:
             source = None
 
@@ -1212,12 +1256,15 @@ class EthDbgShell(cmd.Cmd):
         if with_message != '':
             metadata_view += f'\nStatus: {with_message}'
 
-        print(metadata_view)
-        disass_view = self._get_disass()
-        print(disass_view)
         source_view = self._get_source_view()
         if source_view is not None:
             print(source_view)
+
+        print(metadata_view)
+        
+        disass_view = self._get_disass()
+        print(disass_view)
+        
         stack_view = self._get_stack()
         print(stack_view)
         callstack_view = self._get_callstack()

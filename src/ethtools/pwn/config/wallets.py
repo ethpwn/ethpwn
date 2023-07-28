@@ -7,7 +7,6 @@ from typing import Dict
 
 from hexbytes import HexBytes
 
-from ..global_context import context
 from ..utils import get_chain_name
 
 class Wallet:
@@ -22,6 +21,7 @@ class Wallet:
         return f"Wallet(address={self.address!r}, private_key=<blinded>, name={self.name!r}, description={self.description!r}, network={self.network!r})"
 
     def balance(self):
+        from ..global_context import context
         return context.w3.eth.get_balance(self.address)
 
     def to_string_repr(self) -> str:
@@ -87,14 +87,6 @@ def load_default_wallets():
 
     # Check if the file is empty
     if os.stat(wallets_config_path).st_size == 0:
-        with open(wallets_config_path, 'w') as f:
-            f.write('[]')
-    
-    # Check if it is a valid json file
-    try:
-        with open(wallets_config_path, 'r') as f:
-            json.load(f)
-    except json.decoder.JSONDecodeError:
         with open(wallets_config_path, 'w') as f:
             f.write('[]')
             
