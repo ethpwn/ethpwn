@@ -107,10 +107,12 @@ class VyperCompiler:
         self,
         input_json: str,
         file_name: Union[Path, str],
+        libraries=None,
         optimizer_settings=None,
         #    no_default_import_remappings=False, extra_import_remappings=None,
         **kwargs,
     ):
+        assert libraries is None, "libraries not supported for vyper"
         configure_vyper_from_version_line(find_version_line(input_json))
 
         # if optimizer_settings is None:
@@ -135,10 +137,12 @@ class VyperCompiler:
     def compile_sources(
         self,
         sources: Dict[str, str],
+        libraries=None,
         optimizer_settings=None,
         # no_default_import_remappings=False, extra_import_remappings=None,
         **kwargs,
     ):
+        assert libraries is None, "libraries not supported for vyper"
         pragma_lines = [find_version_line(s["content"]) for file, s in sources.items()]
 
         configure_vyper_from_version_line(merge_version_lines(pragma_lines))
@@ -167,10 +171,12 @@ class VyperCompiler:
     def compile_files(
         self,
         files: List[Union[str, Path]],
+        libraries=None,
         optimizer_settings=None,
         #   no_default_import_remappings=False, extra_import_remappings=None,
         **kwargs,
     ):
+        assert libraries is None, "libraries not supported for vyper"
         version_lines = get_version_lines(files)
         assert len(version_lines) <= 1, "Multiple solidity versions in files"
         configure_vyper_from_version_line(
