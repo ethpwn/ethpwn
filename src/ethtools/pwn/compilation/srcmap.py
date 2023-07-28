@@ -1,3 +1,7 @@
+'''
+This module handles the parsing of the solidity and vyper source maps. It decodes the compressed source map format and
+provides an interface for looking up the source code for a given instruction.
+'''
 
 from typing import Any, Dict, List, Tuple, TypedDict
 from enum import Enum

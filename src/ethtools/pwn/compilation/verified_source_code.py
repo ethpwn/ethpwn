@@ -1,3 +1,7 @@
+'''
+This module handles the on-demand fetching, downloading, compiling and registration of source code into the contract
+registry for any verified contract in Etherscan's verified-source-code database.
+'''
 from copy import deepcopy
 import json
 import os
@@ -36,6 +40,7 @@ class VerifiedSourceCode:
         self.swarm_source = None
         self.contract_name = None
         self.evm_version = None
+
 def _pull_verified_source_from_etherscan(contract_address, api_key):
     url = f"https://api.etherscan.io/api?module=contract&action=getsourcecode&address={contract_address}&apikey={api_key}"
     response = requests.get(url)
@@ -60,7 +65,7 @@ def _pull_verified_source_from_etherscan(contract_address, api_key):
         assert not result['ContractName']
         assert result['EVMVersion'] == 'Default'
         raise NotVerifiedError(f"Etherscan API returned no source code for contract address {contract_address}")
-    
+
     assert result['ABI'] != 'Contract source code not verified'
     assert result['CompilerVersion']
     assert result['OptimizationUsed'] != ''
@@ -83,13 +88,13 @@ def _pull_verified_source_from_etherscan(contract_address, api_key):
 
     assert result
     return result
-    
+
 CACHED_REQUESTS: Dict[Tuple[str, str], Tuple[int, Any]] = {}
 def pull_verified_source_from_etherscan(contract_address, api_key=None):
     api_key = get_etherscan_api_key(api_key)
     if api_key is None:
         raise ValueError("You need to set an etherscan api key in your config.json file to use the verified source codes feature.")
-    
+
     cache_key = (contract_address, api_key)
     if cache_key in CACHED_REQUESTS and time.time() < CACHED_REQUESTS[cache_key][0] + 60 * 5: # 5 minute cache hold
         return CACHED_REQUESTS[cache_key][1]
@@ -107,7 +112,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
     source = result['SourceCode']
     source = source.strip().replace('\r\n', '\n')
     assert origin == 'etherscan'
-    
+
     compiler_kwargs = {}
 
     compiler_kwargs['optimizer_settings'] = {
@@ -131,7 +136,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         extension = 'sol'
 
         solidity_version = result['CompilerVersion'].split('+commit')[0]
-        assert re.match('v[0-9]+\.[0-9]+\.[0-9]+', solidity_version)    
+        assert re.match('v[0-9]+\.[0-9]+\.[0-9]+', solidity_version)
         solidity_version = solidity_version[1:]
         compiler_kwargs['solc_version'] = solidity_version
 
@@ -179,7 +184,7 @@ def fetch_verified_contract_source(contract_address, api_key=None) -> 'Contract'
     if contract := contract_registry().get(contract_address):
         return contract
         # raise ValueError(f"Contract address {contract_address} is already in the contract registry.")
-    
+
     try:
         result = pull_verified_source_from_etherscan(contract_address, api_key=api_key)
         if result is None:
@@ -189,4 +194,3 @@ def fetch_verified_contract_source(contract_address, api_key=None) -> 'Contract'
         return CONTRACT_METADATA[result['ContractName']].get_contract_at(contract_address)
     except NotVerifiedError:
         return None
-    

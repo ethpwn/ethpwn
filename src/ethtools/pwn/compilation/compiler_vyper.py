@@ -1,3 +1,8 @@
+"""
+This module contains the `VyperCompiler` class, which is a wrapper around `ethcx`.
+`VyperCompiler` provides a convenient interface to compile smart contracts implemented in Vyper.
+"""
+
 from copy import deepcopy
 import functools
 import os
@@ -17,6 +22,7 @@ from ..utils import get_shared_prefix_len
 
 from ..global_context import context
 
+
 def configure_vyper_from_version_line(version_line: str):
     if version_line is None:
         return
@@ -24,27 +30,36 @@ def configure_vyper_from_version_line(version_line: str):
     ethcx.install_vyper_pragma(version_line)
     ethcx.set_vyper_version_pragma(version_line)
 
+
 def find_version_line(content: str):
     for line in content.splitlines():
-        if line.strip().startswith('# @version'):
+        if line.strip().startswith("# @version"):
             return line
+
 
 def get_version_lines(files: List[str]):
     version_lines = set()
     for file in files:
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             vyper_version_line = find_version_line(f.read())
             if vyper_version_line is not None:
                 version_lines.add(vyper_version_line)
     return list(version_lines)
+
 
 def merge_version_lines(pragma_lines: List[str]):
     if len(pragma_lines) == 0:
         return None
     if len(pragma_lines) == 1:
         return pragma_lines[0]
-    pragma_lines = sorted(pragma_lines, key=lambda x: tuple(int(y) for y in x.split()[2].rstrip(';').strip().lstrip('><^=').split('.')))
-    return pragma_lines[-1] # take the highest requested one
+    pragma_lines = sorted(
+        pragma_lines,
+        key=lambda x: tuple(
+            int(y) for y in x.split()[2].rstrip(";").strip().lstrip("><^=").split(".")
+        ),
+    )
+    return pragma_lines[-1]  # take the highest requested one
+
 
 class VyperCompiler:
     def __init__(self) -> None:
@@ -75,33 +90,34 @@ class VyperCompiler:
     #     return self.allowed_directories
 
     def get_default_optimizer_settings(self, optimizer_runs=1000):
-        return {'enabled': True, 'runs': optimizer_runs}
+        return {"enabled": True, "runs": optimizer_runs}
 
     def get_vyper_input_json(self, sources_entry):
         return {
             "language": "Vyper",
-            'sources': sources_entry,
-            'settings': {
+            "sources": sources_entry,
+            "settings": {
                 # 'remappings': [f'{key}={value}' for key, value in sorted(remappings.items())],
-                'outputSelection': { "*": { "*": [ "*" ], "": [ "*" ] } },
+                "outputSelection": {"*": {"*": ["*"], "": ["*"]}},
                 # 'optimizer': optimizer_settings if optimizer_settings is not None else {'enabled': False},
             },
-
         }
 
-    def compile_source(self,
-                       input_json: str, file_name: Union[Path, str],
-                       optimizer_settings=None,
-                    #    no_default_import_remappings=False, extra_import_remappings=None,
-                       **kwargs):
-
+    def compile_source(
+        self,
+        input_json: str,
+        file_name: Union[Path, str],
+        optimizer_settings=None,
+        #    no_default_import_remappings=False, extra_import_remappings=None,
+        **kwargs,
+    ):
         configure_vyper_from_version_line(find_version_line(input_json))
 
         # if optimizer_settings is None:
         #     optimizer_settings = self.get_default_optimizer_settings()
 
         input_json = self.get_vyper_input_json(
-            {str(file_name): {'content': input_json}},
+            {str(file_name): {"content": input_json}},
             # remappings=self.get_import_remappings(no_default_import_remappings, extra_import_remappings),
             # optimizer_settings=optimizer_settings,
         )
@@ -111,19 +127,20 @@ class VyperCompiler:
         output_json = ethcx.compile_vyper_standard(
             input_json,
             # allow_paths=self.get_allow_paths(),
-            **kwargs
-            )
-    
+            **kwargs,
+        )
+
         return input_json, output_json
 
-    def compile_sources(self,
-                        sources: Dict[str, str],
-                        optimizer_settings=None,
-                        # no_default_import_remappings=False, extra_import_remappings=None,
-                        **kwargs):
-        
-        pragma_lines = [find_version_line(s['content']) for file, s in sources.items()]
-        
+    def compile_sources(
+        self,
+        sources: Dict[str, str],
+        optimizer_settings=None,
+        # no_default_import_remappings=False, extra_import_remappings=None,
+        **kwargs,
+    ):
+        pragma_lines = [find_version_line(s["content"]) for file, s in sources.items()]
+
         configure_vyper_from_version_line(merge_version_lines(pragma_lines))
 
         # if optimizer_settings is None:
@@ -143,19 +160,22 @@ class VyperCompiler:
         output_json = ethcx.compile_vyper_standard(
             input_json,
             # allow_paths=self.get_allow_paths(),
-            **kwargs
+            **kwargs,
         )
         return input_json, output_json
 
-    def compile_files(self,
-                      files: List[Union[str, Path]],
-                      optimizer_settings=None,
-                    #   no_default_import_remappings=False, extra_import_remappings=None,
-                      **kwargs):
-
+    def compile_files(
+        self,
+        files: List[Union[str, Path]],
+        optimizer_settings=None,
+        #   no_default_import_remappings=False, extra_import_remappings=None,
+        **kwargs,
+    ):
         version_lines = get_version_lines(files)
         assert len(version_lines) <= 1, "Multiple solidity versions in files"
-        configure_vyper_from_version_line(version_lines[0] if len(version_lines) == 1 else None)
+        configure_vyper_from_version_line(
+            version_lines[0] if len(version_lines) == 1 else None
+        )
 
         # if optimizer_settings is None:
         #     optimizer_settings = self.get_default_optimizer_settings()
@@ -173,21 +193,26 @@ class VyperCompiler:
         output_json = ethcx.compile_vyper_standard(
             input_json,
             # allow_paths=self.get_allow_paths() + [os.path.dirname(file) for file in files],
-            **kwargs
+            **kwargs,
         )
         return input_json, output_json
 
+
 vyper_binary_cache = {}
+
+
 def _add_cached_vyper_binary_to_kwargs(kwargs):
-    vyper_binary_version = kwargs.get('vyper_version', None)
+    vyper_binary_version = kwargs.get("vyper_version", None)
     if vyper_binary_version is None:
         return kwargs
-    if kwargs.get('vyper_binary', None) is None:
+    if kwargs.get("vyper_binary", None) is None:
         if vyper_binary_version in vyper_binary_cache:
             vyper_binary = vyper_binary_cache[vyper_binary_version]
         else:
             ethcx.install_vyper(vyper_binary_version)
-            vyper_binary = ethcx.compilers.vyper.install.get_executable(vyper_binary_version)
+            vyper_binary = ethcx.compilers.vyper.install.get_executable(
+                vyper_binary_version
+            )
             vyper_binary_cache[vyper_binary_version] = vyper_binary
-        kwargs['vyper_binary'] = vyper_binary
+        kwargs["vyper_binary"] = vyper_binary
     return kwargs
