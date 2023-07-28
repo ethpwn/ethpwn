@@ -10,7 +10,7 @@ from contextlib import contextmanager
 import os
 from pathlib import Path
 from time import sleep
-from typing import Dict, Iterator, List, Optional, Tuple, Union
+from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union
 from hexbytes import HexBytes
 from web3.contract import Contract
 from ansi.color.fx import reset, bold, faint as dim
@@ -30,13 +30,23 @@ from .compilation.compiler_vyper import VyperCompiler
 from pyevmasm import disassemble_all, Instruction
 
 def get_language_for_compiler(compiler):
+    '''
+    Extract a language identifier from a given compiler json_output['compiler'] string.
+    '''
     if compiler.startswith('vyper-'):
         return 'Vyper'
     else:
         assert compiler.startswith('solc-')
         return 'Solidity'
-    
+
 def _unify_sources(compiler, input_sources, output_sources):
+    '''
+    Unifies the input and output sources into a single list of sources with the same format
+    as the output sources. This ensures that all sources with their corresponding content
+    are present in the JSON output by reading them from their respective source files into
+    memory. This way, we can be sure that the source code is always available in the output
+    and does not change after the fact.
+    '''
     # import ipdb; ipdb.set_trace()
     assert input_sources.keys() == output_sources.keys()
     sources_out = []
@@ -61,7 +71,7 @@ def _unify_sources(compiler, input_sources, output_sources):
 
 class ContractMetadata(Serializable):
     '''
-    Holds all of the metadata about a contract class we have available.
+    Holds all of the available metadata about a contract.
     Includes the ABI, the bytecode, the source code, and the source map.
     '''
     def __init__(self,
@@ -261,7 +271,11 @@ class ContractMetadata(Serializable):
         )
 
     @property
-    def language(self):
+    def language(self) -> Union[Literal['vyper'], Literal['solidity']]:
+        '''
+        Based on the `compiler` property, return the language the given contract was written in.
+        Currently supports `vyper` and `solidity`.
+        '''
         if self.compiler.startswith('vyper-'):
             return 'vyper'
         else:
@@ -269,7 +283,11 @@ class ContractMetadata(Serializable):
             return 'solidity'
 
     @property
-    def compiler_name(self):
+    def compiler_name(self) -> Union[Literal['vyper'], Literal['solc']]:
+        '''
+        Based on the `compiler` property, return the name of the compiler used to compile the
+        contract. Currently supports `vyper` and `solc`. Does not include version/commit information.
+        '''
         if self.compiler.startswith('vyper-'):
             return 'vyper'
         else:
@@ -488,16 +506,31 @@ class ContractMetadataRegistry:
         self._process_compiler_output_json(self.solidity_compiler.compile_files(files, **kwargs))
 
     def add_vyper_source(self, source: str, file_name: Union[Path, str], **kwargs):
+        '''
+        Compiles the given vyper source code and adds the resulting metadata
+        of all contracts to the registry.
+        '''
         self._process_compiler_output_json(self.vyper_compiler.compile_source(source, file_name, **kwargs))
 
     def add_vyper_sources_dict(self, sources: Dict[str, str], **kwargs):
+        '''
+        Compiles the given vyper source dict `'sources'` in the input json and adds the
+        resulting metadata of all contracts to the registry.
+        '''
         self._process_compiler_output_json(self.vyper_compiler.compile_sources(sources, **kwargs))
 
     def add_contracts_from_vyper_files(self, files: List[Union[str, Path]], **kwargs):
+        '''
+        Compiles the given files and adds the resulting metadata of all contracts to the registry.
+        '''
         self._process_compiler_output_json(self.vyper_compiler.compile_files(files, **kwargs))
 
     # pylint: disable=line-too-long
     def _handle_errors(self, output_json):
+        '''
+        Handles errors in the compiler JSON output by printing them to the logger and raising an exception if
+        compilation failed.
+        '''
         compilation_error = False
         for error in output_json.get('errors', []):
             log = getattr(context.logger, error['severity'], context.logger.info)
@@ -511,6 +544,9 @@ class ContractMetadataRegistry:
             raise ValueError("Compilation error")
 
     def _process_compiler_output_json(self, result):
+        '''
+        Parses out the metadata from the compiler output JSON and adds it to the `contracts` we know about.
+        '''
 
         input_json, output_json = result
 
@@ -538,17 +574,27 @@ class ContractMetadataRegistry:
     # and metadata_registry[('file', 'name')] returns the metadata for the contract of that name
     # in that file
     def __getitem__(self, key: Union[str, Tuple[str, str]]) -> ContractMetadata:
+        '''
+        Retrieve a contract's metadata either by `name` or by `(file_name, contract_name)`.
+        '''
         if isinstance(key, tuple):
             return self.contracts[key[0]][key[1]]
         else:
             return self.contracts[''][key]
+
     def __contains__(self, key: Union[str, Tuple[str, str]]) -> bool:
+        '''
+        Check if a contract's metadata is present either by `name` or by `(file_name, contract_name)`.
+        '''
         if isinstance(key, tuple):
             return key[1] in self.contracts[key[0]]
         else:
             return key in self.contracts['']
 
     def __iter__(self):
+        '''
+        Iterate over all contracts, yielding the file name, contract name, and metadata for each.
+        '''
         return self.all_contracts()
 
     def iter_find(self, predicate) -> Iterator[Tuple[str, str, ContractMetadata]]:

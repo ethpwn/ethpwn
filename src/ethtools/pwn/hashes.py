@@ -4,6 +4,7 @@ from sha3 import keccak_256
 
 
 def signature_hash(plaintext):
+    """Computes the signature hash of a plaintext string."""
     if type(plaintext) is str:
         plaintext = plaintext.encode('utf-8')
     return keccak_256(plaintext).hexdigest()[:8]
@@ -12,6 +13,9 @@ HASH_TABLE = {}
 HASH_TABLE_SIGNATURES = {}
 
 def register_signature_hash(value, hash):
+    '''
+    Register a signature hash and its given pre-image (plaintext) in the global hash table.
+    '''
     assert signature_hash(value) == hash
     HASH_TABLE_SIGNATURES[hash] = value
 
@@ -19,10 +23,16 @@ def normalize_signature_hash(hash):
     return HexBytes(hash).hex()[2:]
 
 def lookup_signature_hash_local(hash):
+    '''
+    Look up a signature hash locally in the current global hash table.
+    '''
     hash = normalize_signature_hash(hash)
     return HASH_TABLE_SIGNATURES.get(hash, None)
 
 def lookup_signature_hash_database(hash):
+    '''
+    Look up a signature hash in the 4byte.directory database.
+    '''
     hash = normalize_signature_hash(hash)
     if hash == '00000000':
         return None
@@ -39,6 +49,10 @@ def lookup_signature_hash_database(hash):
     return result['results'][0]["text_signature"]
 
 def lookup_signature_hash(hash):
+    '''
+    Look up a signature hash in the global hash table. If it is not found, look it up in the
+    4byte.directory database and register it in the global hash table.
+    '''
     hash = normalize_signature_hash(hash)
     if hash == '00000000':
         return None

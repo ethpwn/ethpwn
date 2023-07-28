@@ -24,9 +24,12 @@ class Web3Context:
 
         if w3 is None:
             self.try_auto_connect()
-            
+
 
     def try_auto_connect(self):
+        '''
+        Try to auto connect to a node if the default network is set and autoconnect is not disabled.
+        '''
         if get_disable_autoconnect():
             return
         default_network = get_default_network()
@@ -83,7 +86,8 @@ class Web3Context:
 
     def connect(self, url, can_fail=False, **kwargs):
         '''
-        Connect to an Ethereum node via HTTP/HTTPS, Websocket, or IPC depending on the URL scheme.
+        Connect to the Ethereum node at `url` via HTTP/HTTPS, Websocket, or IPC depending on the URL scheme.
+        If `can_fail` is True, then the function will return False if it fails to connect instead of raising an exception.
         '''
         if url.startswith('http'):
             return self.connect_http(url, can_fail=can_fail, **kwargs)
@@ -141,6 +145,9 @@ class Web3Context:
             return True
 
     def _configure_w3(self):
+        '''
+        Set up some reasonable defaults for gas estimation in the web3 context.
+        '''
         self.w3.eth.set_gas_price_strategy(
             construct_time_based_gas_price_strategy(
                 60, # 1 minute

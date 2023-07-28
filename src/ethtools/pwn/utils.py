@@ -21,6 +21,9 @@ def normalize_contract_address(address) -> str:
 
 
 def get_shared_prefix_len(a, b):
+    '''
+    Get the length of the shared prefix of two strings.
+    '''
     for i in range(min(len(a), len(b))):
         if a[i] != b[i]:
             return i
@@ -28,6 +31,9 @@ def get_shared_prefix_len(a, b):
 
 
 def to_snake_case(s: str) -> str:
+    '''
+    Convert a string to snake case.
+    '''
     s = s.replace('-', '_')
     return ''.join(['_' + c.lower() if c.isupper() else c for c in s]).lstrip('_')
 
@@ -67,15 +73,23 @@ class ChainName:
 
 
 def get_chainid(chain_name):
+    '''
+    Get the chain id for a given chain name.
+    '''
     if chain_name == "mainnet":
         return 1
     elif chain_name == "sepolia":
         return 11155111
+    elif chain_name == "avalanche":
+        return 43114
     else:
         raise Exception(f"Unknown chain name {chain_name}")
 
 
 def get_chain_name(id):
+    '''
+    Get the chain name for a given chain id.
+    '''
     if id == 1:
         return "mainnet"
     elif id == 11155111:
