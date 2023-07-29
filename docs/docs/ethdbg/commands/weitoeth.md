@@ -1,5 +1,5 @@
 
-Utility function to convert wei int ETH.
+Utility function to convert wei into ETH.
 
 Syntax: `weitoeth <value>`
 
