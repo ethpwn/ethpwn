@@ -12,19 +12,16 @@ EXTRAS:
 10- ui terminal
 11- Support execution of TX from top of block, end, or specific position (more advanced)
     - Executing always at the top might not work in some cases (balance of tokens for a contract)
-12- registry should name contracts pulling from etherscan or just manually and display it in callhistory.
-13- Decode strings if they look like strings when printing the disassembly or the stack
-14- Custom gas for transactions
-15- Order sstores and sloads temporarly (otherwise it's impossible to understand in which order this things happened)
-16- Probably need this to support Avalanche:
+12- Decode strings if they look like strings when printing the disassembly or the stack
+13- Custom gas for transactions
+14- Order sstores and sloads temporarly (otherwise it's impossible to understand in which order this things happened)
+15- Probably need this to support Avalanche:
     - https://stackoverflow.com/questions/69334835/get-avalanche-block-data-by-block-hash-with-web3-py
-17- Collect the pre-image and show them when there is an sstore on a map/array.
-18- Printing of storage slots might be too big for some monitors 
-19- add dynamic provenance (use-def plugin printed with rich tree)
-20- add code_address:storage_address for each log in the log_op
-21- add break when opcode is X and its arguments are X,Y,Z.
-22- add memory watchpoints
-23- 
+16- Collect the pre-image and show them when there is an sstore on a map/array.
+17- add dynamic provenance (use-def plugin printed with rich tree)
+18- add code_address:storage_address for each log in the log_op
+19- add break when opcode is X and its arguments are X,Y,Z.
+20- add memory watchpoints
 
 PRIORITY:
 1- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
