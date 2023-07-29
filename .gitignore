@@ -132,6 +132,7 @@ dmypy.json
 *.out
 *.pyc
 __pycache__
+.vscode/
 .vscode
 .pytest_cache
 .benchmarks
