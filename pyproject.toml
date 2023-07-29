@@ -43,7 +43,8 @@ dependencies = [
     "coolname",  
     "mkdocs",
     "mkdocs-click",
-    "mkdocs-material"
+    "mkdocs-material",
+    "pydoc-markdown"
 ]
 
 keywords = [
