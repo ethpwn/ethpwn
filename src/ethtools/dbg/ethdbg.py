@@ -310,6 +310,8 @@ class EthDbgShell(cmd.Cmd):
         self.sloads = {}
         self.hide_sloads = ethdbg_cfg['hide_sloads'] if 'hide_sloads' in ethdbg_cfg.keys() else False
 
+        # Weather we want to display the source code or not
+        self.hide_source_view = ethdbg_cfg['hide_source_view'] if 'hide_source_view' in ethdbg_cfg.keys() else False
         # Debugger state
         # ==============
         #  Whether the debugger is running or not

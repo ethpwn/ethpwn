@@ -1,3 +1,41 @@
+# Table of Contents
+
+* [ethtools.pwn.contract\_metadata](#ethtools.pwn.contract_metadata)
+  * [get\_language\_for\_compiler](#ethtools.pwn.contract_metadata.get_language_for_compiler)
+  * [ContractMetadata](#ethtools.pwn.contract_metadata.ContractMetadata)
+    * [from\_compiler\_output\_json](#ethtools.pwn.contract_metadata.ContractMetadata.from_compiler_output_json)
+    * [to\_serializable](#ethtools.pwn.contract_metadata.ContractMetadata.to_serializable)
+    * [from\_serializable](#ethtools.pwn.contract_metadata.ContractMetadata.from_serializable)
+    * [language](#ethtools.pwn.contract_metadata.ContractMetadata.language)
+    * [compiler\_name](#ethtools.pwn.contract_metadata.ContractMetadata.compiler_name)
+    * [constructor\_source\_by\_id](#ethtools.pwn.contract_metadata.ContractMetadata.constructor_source_by_id)
+    * [runtime\_source\_by\_id](#ethtools.pwn.contract_metadata.ContractMetadata.runtime_source_by_id)
+    * [symbolic\_srcmap\_constructor](#ethtools.pwn.contract_metadata.ContractMetadata.symbolic_srcmap_constructor)
+    * [symbolic\_srcmap\_runtime](#ethtools.pwn.contract_metadata.ContractMetadata.symbolic_srcmap_runtime)
+    * [closest\_instruction\_index\_for\_constructor\_pc](#ethtools.pwn.contract_metadata.ContractMetadata.closest_instruction_index_for_constructor_pc)
+    * [closest\_instruction\_index\_for\_runtime\_pc](#ethtools.pwn.contract_metadata.ContractMetadata.closest_instruction_index_for_runtime_pc)
+    * [source\_info\_for\_constructor\_instruction\_idx](#ethtools.pwn.contract_metadata.ContractMetadata.source_info_for_constructor_instruction_idx)
+    * [source\_info\_for\_runtime\_instruction\_idx](#ethtools.pwn.contract_metadata.ContractMetadata.source_info_for_runtime_instruction_idx)
+    * [deploy](#ethtools.pwn.contract_metadata.ContractMetadata.deploy)
+    * [deploy\_destructible](#ethtools.pwn.contract_metadata.ContractMetadata.deploy_destructible)
+    * [get\_contract\_at](#ethtools.pwn.contract_metadata.ContractMetadata.get_contract_at)
+    * [decode\_function\_input](#ethtools.pwn.contract_metadata.ContractMetadata.decode_function_input)
+  * [ContractMetadataRegistry](#ethtools.pwn.contract_metadata.ContractMetadataRegistry)
+    * [add\_solidity\_source](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_solidity_source)
+    * [add\_solidity\_sources\_dict](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_solidity_sources_dict)
+    * [add\_contracts\_from\_solidity\_files](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_contracts_from_solidity_files)
+    * [add\_vyper\_source](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_vyper_source)
+    * [add\_vyper\_sources\_dict](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_vyper_sources_dict)
+    * [add\_contracts\_from\_vyper\_files](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_contracts_from_vyper_files)
+    * [\_\_getitem\_\_](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.__getitem__)
+    * [\_\_contains\_\_](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.__contains__)
+    * [\_\_iter\_\_](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.__iter__)
+    * [iter\_find](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.iter_find)
+    * [find](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.find)
+    * [iter\_find\_by\_name](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.iter_find_by_name)
+    * [find\_by\_name](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.find_by_name)
+    * [all\_contracts](#ethtools.pwn.contract_metadata.ContractMetadataRegistry.all_contracts)
+
 <a id="ethtools.pwn.contract_metadata"></a>
 
 # ethtools.pwn.contract\_metadata
@@ -7,6 +45,16 @@ Contains the metadata registry which is our knowledge base of all the contracts
 we know about, and the `ContractMetadata` class which describes and holds that
 metadata for a single contract.
 
+<a id="ethtools.pwn.contract_metadata.get_language_for_compiler"></a>
+
+#### get\_language\_for\_compiler
+
+```python
+def get_language_for_compiler(compiler)
+```
+
+Extract a language identifier from a given compiler json_output['compiler'] string.
+
 <a id="ethtools.pwn.contract_metadata.ContractMetadata"></a>
 
 ## ContractMetadata Objects
@@ -15,16 +63,17 @@ metadata for a single contract.
 class ContractMetadata(Serializable)
 ```
 
-Holds all of the metadata about a contract class we have available.
+Holds all of the available metadata about a contract.
 Includes the ABI, the bytecode, the source code, and the source map.
 
-<a id="ethtools.pwn.contract_metadata.ContractMetadata.from_solidity"></a>
+<a id="ethtools.pwn.contract_metadata.ContractMetadata.from_compiler_output_json"></a>
 
-#### from\_solidity
+#### from\_compiler\_output\_json
 
 ```python
 @staticmethod
-def from_solidity(source_file, contract_name, output_json, sources)
+def from_compiler_output_json(compiler, source_file, contract_name,
+                              output_json, input_sources, output_sources)
 ```
 
 Constructs a ContractMetadata object for a contract in `source_file` with
@@ -50,6 +99,30 @@ def from_serializable(value)
 ```
 
 Loads a ContractMetadata object back from a serialized dictionary.
+
+<a id="ethtools.pwn.contract_metadata.ContractMetadata.language"></a>
+
+#### language
+
+```python
+@property
+def language() -> Union[Literal['vyper'], Literal['solidity']]
+```
+
+Based on the `compiler` property, return the language the given contract was written in.
+Currently supports `vyper` and `solidity`.
+
+<a id="ethtools.pwn.contract_metadata.ContractMetadata.compiler_name"></a>
+
+#### compiler\_name
+
+```python
+@property
+def compiler_name() -> Union[Literal['vyper'], Literal['solc']]
+```
+
+Based on the `compiler` property, return the name of the compiler used to compile the
+contract. Currently supports `vyper` and `solc`. Does not include version/commit information.
 
 <a id="ethtools.pwn.contract_metadata.ContractMetadata.constructor_source_by_id"></a>
 
@@ -206,6 +279,17 @@ def add_solidity_source(source: str, file_name: Union[Path, str], **kwargs)
 Compiles the given solidity source code and adds the resulting metadata
 of all contracts to the registry.
 
+<a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_solidity_sources_dict"></a>
+
+#### add\_solidity\_sources\_dict
+
+```python
+def add_solidity_sources_dict(sources: Dict[str, str], **kwargs)
+```
+
+Compiles the given solidity source dict `'sources'` in the input json and adds the
+resulting metadata of all contracts to the registry.
+
 <a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_contracts_from_solidity_files"></a>
 
 #### add\_contracts\_from\_solidity\_files
@@ -215,6 +299,68 @@ def add_contracts_from_solidity_files(files: List[Union[str, Path]], **kwargs)
 ```
 
 Compiles the given files and adds the resulting metadata of all contracts to the registry.
+
+<a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_vyper_source"></a>
+
+#### add\_vyper\_source
+
+```python
+def add_vyper_source(source: str, file_name: Union[Path, str], **kwargs)
+```
+
+Compiles the given vyper source code and adds the resulting metadata
+of all contracts to the registry.
+
+<a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_vyper_sources_dict"></a>
+
+#### add\_vyper\_sources\_dict
+
+```python
+def add_vyper_sources_dict(sources: Dict[str, str], **kwargs)
+```
+
+Compiles the given vyper source dict `'sources'` in the input json and adds the
+resulting metadata of all contracts to the registry.
+
+<a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.add_contracts_from_vyper_files"></a>
+
+#### add\_contracts\_from\_vyper\_files
+
+```python
+def add_contracts_from_vyper_files(files: List[Union[str, Path]], **kwargs)
+```
+
+Compiles the given files and adds the resulting metadata of all contracts to the registry.
+
+<a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.__getitem__"></a>
+
+#### \_\_getitem\_\_
+
+```python
+def __getitem__(key: Union[str, Tuple[str, str]]) -> ContractMetadata
+```
+
+Retrieve a contract's metadata either by `name` or by `(file_name, contract_name)`.
+
+<a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.__contains__"></a>
+
+#### \_\_contains\_\_
+
+```python
+def __contains__(key: Union[str, Tuple[str, str]]) -> bool
+```
+
+Check if a contract's metadata is present either by `name` or by `(file_name, contract_name)`.
+
+<a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.__iter__"></a>
+
+#### \_\_iter\_\_
+
+```python
+def __iter__()
+```
+
+Iterate over all contracts, yielding the file name, contract name, and metadata for each.
 
 <a id="ethtools.pwn.contract_metadata.ContractMetadataRegistry.iter_find"></a>
 
@@ -270,3 +416,4 @@ def all_contracts()
 ```
 
 Iterate over all contracts, yielding the file name, contract name, and metadata for each.
+

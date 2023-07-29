@@ -1,3 +1,11 @@
+# Table of Contents
+
+* [ethtools.pwn.currency\_utils](#ethtools.pwn.currency_utils)
+  * [parse\_wei](#ethtools.pwn.currency_utils.parse_wei)
+  * [wei](#ethtools.pwn.currency_utils.wei)
+  * [ether](#ethtools.pwn.currency_utils.ether)
+  * [gwei](#ethtools.pwn.currency_utils.gwei)
+
 <a id="ethtools.pwn.currency_utils"></a>
 
 # ethtools.pwn.currency\_utils
@@ -45,3 +53,4 @@ def gwei(wei)
 ```
 
 Convert wei to gwei
+

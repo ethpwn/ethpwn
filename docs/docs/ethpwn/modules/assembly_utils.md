@@ -1,3 +1,17 @@
+# Table of Contents
+
+* [ethtools.pwn.assembly\_utils](#ethtools.pwn.assembly_utils)
+  * [value\_to\_smallest\_hexbytes](#ethtools.pwn.assembly_utils.value_to_smallest_hexbytes)
+  * [asm\_push\_value](#ethtools.pwn.assembly_utils.asm_push_value)
+  * [asm\_codecopy](#ethtools.pwn.assembly_utils.asm_codecopy)
+  * [asm\_return](#ethtools.pwn.assembly_utils.asm_return)
+  * [asm\_mstore](#ethtools.pwn.assembly_utils.asm_mstore)
+  * [asm\_mload](#ethtools.pwn.assembly_utils.asm_mload)
+  * [asm\_sstore](#ethtools.pwn.assembly_utils.asm_sstore)
+  * [asm\_sload](#ethtools.pwn.assembly_utils.asm_sload)
+  * [create\_shellcode\_deployer\_bin](#ethtools.pwn.assembly_utils.create_shellcode_deployer_bin)
+  * [disassemble\_pro](#ethtools.pwn.assembly_utils.disassemble_pro)
+
 <a id="ethtools.pwn.assembly_utils"></a>
 
 # ethtools.pwn.assembly\_utils
@@ -106,3 +120,4 @@ def disassemble_pro(code, start_pc=0, fork='paris')
 Disassemble code and return a string containing the disassembly. This disassembly includes the
 pc, bytes, instruction, gas cost, and description of each instruction in addition to the
 standard disassembly.
+
