@@ -175,7 +175,6 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         CONTRACT_METADATA.add_sources_dict(sources, compiler=compiler, libraries=libraries, **compiler_kwargs)
     else:
         # solidity single-file version
-        # import ipdb; ipdb.set_trace()
         contract_name = result['ContractName']
         CONTRACT_METADATA.add_source(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, libraries=libraries, **compiler_kwargs)
 
@@ -183,14 +182,13 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
 def fetch_verified_contract_source(contract_address, api_key=None) -> 'Contract':
     if contract := contract_registry().get(contract_address):
         return contract
-        # raise ValueError(f"Contract address {contract_address} is already in the contract registry.")
-
-    try:
-        result = pull_verified_source_from_etherscan(contract_address, api_key=api_key)
-        if result is None:
+    elif api_key is not None:
+        try:
+            result = pull_verified_source_from_etherscan(contract_address, api_key=api_key)
+            if result is None:
+                return None
+            assert result['ContractName']
+            _parse_verified_source_code_into_registry(contract_address, result, origin='etherscan')
+            return CONTRACT_METADATA[result['ContractName']].get_contract_at(contract_address)
+        except NotVerifiedError:
             return None
-        assert result['ContractName']
-        _parse_verified_source_code_into_registry(contract_address, result, origin='etherscan')
-        return CONTRACT_METADATA[result['ContractName']].get_contract_at(contract_address)
-    except NotVerifiedError:
-        return None

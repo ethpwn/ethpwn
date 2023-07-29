@@ -83,8 +83,6 @@ def get_source_code_view_for_pc(debug_target: TransactionDebugTarget, contract_a
     if contract is None:
         return None
 
-    # import ipdb; ipdb.set_trace()
-
     if debug_target.target_address is None or int.from_bytes(HexBytes(debug_target.target_address), byteorder='big') == 0:
         closest_instruction_idx = contract.metadata.closest_instruction_index_for_constructor_pc(pc, fork=debug_target.fork)
         source_info = contract.metadata.source_info_for_constructor_instruction_idx(closest_instruction_idx)
@@ -312,6 +310,7 @@ class EthDbgShell(cmd.Cmd):
 
         # Weather we want to display the source code or not
         self.hide_source_view = ethdbg_cfg['hide_source_view'] if 'hide_source_view' in ethdbg_cfg.keys() else False
+        
         # Debugger state
         # ==============
         #  Whether the debugger is running or not
@@ -558,19 +557,14 @@ class EthDbgShell(cmd.Cmd):
             print(metadata_view)
             disass_view = self._get_disass()
             print(disass_view)
-            source_view = self._get_source_view()
-            if source_view is not None:
-                print(source_view)
+            if not self.hide_source_view:
+                source_view = self._get_source_view()
+                if source_view is not None:
+                    print(source_view)
             stack_view = self._get_stack()
             print(stack_view)
             callstack_view = self._get_callstack()
             print(callstack_view)
-            storage_layout_view = self._get_storage_layout_view()
-            if storage_layout_view is not None:
-                print(storage_layout_view)
-            else:
-                storage_view = self._get_storage_history_view()
-                print(storage_view)
         else:
             quick_view = self._get_quick_view(arg)
             print(quick_view)
@@ -597,6 +591,15 @@ class EthDbgShell(cmd.Cmd):
             print(f'{int(float(arg) * 10**18)} wei')
         except Exception:
             print(f'Invalid ETH amount')
+
+    @only_when_started
+    def do_storagelayout(self, arg):
+        storage_layout_view = self._get_storage_layout_view()
+        if storage_layout_view is not None:
+            print(storage_layout_view)
+        else:
+            storage_view = self._get_storage_history_view()
+            print(storage_view)
 
     def do_storageat(self, arg):
         if not arg:
@@ -892,7 +895,7 @@ class EthDbgShell(cmd.Cmd):
         max_pc_length = max(len('CallSite'), max((len(call.callsite) for call in self.callstack), default=0))
         calltype_string_legend = 'CallType'.ljust(max_call_opcode_length)
         callsite_string_legend = 'CallSite'.rjust(max_pc_length)
-        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Registry Name ]\n'
+        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Name ]\n'
         for call in self.callstack[::-1]:
             calltype_string = f'{call.calltype}'
             if call.calltype == "CALL":
@@ -1185,7 +1188,6 @@ class EthDbgShell(cmd.Cmd):
         return title + legend + _sload_log + _sstore_log
 
     def _get_quick_view(self, arg):
-        # print the current configuration of EthDebugger
         message = f"{GREEN_COLOR}Quick View{RESET_COLOR}"
         fill = HORIZONTAL_LINE
         align = '<'
@@ -1196,15 +1198,11 @@ class EthDbgShell(cmd.Cmd):
         if arg != 'init':
             print(title)
 
-        assert not self.started, "Debugger already started."
-
-        # print the chain context and the transaction context
         print(f'Account: {YELLOW_COLOR}{self.debug_target.source_address}{RESET_COLOR} | Target Contract: {YELLOW_COLOR}{self.debug_target.target_address}{RESET_COLOR}')
         print(f'Chain: {self.debug_target.chain} | Node: {self.w3.provider.endpoint_uri} | Block Number: {self.debug_target.block_number}')
         print(f'Value: {self.debug_target.value} | Gas: {self.debug_target.gas}')
 
     def _get_source_view(self):
-        # import ipdb; ipdb.set_trace()
         message = f"{GREEN_COLOR}Source View{RESET_COLOR}"
         fill = HORIZONTAL_LINE
         align = '<'
@@ -1212,33 +1210,21 @@ class EthDbgShell(cmd.Cmd):
 
         title = f'{message:{fill}{align}{width}}'
 
-        assert self.started, "Debugger not started yet."
+        if not self.started:
+            return None
 
-        # print the chain context and the transaction context
-        # import ipdb; ipdb.set_trace()
         try:
             source = get_source_code_view_for_pc(self.debug_target, self.comp.msg.code_address, self.comp.code.program_counter - 1)
         except Exception as e:
             source = None
 
-        if source is not None:
+        # If we have a huge source view, this is probably imprecise
+        # or it means we are in the dispatcher (which is fake), hide this.
+        if source and len(source.splitlines()) <= 20:
             return title + '\n' + source
-        else:
-            return None
 
     def _get_storage_layout_view(self):
-        # import ipdb; ipdb.set_trace()
-        message = f"{GREEN_COLOR}Storage Layout{RESET_COLOR}"
-        fill = HORIZONTAL_LINE
-        align = '<'
-        width = max(self.tty_columns,0)
 
-        title = f'{message:{fill}{align}{width}}'
-
-        assert self.started, "Debugger not started yet."
-
-        # print the chain context and the transaction context
-        # import ipdb; ipdb.set_trace()
         storage_layout = get_storage_layout_table(
             lambda slot: self.comp.state.get_storage(self.comp.msg.storage_address, slot).to_bytes(32, byteorder='big'),
             self.comp.msg.code_address,
@@ -1249,7 +1235,7 @@ class EthDbgShell(cmd.Cmd):
             with rich.get_console().capture() as capture:
                 rich.print(storage_layout)
             storage_layout = capture.get()
-            return title + '\n' + storage_layout + '\n'
+            return storage_layout + '\n'
         else:
             return None
 
@@ -1259,9 +1245,10 @@ class EthDbgShell(cmd.Cmd):
         if with_message != '':
             metadata_view += f'\nStatus: {with_message}'
 
-        source_view = self._get_source_view()
-        if source_view is not None:
-            print(source_view)
+        if not self.hide_source_view:
+            source_view = self._get_source_view()
+            if source_view is not None:
+                print(source_view)
 
         print(metadata_view)
 
@@ -1272,12 +1259,6 @@ class EthDbgShell(cmd.Cmd):
         print(stack_view)
         callstack_view = self._get_callstack()
         print(callstack_view)
-        storage_layout_view = self._get_storage_layout_view()
-        if storage_layout_view is not None:
-            print(storage_layout_view)
-        else:
-            storage_view = self._get_storage_history_view()
-            print(storage_view)
 
         if cmdloop:
             try:
