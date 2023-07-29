@@ -84,6 +84,21 @@ def load_default_config():
         result['wallets'] = wallets
     return result
 
+def save_config_as_default_config(config=None):
+    from .wallets import save_default_wallets
+    if config is None:
+        config = GLOBAL_CONFIG
+    if 'wallets' in config:
+        wallets = config['wallets']
+        save_default_wallets(wallets)
+        del config['wallets']
+    with open(get_default_global_config_path(), 'w') as f:
+        json.dump(config, f, indent=2)
+
+def update_default_config():
+    save_config_as_default_config(GLOBAL_CONFIG)
+
+
 GLOBAL_CONFIG = None
 GLOBAL_CONFIG = load_default_config()
 

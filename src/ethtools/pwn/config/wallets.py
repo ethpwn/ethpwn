@@ -62,7 +62,7 @@ class Wallet:
 def create_new_default_wallet(w3, wallets_config_path):
     from ..global_context import context
     from coolname import generate_slug
-    
+
     new_user = w3.eth.account.create()
     wallet = dict()
     wallet['address'] = new_user.address
@@ -75,7 +75,7 @@ def create_new_default_wallet(w3, wallets_config_path):
         f.write("[\n")
         json.dump(wallet, f)
         f.write("\n]\n")
-    
+
     return Wallet.from_json_dict(wallet)
 
 def load_default_wallets():
@@ -89,7 +89,7 @@ def load_default_wallets():
     if os.stat(wallets_config_path).st_size == 0:
         with open(wallets_config_path, 'w') as f:
             f.write('[]')
-            
+
     with open(wallets_config_path, 'r') as f:
         result = json.load(f)
     result = {d['address']: Wallet.from_json_dict(d) for d in result}
@@ -104,6 +104,12 @@ def load_default_wallets():
         result[os.environ['ETHADDRESS']] = os.environ['ETHPRIVATEKEY']
 
     return result
+
+def save_default_wallets(wallets):
+    wallets_config_path = get_default_wallet_path()
+    os.makedirs(os.path.dirname(wallets_config_path), exist_ok=True)
+    with open(wallets_config_path, 'w') as f:
+        json.dump([wallet.to_serializable_dict() for wallet in wallets.values()], f)
 
 def add_default_wallet(address, private_key):
     from . import GLOBAL_CONFIG
