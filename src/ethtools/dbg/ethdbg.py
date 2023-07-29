@@ -82,7 +82,7 @@ def get_source_code_view_for_pc(debug_target: TransactionDebugTarget, contract_a
     contract = get_contract_for(contract_address)
     if contract is None:
         return None
-    
+
     # import ipdb; ipdb.set_trace()
 
     if debug_target.target_address is None or int.from_bytes(HexBytes(debug_target.target_address), byteorder='big') == 0:
@@ -269,14 +269,14 @@ class EthDbgShell(cmd.Cmd):
     def __init__(self, wallet_conf, w3, debug_target, ethdbg_cfg, breaks=None, **kwargs):
         # call the parent class constructor
         super().__init__(**kwargs)
-    
+
         # The config for ethdbg
         self.tty_rows, self.tty_columns = get_terminal_size()
         self.wallet_conf = wallet_conf
         self.account = Account.from_key(self.wallet_conf.private_key)
 
         self.show_opcodes_desc = ethdbg_cfg['show_opcodes_desc'] if 'show_opcodes_desc' in ethdbg_cfg.keys() else True
-        
+
         # EVM stuff
         self.w3 = w3
 
@@ -568,8 +568,9 @@ class EthDbgShell(cmd.Cmd):
             storage_layout_view = self._get_storage_layout_view()
             if storage_layout_view is not None:
                 print(storage_layout_view)
-            storage_view = self._get_storage()
-            print(storage_view)
+            else:
+                storage_view = self._get_storage_history_view()
+                print(storage_view)
         else:
             quick_view = self._get_quick_view(arg)
             print(quick_view)
@@ -667,7 +668,7 @@ class EthDbgShell(cmd.Cmd):
         if not arg.strip():
             self.do_breaks(arg)
             return
-        
+
         break_args = arg.split(",")
         try:
             bp = Breakpoint(break_args)
@@ -1153,7 +1154,7 @@ class EthDbgShell(cmd.Cmd):
             return title + _stack
 
 
-    def _get_storage(self):
+    def _get_storage_history_view(self):
         ref_account = normalize_contract_address(self.comp.msg.storage_address)
         message = f"{GREEN_COLOR}Last Active Storage Slots [{ref_account}]{RESET_COLOR}"
 
@@ -1263,10 +1264,10 @@ class EthDbgShell(cmd.Cmd):
             print(source_view)
 
         print(metadata_view)
-        
+
         disass_view = self._get_disass()
         print(disass_view)
-        
+
         stack_view = self._get_stack()
         print(stack_view)
         callstack_view = self._get_callstack()
@@ -1274,8 +1275,9 @@ class EthDbgShell(cmd.Cmd):
         storage_layout_view = self._get_storage_layout_view()
         if storage_layout_view is not None:
             print(storage_layout_view)
-        storage_view = self._get_storage()
-        print(storage_view)
+        else:
+            storage_view = self._get_storage_history_view()
+            print(storage_view)
 
         if cmdloop:
             try:
@@ -1559,12 +1561,12 @@ def main():
         if not re.match(ETH_ADDRESS, args.target):
             print(f"{RED_COLOR}Invalid ETH address provided as target: {args.target}{RESET_COLOR}")
             sys.exit()
-        
+
         if args.value is None:
             value = 0
         else:
             value = int(args.value)
-            
+
         debug_target = TransactionDebugTarget(w3)
         debug_target.new_transaction(to=args.target,
                                      sender=args.sender, value=value,
