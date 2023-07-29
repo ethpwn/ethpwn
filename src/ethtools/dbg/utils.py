@@ -95,7 +95,6 @@ def save_cmds_history(cmd):
 
 def load_ethdbg_config():
     target_file = Path().home() / ".config" / "ethtools" / "ethdbg_config"
-    print(target_file)
     if os.path.exists(target_file):
         with open(target_file) as f:
             return json.load(f)
