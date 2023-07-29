@@ -325,11 +325,11 @@ def decode_function_input(contract_address, input, guess=False):
     if contract_address in registry:
         contract = registry[contract_address]
         metadata = contract.metadata
-        return contract, metadata, *metadata.decode_function_input(input)
+        return contract, metadata, metadata.decode_function_input(input)
     elif guess:
         for contract_name, metadata in CONTRACT_METADATA.contracts[''].items():
             try:
-                return None, metadata, *metadata.decode_function_input(input)
+                return None, metadata, metadata.decode_function_input(input)
             except ValueError as e:
                 continue
 

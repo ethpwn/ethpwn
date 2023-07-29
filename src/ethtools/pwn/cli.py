@@ -4,10 +4,12 @@ Helpful functions available in the CLI.
 
 import argparse
 import functools
+from hexbytes import HexBytes
 import ipdb
 
 from .compilation.compiler_solidity import try_match_optimizer_settings
 from .contract_metadata import CONTRACT_METADATA
+from .contract_registry import decode_function_input
 from .global_context import context
 from .utils import normalize_contract_address
 from .transactions import transact, transfer_funds
@@ -100,7 +102,23 @@ def verified_contract_at(address, api_key=None):
     the code-registry. If the contract is not verified, an error is raised. If the contract is
     already registered, it is returned.
     '''
-    fetch_verified_contract_source(address, api_key=api_key)
+    return fetch_verified_contract_source(address, api_key=api_key)
+
+def decode_calldata(target_contract, calldata=None, tx_hash=None, guess=False):
+    '''
+    Decode a transaction. Either `bytes` or `tx_hash` must be provided.
+    '''
+    import ipdb; ipdb.set_trace()
+    if calldata is None:
+        assert tx_hash is not None
+        tx = context.w3.eth.get_transaction(tx_hash)
+        calldata = tx.input
+
+    contract, metadata, decoded = decode_function_input(target_contract, calldata, guess=guess)
+    if metadata is not None:
+        metadata = (metadata.source_file, metadata.contract_name)
+    return metadata, decoded
+
 
 
 def main():
@@ -129,6 +147,13 @@ def main():
     address_parser = subparsers.add_parser('address')
     address_parser.add_argument('address', type=address)
 
+    # add the `decode_calldata` subcommand
+    decode_calldata_parser = subparsers.add_parser('decode_calldata')
+    decode_calldata_parser.add_argument('target_contract', type=str)
+    decode_calldata_parser.add_argument('--calldata', type=HexBytes, default=None)
+    decode_calldata_parser.add_argument('--tx-hash', type=str, default=None)
+    decode_calldata_parser.add_argument('--guess', action='store_true')
+
     # add the `deploy` subcommand
     # TODO: do later
 
@@ -140,5 +165,7 @@ def main():
     subcommand_function = globals()[ARGS.subcommand]
     # import ipdb; ipdb.set_trace()
     with ipdb.launch_ipdb_on_exception():
-        subcommand_function(**{k: v for k, v in vars(ARGS).items() if k != 'subcommand'})
+        result = subcommand_function(**{k: v for k, v in vars(ARGS).items() if k != 'subcommand'})
+        from rich import print
+        print(result)
 
