@@ -1,8 +1,10 @@
-
-from ethtools.pwn.utils import get_chain_name
-from . import cmdline
+import json
+from ..config import update_config
+from ..utils import get_chain_name
 from ..global_context import context
 from ..config.misc import set_default_node_url as _set_default_node_url
+
+from . import cmdline
 
 @cmdline
 def set_default_node_url(node_url: str, network: str=None, force: bool=False):
@@ -30,4 +32,13 @@ def set_default_node_url(node_url: str, network: str=None, force: bool=False):
         network = node_network
         # import ipdb; ipdb.set_trace()
     _set_default_node_url(node_url, network=network)
+    update_config()
     return True
+
+@cmdline
+def show_config():
+    '''
+    Show the current config
+    '''
+    from ..config import GLOBAL_CONFIG
+    return GLOBAL_CONFIG
