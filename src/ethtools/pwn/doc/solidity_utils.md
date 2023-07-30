@@ -32,7 +32,7 @@ Tries to match the optimizer settings of the given contract to the given bytecod
 compiling the contract with different optimizer settings until a match is found.
 
 ```
-from ethpwn.prelude import *
+from ethtools.pwn.prelude import *
 
 compiler = SolidityCompiler()
 do_compile = functools.partial(compiler.compile_files, ['contracts/MyContract.sol'])

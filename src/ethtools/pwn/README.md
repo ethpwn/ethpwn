@@ -31,7 +31,7 @@ test wallets (see consolidate_ctf_funds_into.py)
 import os
 import sys
 from time import sleep
-from ethpwn.prelude import *
+from ethtools.pwn.prelude import *
 
 
 context.connect_http(sys.argv[1])

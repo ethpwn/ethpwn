@@ -109,7 +109,7 @@ def save_default_wallets(wallets):
     wallets_config_path = get_default_wallet_path()
     os.makedirs(os.path.dirname(wallets_config_path), exist_ok=True)
     with open(wallets_config_path, 'w') as f:
-        json.dump([wallet.to_serializable_dict() for wallet in wallets.values()], f)
+        json.dump([wallet.to_serializable_dict() for wallet in wallets.values()], f, indent=2)
 
 def add_default_wallet(address, private_key):
     from . import GLOBAL_CONFIG

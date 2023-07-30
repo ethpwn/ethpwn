@@ -1,4 +1,7 @@
 
+import os
+
+
 def get_disable_autoconnect():
     '''
     Get whether autoconnect is disabled
@@ -35,7 +38,7 @@ def get_default_node_url_for_network(network='mainnet'):
     Get the default node URL for the given network.
     '''
     from . import GLOBAL_CONFIG
-    return GLOBAL_CONFIG.get('default_node_urls', {}).get(network, None)
+    return os.environ.get(f'ETHTOOLS_NODE_URL', GLOBAL_CONFIG.get('default_node_urls', {}).get(network, None))
 
 def set_default_node_url(node_url, network='mainnet'):
     '''

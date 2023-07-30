@@ -4,6 +4,7 @@ Global context accessible from anywhere in the ethpwn package.
 
 import contextlib
 import logging
+import os
 
 from web3 import Web3, middleware
 from web3.gas_strategies.time_based import construct_time_based_gas_price_strategy
@@ -31,6 +32,9 @@ class Web3Context:
         Try to auto connect to a node if the default network is set and autoconnect is not disabled.
         '''
         if get_disable_autoconnect():
+            return
+        if os.environ.get('ETHTOOLS_NODE_URL', None) is not None:
+            self.connect(os.environ['ETHTOOLS_NODE_URL'])
             return
         default_network = get_default_network()
         if default_network is not None:
