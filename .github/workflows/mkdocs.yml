@@ -3,8 +3,8 @@ run-name: "${{ github.workflow }}-${{ github.run_number }}: Recreating documenta
 
 on:
   push:
-    branches-ignore:
-      - 'gh-pages'
+    branches:
+      - 'main'
 
 jobs:
   update_docs:
