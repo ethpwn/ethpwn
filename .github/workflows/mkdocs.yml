@@ -22,4 +22,4 @@ jobs:
           pip install ${{ github.workspace }}
       - name: Create the docs in the gh-deploy branch
         run: |
-          mkdocs gh-deploy --force
+          cd ${{ github.workspace}}/docs && mkdocs gh-deploy --force
