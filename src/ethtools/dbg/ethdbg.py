@@ -1504,8 +1504,11 @@ def main():
         except Exception:
             print(f"{RED_COLOR} ❌ Could not connect to node: {args.node_url}{RESET_COLOR}")
             sys.exit()
+    elif get_default_node_url() is None:
+        print(f"{RED_COLOR} ❌ No RPC node url specified and no default one avaialable in config.{RESET_COLOR}")
+        print(f"{RED_COLOR} To fix this error, create a config.json in ~/.config/ethtools/config.json'{RESET_COLOR}")
+        sys.exit()
     else:
-        # user did not specify a node, let's use the one in the config
         try:
             context.try_auto_connect()
         except Exception as e:
@@ -1516,6 +1519,7 @@ def main():
     wallet_conf = get_wallet(args.wallet)
 
     # Check if we support the chain
+    import ipdb; ipdb.set_trace()
     if context.w3.eth.chain_id not in SUPPORTED_CHAINS:
         print(f'{RED_COLOR}Unsupported chain: [{context.w3.eth.chain_id}] {RESET_COLOR}')
         sys.exit(0)

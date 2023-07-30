@@ -30,7 +30,7 @@ STRIKETHROUGH = "\u0336"
 FOUR_BYTE_URL = "https://raw.githubusercontent.com/ethereum-lists/4bytes/master/signatures/{}"
 
 
-SUPPORTED_CHAINS = [ChainName.MAINNET, ChainName.SEPOLIA, ChainName.AVALANCHE]
+SUPPORTED_CHAINS = [ChainName.MAINNET, ChainName.SEPOLIA]
 
 def get_terminal_size():
     """Return the current terminal size."""
