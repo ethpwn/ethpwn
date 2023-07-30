@@ -2,7 +2,7 @@
 
 ## 📝 Config File
 
-There are two main configuration files that can be used to configure the behavior of `ethdbg`.
+There are two main configuration files that can be used to customize the behavior of `ethdbg`.
 
 #### ♦️ wallets.json
 This file is located at `~/.config/ethtools/wallets.json` and contains the configuration for the accounts that you want
@@ -48,34 +48,58 @@ You can select the wallet you want to use by using the `--wallet` command line o
 ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222 --block 11469711 --wallet my-sepolia-wallet
 ```
 
-#### ♦️ ethdbg_config
+#### ♦️ config.json
 This file is located at `~/.config/ethtools` and configures the behavior of `ethdbg` while debugging.
 The most basic configuration is the following:
 
 ```json
-{
-"node_url": 'https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222'
+  "default_network": "mainnet",
+  "default_node_urls": {        
+    "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000",
+  },
+  "credentials": {
+    "etherscan": "00000000000000000000000000000000"
+  },
+  "dbg": {
+  }
 }
 ```
 
-Additionally, you can use the following options:
+Which will simply set an RPC url for the debugging environment.
+
+| ❗️ Note                                                              |
+|----------------------------------------------------------------------|
+| Note that this file will be dropped on your filesystem in order to provide a template for a new user. |
+
+Additionally, under the key `dbg` the following options are available:
 
 | Option String | Option Summary | Default |
 |-------------------|----------|----------|
 |`show_opcodes_desc` | whether to display the description of the EVM opcodes in the disassembly | True |
 |`stop_on_returns` | whether you want `ethdbg` to always stop at RETURN opcodes | False |
 |`hide_sstores` | whether you want to hide the sstores issued for the current account in the context view | False |
-|`hide_sloads` | whether you want to hide the sloads issued for the current account in the context view| False |
+|`hide_sloads` | whether you want to hide the sloads issued for the current account in the context view | False |
+|`hide_source_view` | whether you want to display the Source View | True
+|`source_view_cutoff` | the amount of source code lines that are displayed | None |
 
 An example configuration would look like this:
+
 ```json
-{
-"node_url": 'https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222',
-"show_opcodes_desc": false,
-"stop_on_returns": false,
-"hide_sstores": true,
-"hide_sloads": true
-}
+  "default_network": "mainnet",
+  "default_node_urls": {
+    "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000"
+  },
+  "credentials": {
+    "etherscan": "<OPTIONAL_ETHERSCAN_API>"
+  },
+  "dbg": {
+    "show_opcodes_desc": false,
+    "stop_on_returns": false,
+    "hide_sstores": true,
+    "hide_sloads": true,
+    "hide_source_view": false,
+    "source_view_cutoff": 20
+  }
 ```
 
 ## ⚡️ Command Line Arguments
