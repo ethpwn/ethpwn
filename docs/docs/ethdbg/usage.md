@@ -49,12 +49,13 @@ ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00
 ```
 
 #### ♦️ config.json
-This file is located at `~/.config/ethtools` and configures the behavior of `ethdbg` while debugging.
+This file is located at `~/.config/ethtools/config.json` and configures the behavior of `ethdbg` while debugging.
 The most basic configuration is the following:
 
 ```json
+{
   "default_network": "mainnet",
-  "default_node_urls": {        
+  "default_node_urls": {
     "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000",
   },
   "credentials": {
@@ -77,14 +78,16 @@ Additionally, under the key `dbg` the following options are available:
 |-------------------|----------|----------|
 |`show_opcodes_desc` | whether to display the description of the EVM opcodes in the disassembly | True |
 |`stop_on_returns` | whether you want `ethdbg` to always stop at RETURN opcodes | False |
+|`stop_on_reverts` | whether you want `ethdbg` to always stop at REVERT opcodes | True |
 |`hide_sstores` | whether you want to hide the sstores issued for the current account in the context view | False |
 |`hide_sloads` | whether you want to hide the sloads issued for the current account in the context view | False |
-|`hide_source_view` | whether you want to display the Source View | True
+|`hide_source_view` | whether you want to display the Source View | True |
 |`source_view_cutoff` | the amount of source code lines that are displayed | None |
 
-Examples configuration file would look like this:
+An examples configuration file would look like this:
 
 ```json
+{
   "default_network": "mainnet",
   "default_node_urls": {
     "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000"
@@ -95,14 +98,17 @@ Examples configuration file would look like this:
   "dbg": {
     "show_opcodes_desc": false,
     "stop_on_returns": false,
+    "stop_on_reverts": true,
     "hide_sstores": true,
     "hide_sloads": true,
     "hide_source_view": false,
     "source_view_cutoff": 20
   }
+}
 ```
 
 ```json
+{
   "default_network": "mainnet",
   "default_node_urls": {
     "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000",
@@ -130,17 +136,17 @@ tr:nth-child(even) {
 }
 </style>
 
-| Option String | Required | Default| Option Summary |
-|---------------|----------|--------|----------------|
-| ['--txid'] | False | None | Instantiate ethdbg to replay an existing transaction. |
-| ['--full-context'] | False | False | Given a transaction `T` that you want to replay, whether or not you want to apply the transactions preceeding `T` in the block (i.e., the execution of some transactions might depend on the execution of the previous ones!). |
-| ['--sender'] | False | The original sender in the transaction (if `txid` is specified), otherwise, the sender in your wallet.json | whether you want to overwrite the address of the sender when replaying a transaction, or, creating a fresh one. |
-| ['--balance'] | False | balance of the original sender in the transaction (if `txid` is specified), otherwise, a placeholder value of 100000000 ETH. | Overwriting the balance of the sender you are using to debug the target transaction. |
-| ['--node-url'] | False | value in the ethdbg_config file, or, `127.0.0.1:8546`. | URL of the RPC node you want to use. |
-| ['--target'] | False | The original contract address (if `txid` is specified) | Target smart contract address when trying to send a new transaction. |
-| ['--block'] | False | The original block (if `txid` is specified), otherwise the `latest` block. | Block at which you want to simulate the new transaction (i.e., the transaction will be simulated at the beginning of the block). |
-| ['--calldata'] | False | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
-| ['--wallet'] | False | If no name is specified, `ethdbg` automatically generates an account for you | Name of the account you want to use as specified in the configuration file |
+| Option String      | Required | Default| Option Summary |
+|--------------------|----------|--------|----------------|
+| ['--txid']         | False    | None   | Instantiate ethdbg to replay an existing transaction. |
+| ['--full-context'] | False    | False  | Given a transaction `T` that you want to replay, whether or not you want to apply the transactions preceeding `T` in the block (i.e., the execution of some transactions might depend on the execution of the previous ones!). |
+| ['--sender']       | False    | The original sender in the transaction (if `txid` is specified), otherwise, the sender in your wallet.json | whether you want to overwrite the address of the sender when replaying a transaction, or, creating a fresh one. |
+| ['--balance']      | False    | balance of the original sender in the transaction (if `txid` is specified), otherwise, a placeholder value of 100000000 ETH. | Overwriting the balance of the sender you are using to debug the target transaction. |
+| ['--node-url']     | False    | value in the ethdbg_config file, or, `127.0.0.1:8546`. | URL of the RPC node you want to use. |
+| ['--target']       | False    | The original contract address (if `txid` is specified) | Target smart contract address when trying to send a new transaction. |
+| ['--block']        | False | The original block (if `txid` is specified), otherwise the `latest` block. | Block at which you want to simulate the new transaction (i.e., the transaction will be simulated at the beginning of the block). |
+| ['--calldata']     | False | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
+| ['--wallet']       | False | If no name is specified, `ethdbg` automatically generates an account for you | Name of the account you want to use as specified in the configuration file |
 
 
 | ❗️ Note                                                              |
