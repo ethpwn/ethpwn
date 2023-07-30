@@ -13,9 +13,8 @@ def set_disable_autoconnect(value):
     '''
     Set whether autoconnect is disabled
     '''
-    from . import GLOBAL_CONFIG, update_default_config
+    from . import GLOBAL_CONFIG
     GLOBAL_CONFIG['disable_autoconnect'] = value
-    update_default_config()
 
 def get_default_network():
     '''
@@ -28,22 +27,22 @@ def set_default_network(network):
     '''
     Set the default network
     '''
-    from . import GLOBAL_CONFIG, update_default_config
+    from . import GLOBAL_CONFIG
     assert network in ['mainnet', 'ropsten', 'rinkeby', 'goerli', 'kovan', 'sepolia']
     GLOBAL_CONFIG['default_network'] = network
-    update_default_config()
 
-def get_default_node_url_for_network(network='mainnet'):
+def get_default_node_url(network=None):
     '''
     Get the default node URL for the given network.
     '''
     from . import GLOBAL_CONFIG
+    if network is None:
+        network = get_default_network()
     return os.environ.get(f'ETHTOOLS_NODE_URL', GLOBAL_CONFIG.get('default_node_urls', {}).get(network, None))
 
 def set_default_node_url(node_url, network='mainnet'):
     '''
     Set the default node URL for the given network.
     '''
-    from . import GLOBAL_CONFIG, update_default_config
+    from . import GLOBAL_CONFIG
     GLOBAL_CONFIG['default_node_urls'][network] = node_url
-    update_default_config()

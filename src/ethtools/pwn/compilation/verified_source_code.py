@@ -182,7 +182,11 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
 def fetch_verified_contract_source(contract_address, api_key=None) -> 'Contract':
     if contract := contract_registry().get(contract_address):
         return contract
-    elif api_key is not None:
+
+    if api_key is None:
+        api_key = get_etherscan_api_key()
+
+    if api_key is not None:
         try:
             result = pull_verified_source_from_etherscan(contract_address, api_key=api_key)
             if result is None:

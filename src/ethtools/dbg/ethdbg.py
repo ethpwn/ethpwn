@@ -23,9 +23,13 @@ from rich import print as rich_print
 from rich.table import Table
 from rich.tree import Tree
 
+from ethtools.pwn.config.misc import get_default_node_url
+
+
 from ..pwn.prelude import *
 from ..pwn.utils import normalize_contract_address
 from ..pwn.config.wallets import get_wallet
+from ..pwn.config.dbg import DebugConfig
 
 from .breakpoint import Breakpoint, ETH_ADDRESS
 from .analyzer import Analyzer
@@ -37,32 +41,13 @@ from .ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, Res
 
 from eth_utils.curried import to_canonical_address
 
-def get_w3_provider(web3_host):
-    if web3_host.startswith('http'):
-        context.connect_http(
-            web3_host
-        )
-    elif web3_host.startswith('ws'):
-        context.connect_websocket(
-            web3_host,
-            websocket_timeout=60 * 5,
-            websocket_kwargs={
-                'max_size': 1024 * 1024 * 1024,
-            },
-        )
-    else:
-        raise Exception("Unknown web3 provider")
-
-    w3 = context.w3
-    assert w3.is_connected()
-    return w3
-
 FETCHED_VERIFIED_CONTRACTS = set()
 
 def get_contract_for(contract_address: HexBytes):
     global FETCHED_VERIFIED_CONTRACTS
     contract_address = normalize_contract_address(contract_address)
     registry = contract_registry()
+    # import ipdb; ipdb.set_trace()
 
     if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
         # try to fetch the verified contract
@@ -264,7 +249,7 @@ class EthDbgShell(cmd.Cmd):
 
     prompt = f'\001\033[1;31m\002ethdbg➤\001\033[0m\002 '
 
-    def __init__(self, wallet_conf, w3, debug_target, ethdbg_cfg, breaks=None, **kwargs):
+    def __init__(self, wallet_conf, debug_target, breaks=None, **kwargs):
         # call the parent class constructor
         super().__init__(**kwargs)
 
@@ -273,10 +258,10 @@ class EthDbgShell(cmd.Cmd):
         self.wallet_conf = wallet_conf
         self.account = Account.from_key(self.wallet_conf.private_key)
 
-        self.show_opcodes_desc = ethdbg_cfg['show_opcodes_desc'] if 'show_opcodes_desc' in ethdbg_cfg.keys() else True
+        self.show_opcodes_desc = DebugConfig.show_opcodes_desc
 
         # EVM stuff
-        self.w3 = w3
+        self.w3 = context.w3
 
         self.debug_target: TransactionDebugTarget = debug_target
         self.debug_target.set_defaults(
@@ -301,16 +286,16 @@ class EthDbgShell(cmd.Cmd):
         # per account so we can keep track of what storages slots have
         # been modified for every single contract that the transaction touched
         self.sstores = {}
-        self.hide_sstores = ethdbg_cfg['hide_sstores'] if 'hide_sstores' in ethdbg_cfg.keys() else False
+        self.hide_sstores = DebugConfig.hide_sstores
         # Recording here the SLOADs, the dictionary is organized
         # per account so we can keep track of what storages slots have
         # been modified for every single contract that the transaction touched
         self.sloads = {}
-        self.hide_sloads = ethdbg_cfg['hide_sloads'] if 'hide_sloads' in ethdbg_cfg.keys() else False
+        self.hide_sloads = DebugConfig.hide_sloads
 
         # Whether we want to display the source code or not
-        self.hide_source_view = ethdbg_cfg['hide_source_view'] if 'hide_source_view' in ethdbg_cfg.keys() else False
-        self.src_cutoff = ethdbg_cfg['src_cutoff'] if 'src_cutoff' in ethdbg_cfg.keys() else None
+        self.hide_source_view = DebugConfig.hide_source_view
+        self.source_view_cutoff = DebugConfig.source_view_cutoff
 
         # Debugger state
         # ==============
@@ -336,7 +321,8 @@ class EthDbgShell(cmd.Cmd):
         #  Whether we want to display the execute ops
         self.log_op = False
         # Whether we want to stop on RETURN/STOP operations
-        self.stop_on_returns = ethdbg_cfg['stop_on_returns'] if 'stop_on_returns' in ethdbg_cfg.keys() else False
+        self.stop_on_returns = DebugConfig.stop_on_returns
+        self.stop_on_reverts = DebugConfig.stop_on_reverts
         # List of addresses of contracts that reverted
         self.reverted_contracts = set()
 
@@ -365,6 +351,7 @@ class EthDbgShell(cmd.Cmd):
         print(f'full-context: {self.debug_target.full_context}')
         print(f'log_ops: {self.log_op}')
         print(f'stop_on_returns: {self.stop_on_returns}')
+        print(f'stop_on_reverts: {self.stop_on_reverts}')
         print(f'hide_sstores: {self.hide_sstores}')
         print(f'hide_sloads: {self.hide_sloads}')
 
@@ -559,7 +546,7 @@ class EthDbgShell(cmd.Cmd):
             disass_view = self._get_disass()
             print(disass_view)
             if not self.hide_source_view:
-                source_view = self._get_source_view()
+                source_view = self._get_source_view(cutoff=self.source_view_cutoff)
                 if source_view is not None:
                     print(source_view)
             stack_view = self._get_stack()
@@ -592,6 +579,14 @@ class EthDbgShell(cmd.Cmd):
             print(f'{int(float(arg) * 10**18)} wei')
         except Exception:
             print(f'Invalid ETH amount')
+
+    @only_when_started
+    def do_source(self, arg):
+        source_view = self._get_source_view(cutoff=None)
+        if source_view is not None:
+            print(source_view)
+        else:
+            print(f"No source code available for contract {normalize_contract_address(self.comp.msg.code_address)}")
 
     @only_when_started
     def do_storagelayout(self, arg):
@@ -782,13 +777,17 @@ class EthDbgShell(cmd.Cmd):
         self.stop_on_returns = not self.stop_on_returns
         print(f'Stopping on returns: {self.stop_on_returns}')
 
+    def do_stop_on_reverts(self, arg):
+        self.stop_on_reverts = not self.stop_on_reverts
+        print(f'Stopping on reverts: {self.stop_on_reverts}')
+
     def do_quit(self, arg):
         sys.exit()
 
     def do_EOF(self, arg):
         # quit if user says yes or hits ctrl-d again
         try:
-            if input(f" {BLUE_COLOR}[+] EOF, are you sure you want to quit? (y/n) {RESET_COLOR}") == 'y':
+            if input(f"\n {BLUE_COLOR}[+] EOF, are you sure you want to quit? (y/n) {RESET_COLOR}") == 'y':
                 self.do_quit(arg)
         except EOFError:
             self.do_quit(arg)
@@ -1203,7 +1202,7 @@ class EthDbgShell(cmd.Cmd):
         print(f'Chain: {self.debug_target.chain} | Node: {self.w3.provider.endpoint_uri} | Block Number: {self.debug_target.block_number}')
         print(f'Value: {self.debug_target.value} | Gas: {self.debug_target.gas}')
 
-    def _get_source_view(self):
+    def _get_source_view(self, cutoff=None):
         message = f"{GREEN_COLOR}Source View{RESET_COLOR}"
         fill = HORIZONTAL_LINE
         align = '<'
@@ -1222,8 +1221,11 @@ class EthDbgShell(cmd.Cmd):
         # If we have a huge source view, this is probably imprecise
         # or it means we are in the dispatcher (which is fake), hide this.
         if source:
-            if self.src_cutoff is None or (self.src_cutoff and len(source.splitlines()) <= self.src_cutoff):
+            lines = source.splitlines()
+            if cutoff is None or len(lines) <= self.source_view_cutoff:
                 return title + '\n' + source
+            else:
+                return title + '\n' + '\n'.join(lines[:cutoff]) + '\n' + f'{ORANGE_COLOR}... [source too big, use "source" command to see it all or change the "source_view_cutoff" in the config] ...{RESET_COLOR}'
 
     def _get_storage_layout_view(self):
 
@@ -1248,7 +1250,7 @@ class EthDbgShell(cmd.Cmd):
             metadata_view += f'\nStatus: {with_message}'
 
         if not self.hide_source_view:
-            source_view = self._get_source_view()
+            source_view = self._get_source_view(cutoff=self.source_view_cutoff)
             if source_view is not None:
                 print(source_view)
 
@@ -1326,6 +1328,9 @@ class EthDbgShell(cmd.Cmd):
 
         elif self.stop_on_returns and (opcode.mnemonic == "STOP" or opcode.mnemonic == "RETURN"):
             self._display_context(with_message=f'🎯 {YELLOW_BACKGROUND}Breakpoint [stop/return] reached{RESET_COLOR}')
+
+        elif self.stop_on_reverts and opcode.mnemonic == "REVERT":
+            self._display_context(with_message=f'🎯 {YELLOW_BACKGROUND}Breakpoint [revert] reached{RESET_COLOR}')
 
         if opcode.mnemonic == "SSTORE":
             ref_account = normalize_contract_address(computation.msg.storage_address)
@@ -1491,35 +1496,33 @@ def main():
 
     args = parser.parse_args()
 
-    ethdbg_cfg = load_ethdbg_config()
-
     # CHECK 1: do we have a valid chain RPC?
     if args.node_url is not None:
         # user specified a different node, let's use it first.
         try:
-            w3 = get_w3_provider(args.node_url)
+            context.connect_http(args.node_url)
         except Exception:
-            print(f"{RED_COLOR} ❌ Invalid node url provided: {args.node_url}{RESET_COLOR}")
+            print(f"{RED_COLOR} ❌ Could not connect to node: {args.node_url}{RESET_COLOR}")
             sys.exit()
     else:
         # user did not specify a node, let's use the one in the config
         try:
-            w3 = get_w3_provider(ethdbg_cfg['node_url'])
+            context.try_auto_connect()
         except Exception as e:
-            print(f"{RED_COLOR} ❌ Invalid node url in ethdg_config: {ethdbg_cfg['node_url']}{RESET_COLOR}")
+            print(f"{RED_COLOR} ❌ Invalid node url in ethdg_config: {get_default_node_url()}{RESET_COLOR}")
             sys.exit()
 
     # Get the wallet
-    wallet_conf = get_wallet(w3, args.wallet)
+    wallet_conf = get_wallet(args.wallet)
 
     # Check if we support the chain
-    if w3.eth.chain_id not in SUPPORTED_CHAINS:
-        print(f'{RED_COLOR}Unsupported chain: [{w3.eth.chain_id}] {RESET_COLOR}')
+    if context.w3.eth.chain_id not in SUPPORTED_CHAINS:
+        print(f'{RED_COLOR}Unsupported chain: [{context.w3.eth.chain_id}] {RESET_COLOR}')
         sys.exit(0)
 
     # Check if wallet and node are referring to the same chain
-    if wallet_conf.network != get_chain_name(w3.eth.chain_id):
-        print(f'Wallet {wallet_conf.name} is on chain {wallet_conf.network}, but node is on chain {get_chain_name(w3.eth.chain_id)}')
+    if wallet_conf.network != get_chain_name(context.w3.eth.chain_id):
+        print(f'Wallet {wallet_conf.name} is on chain {wallet_conf.network}, but node is on chain {get_chain_name(context.w3.eth.chain_id)}')
         sys.exit(0)
 
     # CHECK 2: do we have a valid sender?
@@ -1532,7 +1535,7 @@ def main():
     # CHECK 3: Are we re-tracing or starting a new transaction?
     if args.txid:
         # replay transaction mode
-        debug_target = TransactionDebugTarget(w3)
+        debug_target = TransactionDebugTarget(context.w3)
         debug_target.replay_transaction(args.txid,
                                         sender=args.sender, to=args.target,
                                         block_number=args.block, calldata=args.calldata,
@@ -1550,7 +1553,7 @@ def main():
         else:
             value = int(args.value)
 
-        debug_target = TransactionDebugTarget(w3)
+        debug_target = TransactionDebugTarget(context.w3)
         debug_target.new_transaction(to=args.target,
                                      sender=args.sender, value=value,
                                      calldata=args.calldata, block_number=args.block,
@@ -1563,7 +1566,7 @@ def main():
     # Load previous sessions history.
     load_cmds_history()
 
-    ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target, ethdbg_cfg=ethdbg_cfg)
+    ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target)
     ethdbgshell.print_license()
 
     while True:
@@ -1577,16 +1580,8 @@ def main():
             continue
         except RestartDbgException:
             old_breaks = ethdbgshell.breakpoints
-            # If user overwritten the ethdbg config let's keep it.
-            new_ethdbg_config = dict()
-            for k in ethdbg_cfg.keys():
-                if k == 'node_url': # skip this key
-                    continue
-                val = getattr(ethdbgshell, k)
-                new_ethdbg_config[k] = val
 
-            ethdbgshell = EthDbgShell(wallet_conf, w3, debug_target=debug_target,
-                                        ethdbg_cfg=new_ethdbg_config, breaks=old_breaks)
+            ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks)
             ethdbgshell.cmdqueue.append("start\n")
 
 if __name__ == '__main__':

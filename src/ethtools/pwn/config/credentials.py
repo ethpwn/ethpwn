@@ -1,7 +1,6 @@
 
 import os
 
-
 def get_credentials_for(service):
     from . import GLOBAL_CONFIG
     if 'credentials' not in GLOBAL_CONFIG:
@@ -13,6 +12,7 @@ def add_credentials_for(service, creds):
     if 'credentials' not in GLOBAL_CONFIG:
         GLOBAL_CONFIG['credentials'] = {}
     GLOBAL_CONFIG['credentials'][service] = creds
+
 
 def get_etherscan_api_key(api_key=None):
     from . import GLOBAL_CONFIG

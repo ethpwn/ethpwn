@@ -32,15 +32,20 @@ class Web3Context:
         Try to auto connect to a node if the default network is set and autoconnect is not disabled.
         '''
         if get_disable_autoconnect():
-            return
-        if os.environ.get('ETHTOOLS_NODE_URL', None) is not None:
-            self.connect(os.environ['ETHTOOLS_NODE_URL'])
-            return
-        default_network = get_default_network()
-        if default_network is not None:
-            default_node_url = get_default_node_url_for_network(default_network)
-            if default_node_url is not None:
+            return False
+        try:
+            if os.environ.get('ETHTOOLS_NODE_URL', None) is not None:
+                self.connect(os.environ['ETHTOOLS_NODE_URL'])
+                return True
+            if (default_node_url := get_default_node_url())is not None:
                 self.connect(default_node_url)
+                return True
+            return False
+        except Exception as e:
+            self.logger.warning('Could not autoconnect to node: %s', e)
+            return False
+
+
 
 
     @property
@@ -181,7 +186,7 @@ class Web3Context:
         return self.pessimistic_gas_price_estimate() * gas_used_estimate
 
 
-from .config.misc import get_default_node_url_for_network, get_default_network, get_disable_autoconnect
+from .config.misc import get_default_node_url, get_default_network, get_disable_autoconnect
 context: Web3Context = Web3Context()
 
 @contextlib.contextmanager

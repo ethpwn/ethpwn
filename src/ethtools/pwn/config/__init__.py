@@ -42,7 +42,7 @@ def get_default_wallet_path() -> Path:
     return ethtools_config_root_dir() / 'wallets.json'
 
 def get_default_global_config_path() -> Path:
-    return pwn_config_root_dir() / 'config.json'
+    return ethtools_config_root_dir() / 'config.json'
 
 def get_logged_deployed_contracts_dir() -> Path:
     d = pwn_config_root_dir() / 'deployed_contracts'
@@ -82,6 +82,8 @@ def load_default_config():
 
     if 'wallets' not in result:
         result['wallets'] = wallets
+    if 'dbg' not in result:
+        result['dbg'] = {}
     return result
 
 def save_config_as_default_config(config=None):
@@ -95,7 +97,7 @@ def save_config_as_default_config(config=None):
     with open(get_default_global_config_path(), 'w') as f:
         json.dump(config, f, indent=2)
 
-def update_default_config():
+def update_config():
     save_config_as_default_config(GLOBAL_CONFIG)
 
 
@@ -104,6 +106,6 @@ GLOBAL_CONFIG = load_default_config()
 
 from . import wallets
 from . import credentials
-from .misc import get_default_node_url_for_network, get_default_network
+from .misc import get_default_node_url, get_default_network
 
 
