@@ -20,6 +20,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install pylint
           pip install ${{ github.workspace }}
+      - name: Setup git auther details
+        run: |
+          git config --global user.name "GitHub Actions Docs Deployer"
+          git config --global user.email ""
       - name: Create the docs in the gh-deploy branch
         run: |
           cd ${{ github.workspace}}/docs && mkdocs gh-deploy --force
