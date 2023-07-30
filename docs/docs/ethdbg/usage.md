@@ -63,7 +63,7 @@ Additionally, you can use the following options:
 | Option String | Option Summary | Default |
 |-------------------|----------|----------|
 |`show_opcodes_desc` | whether to display the description of the EVM opcodes in the disassembly | True |
-|`stop_on_returns` | whether you want `ethdbg` to always stop at RETURN opcodes | True |
+|`stop_on_returns` | whether you want `ethdbg` to always stop at RETURN opcodes | False |
 |`hide_sstores` | whether you want to hide the sstores issued for the current account in the context view | False |
 |`hide_sloads` | whether you want to hide the sloads issued for the current account in the context view| False |
 

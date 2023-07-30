@@ -11,7 +11,7 @@
 import sys
 import argparse
 from time import sleep
-from ethpwn.prelude import *
+from ethtools.pwn.prelude import *
 
 CONTRACT_SOURCE = '''
 // SPDX-License-Identifier: MIT
