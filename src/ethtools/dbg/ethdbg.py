@@ -1519,7 +1519,6 @@ def main():
     wallet_conf = get_wallet(args.wallet)
 
     # Check if we support the chain
-    import ipdb; ipdb.set_trace()
     if context.w3.eth.chain_id not in SUPPORTED_CHAINS:
         print(f'{RED_COLOR}Unsupported chain: [{context.w3.eth.chain_id}] {RESET_COLOR}')
         sys.exit(0)
