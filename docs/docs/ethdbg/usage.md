@@ -69,7 +69,7 @@ Which will simply set an RPC url for the debugging environment.
 
 | ❗️ Note                                                              |
 |----------------------------------------------------------------------|
-| Note that this file will be dropped on your filesystem in order to provide a template for a new user. |
+| This file will be dropped on your filesystem in order to provide a template config for a new user. This config is shared by `ethpwn` and `ethdbg`|
 
 Additionally, under the key `dbg` the following options are available:
 
@@ -82,7 +82,7 @@ Additionally, under the key `dbg` the following options are available:
 |`hide_source_view` | whether you want to display the Source View | True
 |`source_view_cutoff` | the amount of source code lines that are displayed | None |
 
-An example configuration would look like this:
+Examples configuration file would look like this:
 
 ```json
   "default_network": "mainnet",
@@ -100,6 +100,22 @@ An example configuration would look like this:
     "hide_source_view": false,
     "source_view_cutoff": 20
   }
+```
+
+```json
+  "default_network": "mainnet",
+  "default_node_urls": {
+    "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000",
+    "sepolia": "https://eth-sepolia.g.alchemy.com/v2/00000000000000000000000000000000"
+  },
+  "credentials": {
+    "etherscan": "<OPTIONAL_ETHERSCAN_API>"
+  },
+  "dbg": {
+    "hide_sloads": true,
+    "source_view_cutoff": 20
+  }
+}
 ```
 
 ## ⚡️ Command Line Arguments
