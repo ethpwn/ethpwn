@@ -308,7 +308,7 @@ class EthDbgShell(cmd.Cmd):
         self.sloads = {}
         self.hide_sloads = ethdbg_cfg['hide_sloads'] if 'hide_sloads' in ethdbg_cfg.keys() else False
 
-        # Weather we want to display the source code or not
+        # Whether we want to display the source code or not
         self.hide_source_view = ethdbg_cfg['hide_source_view'] if 'hide_source_view' in ethdbg_cfg.keys() else False
         self.src_cutoff = ethdbg_cfg['src_cutoff'] if 'src_cutoff' in ethdbg_cfg.keys() else None
 
@@ -1479,7 +1479,7 @@ def main():
 
     # parse optional argument
     parser.add_argument("--txid", help="address of the smart contract we are debugging", default=None)
-    parser.add_argument("--full-context", help="weather we should replay the previous txs before the target one", action='store_true')
+    parser.add_argument("--full-context", help="whether we should replay the previous txs before the target one", action='store_true')
     parser.add_argument("--sender", help="address of the sender", default=None)
     parser.add_argument("--balance", help="set a custom balance for the sender", default=None)
     parser.add_argument("--value",  help="amount of ETH to send", default=None)
