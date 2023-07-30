@@ -310,7 +310,8 @@ class EthDbgShell(cmd.Cmd):
 
         # Weather we want to display the source code or not
         self.hide_source_view = ethdbg_cfg['hide_source_view'] if 'hide_source_view' in ethdbg_cfg.keys() else False
-        
+        self.src_cutoff = ethdbg_cfg['src_cutoff'] if 'src_cutoff' in ethdbg_cfg.keys() else None
+
         # Debugger state
         # ==============
         #  Whether the debugger is running or not
@@ -1220,8 +1221,9 @@ class EthDbgShell(cmd.Cmd):
 
         # If we have a huge source view, this is probably imprecise
         # or it means we are in the dispatcher (which is fake), hide this.
-        if source and len(source.splitlines()) <= 20:
-            return title + '\n' + source
+        if source:
+            if self.src_cutoff is None or (self.src_cutoff and len(source.splitlines()) <= self.src_cutoff):
+                return title + '\n' + source
 
     def _get_storage_layout_view(self):
 
