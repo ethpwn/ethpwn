@@ -25,7 +25,7 @@ from ..global_context import context
 from ..utils import get_shared_prefix_len
 
 
-def configure_ethcx_for_pragma(pragma_line: str):
+def configure_ethcx_for_solidity_pragma(pragma_line: str):
     if pragma_line is None:
         return
 
@@ -111,7 +111,6 @@ class SolidityCompiler:
             "language": "Solidity",
             "sources": sources_entry,
             "settings": {
-                "viaIR": True,
                 "remappings": [
                     f"{key}={value}" for key, value in sorted(remappings.items())
                 ],
@@ -138,7 +137,7 @@ class SolidityCompiler:
         extra_import_remappings=None,
         **kwargs,
     ):
-        configure_ethcx_for_pragma(find_pragma_line(input_json))
+        configure_ethcx_for_solidity_pragma(find_pragma_line(input_json))
 
         if optimizer_settings is None:
             optimizer_settings = self.get_default_optimizer_settings()
@@ -171,7 +170,7 @@ class SolidityCompiler:
     ):
         pragma_lines = [find_pragma_line(s["content"]) for file, s in sources.items()]
 
-        configure_ethcx_for_pragma(merge_pragma_lines(pragma_lines))
+        configure_ethcx_for_solidity_pragma(merge_pragma_lines(pragma_lines))
 
         if optimizer_settings is None:
             optimizer_settings = self.get_default_optimizer_settings()
@@ -204,7 +203,7 @@ class SolidityCompiler:
     ):
         pragma_lines = get_pragma_lines(files)
         assert len(pragma_lines) <= 1, "Multiple solidity versions in files"
-        configure_ethcx_for_pragma(pragma_lines[0] if len(pragma_lines) == 1 else None)
+        configure_ethcx_for_solidity_pragma(pragma_lines[0] if len(pragma_lines) == 1 else None)
 
         if optimizer_settings is None:
             optimizer_settings = self.get_default_optimizer_settings()
@@ -225,6 +224,19 @@ class SolidityCompiler:
             allow_paths=self.get_allow_paths()
             + [os.path.dirname(file) for file in files],
             **kwargs,
+        )
+        return input_json, output_json
+
+    def compile_json(
+        self,
+        input_json: Dict[str, str],
+        **kwargs,
+    ):
+        assert kwargs.get('solc_version', None) is not None, "solc_version must be provided"
+        kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
+
+        output_json = ethcx.compile_solidity_standard(
+            input_json, allow_paths=self.get_allow_paths(), **kwargs
         )
         return input_json, output_json
 

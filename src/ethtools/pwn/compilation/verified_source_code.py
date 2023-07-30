@@ -163,16 +163,9 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
             # 'enabled' is not always present, see e.g. https://etherscan.io/address/0xC4B599043a5479398eb8Af387b1E36D9A924F8C2#code
             assert result['OptimizationUsed'] == opt_settings.get('enabled', False)
             assert result['Runs'] == opt_settings['runs']
-
-        sources = dict(input_json['sources'])
-        for source_path, source_data in input_json['sources'].items():
-            prefixes_to_trim = ['node_modules/', 'es/', 'lib/', 'contracts/']
-            for prefix in prefixes_to_trim:
-                if source_path.startswith(prefix):
-                    source_path = source_path[len(prefix):]
-                    sources[source_path] = source_data
-
-        CONTRACT_METADATA.add_sources_dict(sources, compiler=compiler, libraries=libraries, **compiler_kwargs)
+        assert libraries is None or input_json.get('settings', {}).get('libraries', None) == libraries
+        compiler_kwargs.pop('optimizer_settings', None)
+        CONTRACT_METADATA.add_standard_json(input_json, compiler=compiler, **compiler_kwargs)
     else:
         # solidity single-file version
         contract_name = result['ContractName']

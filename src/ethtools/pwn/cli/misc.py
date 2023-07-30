@@ -102,7 +102,7 @@ def fetch_verified_contract_at(address, api_key=None):
     the code-registry. If the contract is not verified, an error is raised. If the contract is
     already registered, it is returned.
     '''
-    return fetch_verified_contract_source(address, api_key=api_key)
+    return fetch_verified_contract_source(normalize_contract_address(address), api_key=api_key)
 
 @cmdline
 def decode_calldata(target_contract: HexBytes, calldata: HexBytes=None, tx_hash: HexBytes=None, guess: bool=False):

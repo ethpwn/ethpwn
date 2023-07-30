@@ -117,33 +117,13 @@ class ContractMetadata(Serializable):
         table.add_column("Inputs")
         table.add_column("Outputs")
         for entry in self.abi:
-            if entry['type'] == 'function':
-                table.add_row(
-                    entry['type'],
-                    entry['name'],
-                    entry['stateMutability'],
-                    ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
-                    ', '.join([f"{i['type']} {i['name']}" for i in entry['outputs']]),
-                )
-            elif entry['type'] == 'constructor':
-                table.add_row(
-                    entry['type'],
-                    '',
-                    entry['stateMutability'],
-                    ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
-                    '',
-                )
-            elif entry['type'] == 'event':
-                table.add_row(
-                    entry['type'],
-                    entry['name'],
-                    '',
-                    ', '.join([f"{i['type']} {i['name']}" for i in entry['inputs']]),
-                    '',
-                )
-
-            else:
-                assert False, f"Unknown ABI entry type: {entry['type']}"
+            table.add_row(
+                entry.get('type', None),
+                entry.get('name', None),
+                entry.get('stateMutability', None),
+                ', '.join([f"{i['type']} {i['name']}" for i in entry.get('inputs', [])]),
+                ', '.join([f"{i['type']} {i['name']}" for i in entry.get('outputs', [])]),
+            )
         return table
 
     def _rich_table_for_storage_layout(self, _console, _options):
@@ -473,6 +453,15 @@ class ContractMetadataRegistry:
         else:
             assert compiler == 'solc' or compiler is None
             result = self.solidity_compiler.compile_sources(sources, **kwargs)
+        self._process_compiler_output_json(result)
+
+    def add_standard_json(self, input_json: Dict, compiler: str = None, **kwargs):
+        result = None
+        if compiler == 'vyper':
+            result = self.vyper_compiler.compile_json(input_json, **kwargs)
+        else:
+            assert compiler == 'solc' or compiler is None
+            result = self.solidity_compiler.compile_json(input_json, **kwargs)
         self._process_compiler_output_json(result)
 
     def add_files(self, files: List[Union[str, Path]], compiler: str = None, **kwargs):
