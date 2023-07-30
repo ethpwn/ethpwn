@@ -111,6 +111,7 @@ class SolidityCompiler:
             "language": "Solidity",
             "sources": sources_entry,
             "settings": {
+                "viaIR": True,
                 "remappings": [
                     f"{key}={value}" for key, value in sorted(remappings.items())
                 ],
