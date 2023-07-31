@@ -79,4 +79,4 @@ classifiers = [
 
 [project.scripts]
 ethdbg = "ethpwn.dbg.ethdbg:main"
-ethpwn = "ethpwn.lib.cli:main"
+ethpwn = "ethpwn.ethlib.cli:main"
