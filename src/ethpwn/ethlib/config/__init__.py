@@ -6,23 +6,6 @@ from abc import ABC, abstractmethod
 
 from ..serialization_utils import serialize_to_file
 
-class EthpwnConfigurable(ABC):
-    @abstractmethod
-    def get_serializable_config(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def load_serialized_config(self, config):
-        raise NotImplementedError
-
-    @abstractmethod
-    def relative_config_path(self) -> Path:
-        raise NotImplementedError
-
-    def store_config(self):
-        path = pwn_config_root_dir() / self.relative_config_path()
-        serialize_to_file(self.get_serializable_config(), path)
-
 def ethpwn_config_root_dir() -> Path:
     dir = os.path.expanduser('~/.config/ethpwn/')
     os.makedirs(dir, exist_ok=True)
