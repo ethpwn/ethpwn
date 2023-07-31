@@ -8,7 +8,7 @@ allow-direct-references = true # to allow github dependencies
 [project]
 name = "ethtools"
 license = {text = "MIT License"}
-version = "0.0.0"
+version = "0.0.0-stable.0"
 authors = [
   { name="Lukas Dresel", email="Lukas-Dresel@noreply.github.com" },
   { name="Fabio Gritti", email="degrigis@ucsb.edu"}
