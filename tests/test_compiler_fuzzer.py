@@ -1,7 +1,7 @@
 # coding: utf-8
 import functools
 import logging
-from ethtools.pwn.prelude import *
+from ethpwn.lib.prelude import *
 from ethpwn.solidity_utils import *
 from rich import inspect, print
 

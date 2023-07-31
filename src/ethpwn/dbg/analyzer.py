@@ -46,7 +46,7 @@ from eth.vm.forks.paris.blocks import ParisBlockHeader
 
 from eth_account import Account
 import eth_account.signers.local
-from ..pwn.prelude import *
+from ..lib.prelude import *
 
 OpcodeHook = typing.Callable[[Opcode, ComputationAPI], typing.Any]
 
@@ -547,7 +547,7 @@ class Analyzer:
         return block
 
     def hook_vm(self, hook: typing.Callable[[Opcode, ComputationAPI], None] = None):
-        
+
         if hook is not None:
             # Extremely smart way to detect if stuff is already hooked, LOL.
             if "stub" in str(self.vm.state.computation_class.opcodes[0]):
@@ -570,7 +570,7 @@ class Analyzer:
                 else:
                     mnemonic = opcode.mnemonic
                     gas_cost = opcode.gas_cost
-                
+
                 def new_call(opcode=opcode, **kwargs): # use opcode=opcode to ensure it's bound to the func
                     return hook(opcode, **kwargs)
 
@@ -601,7 +601,7 @@ class Analyzer:
                         '__call__': new_invalid_call
                     }
                 )
-                self.vm.state.computation_class.invalid_opcode_class = stub_cls     
+                self.vm.state.computation_class.invalid_opcode_class = stub_cls
 
 
 def build_transaction(vm: VM, w3: web3.Web3, block_number: int, transaction_index: int) -> SignedTransactionMethods:
@@ -618,7 +618,7 @@ def get_vm_for_block(block_number: int, w3: web3.Web3 = None, hook: OpcodeHook =
     Construct the approprate VM for the given block number, and optionally insert the given hook
     to run after each instruction.
     """
-    global EVM_OLD_HANDLERS 
+    global EVM_OLD_HANDLERS
 
     if w3.eth.chain_id == eth.chains.mainnet.constants.MAINNET_CHAIN_ID:
 
@@ -648,7 +648,7 @@ def get_vm_for_block(block_number: int, w3: web3.Web3 = None, hook: OpcodeHook =
 
     if hook is None:
         return TargetVM
-    
+
     TargetStateClass = TargetVM.get_state_class()
 
     class MyComputationClass(TargetStateClass.computation_class):
@@ -694,7 +694,7 @@ def get_vm_for_block(block_number: int, w3: web3.Web3 = None, hook: OpcodeHook =
             else:
                 mnemonic = opcode.mnemonic
                 gas_cost = opcode.gas_cost
-            
+
             def new_call(opcode=opcode, **kwargs): # use opcode=opcode to ensure it's bound to the func
                 return hook(opcode, **kwargs)
 

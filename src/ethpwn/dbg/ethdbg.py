@@ -23,13 +23,13 @@ from rich import print as rich_print
 from rich.table import Table
 from rich.tree import Tree
 
-from ethtools.pwn.config.misc import get_default_node_url
+from ethpwn.lib.config.misc import get_default_node_url
 
 
-from ..pwn.prelude import *
-from ..pwn.utils import normalize_contract_address
-from ..pwn.config.wallets import get_wallet
-from ..pwn.config.dbg import DebugConfig
+from ..lib.prelude import *
+from ..lib.utils import normalize_contract_address
+from ..lib.config.wallets import get_wallet
+from ..lib.config.dbg import DebugConfig
 
 from .breakpoint import Breakpoint, ETH_ADDRESS
 from .analyzer import Analyzer

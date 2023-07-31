@@ -2,7 +2,7 @@
 from hexbytes import HexBytes
 import web3
 
-from ..pwn.utils import get_chain_name, get_chainid, to_snake_case
+from ..lib.utils import get_chain_name, get_chainid, to_snake_case
 from .ethdbg_exceptions import InvalidTargetException
 
 class TransactionDebugTarget:
@@ -254,7 +254,7 @@ class TransactionDebugTarget:
 
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
-    
+
         for k, v in kwargs.items():
             if v is not None:
                 setattr(self, k, v)

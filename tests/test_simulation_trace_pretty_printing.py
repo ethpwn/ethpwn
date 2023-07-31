@@ -1,5 +1,5 @@
 # coding: utf-8
-from ethtools.pwn.prelude import *
+from ethpwn.lib.prelude import *
 import time
 from web3.datastructures import AttributeDict
 

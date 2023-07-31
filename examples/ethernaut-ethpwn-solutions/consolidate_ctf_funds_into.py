@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import sys
-from ethtools.pwn.prelude import *
+from ethpwn.lib.prelude import *
 
 print("Current balance of wallets:")
 for address, wallet in all_wallets().items():

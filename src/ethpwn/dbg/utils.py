@@ -6,7 +6,7 @@ import struct
 import os
 
 from pathlib import Path
-from ..pwn.utils import ChainName
+from ..lib.utils import ChainName
 
 RED_COLOR = "\033[31m"
 GREEN_COLOR = "\033[32m"
@@ -71,7 +71,7 @@ def load_cmds_history():
         for cmd in cmds:
             if cmd not in unique_cmds:
                 unique_cmds.append(cmd)
-    
+
         # Overwrite the file
         with open(target_file, 'w') as f:
             f.write('\n'.join(unique_cmds))
@@ -99,7 +99,7 @@ def load_ethdbg_config():
         with open(target_file) as f:
             return json.load(f)
     else:
-        # create an empty config file 
+        # create an empty config file
         # with default values
         with open(target_file, 'w') as f:
             json.dump({
