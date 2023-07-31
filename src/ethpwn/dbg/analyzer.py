@@ -46,7 +46,7 @@ from eth.vm.forks.paris.blocks import ParisBlockHeader
 
 from eth_account import Account
 import eth_account.signers.local
-from ..lib.prelude import *
+from ..ethlib.prelude import *
 
 OpcodeHook = typing.Callable[[Opcode, ComputationAPI], typing.Any]
 

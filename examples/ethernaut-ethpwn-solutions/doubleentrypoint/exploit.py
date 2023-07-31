@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import sys
 from time import sleep
-from ethpwn.lib.prelude import *
+from ethpwn.ethlib.prelude import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('proxy_addr', type=str)

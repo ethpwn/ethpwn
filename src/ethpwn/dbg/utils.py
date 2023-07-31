@@ -6,7 +6,7 @@ import struct
 import os
 
 from pathlib import Path
-from ..lib.utils import ChainName
+from ..ethlib.utils import ChainName
 
 RED_COLOR = "\033[31m"
 GREEN_COLOR = "\033[32m"

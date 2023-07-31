@@ -18,7 +18,7 @@ from ansi.color.fg import red
 from rich.tree import Tree
 from rich.table import Table
 
-from ethpwn.lib.compilation.compiler_vyper import VyperCompiler
+from ethpwn.ethlib.compilation.compiler_vyper import VyperCompiler
 
 from .serialization_utils import Serializable
 from .transactions import transact
