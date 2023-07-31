@@ -52,11 +52,10 @@ def get_contract_for(contract_address: HexBytes):
     if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
         # try to fetch the verified contract
         try:
-            with ipdb.launch_ipdb_on_exception():
                 fetch_verified_contract_source(contract_address, None) # auto-detect etherscan api key and fetch the code
         except Exception as ex:
             # print traceback
-            traceback.print_exc()
+            #traceback.print_exc()
             print(f"Failed to fetch verified source code for {contract_address}: {ex}")
         FETCHED_VERIFIED_CONTRACTS.add(contract_address)
 
@@ -597,6 +596,7 @@ class EthDbgShell(cmd.Cmd):
             storage_view = self._get_storage_history_view()
             print(storage_view)
 
+    @only_when_started
     def do_storageat(self, arg):
         if not arg:
             print("Usage: storageat [<address>:]<slot>[:<count>]")
@@ -610,16 +610,15 @@ class EthDbgShell(cmd.Cmd):
         else:
             address = self.comp.msg.storage_address if self.started else self.debug_target.target_address
             slot = int(arg, 16)
+
         try:
-            if self.started:
-                value_read = self.comp.state.get_storage(address, slot)
-            else:
-                value_read = self.w3.eth.get_storage_at(address, slot, self.debug_target.block_number)
+            value_read = self.comp.state.get_storage(address, slot)
         except Exception as e:
             print("Something went wrong while fetching storage:")
             print(f' Error: {RED_COLOR}{e}{RESET_COLOR}')
 
         value_read = "0x" + hex(value_read).replace("0x",'').zfill(64)
+
         print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {hex(slot)} | Value: {value_read}')
 
     def do_callhistory(self, arg):
@@ -898,7 +897,7 @@ class EthDbgShell(cmd.Cmd):
         legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Name ]\n'
         for call in self.callstack[::-1]:
             calltype_string = f'{call.calltype}'
-            if call.calltype == "CALL":
+            if call.calltype == "CALL" or call.calltype == "CREATE2":
                 color = PURPLE_COLOR
             elif call.calltype == "DELEGATECALL" or call.calltype == "CODECALL":
                 color = RED_COLOR
@@ -1423,8 +1422,11 @@ class EthDbgShell(cmd.Cmd):
                 code_offset = hex(read_stack_int(computation, 2))
                 code_size = hex(read_stack_int(computation, 3))
 
+                # calculate the target address as per specification
+                contract_address = calculate_create_contract_address(self.w3, computation.msg.sender, computation.transaction_context.nonce)
+
                 new_callframe = CallFrame(
-                    normalize_contract_address(0x0),
+                    normalize_contract_address(addr),
                     normalize_contract_address(computation.msg.code_address),
                     normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
@@ -1432,7 +1434,7 @@ class EthDbgShell(cmd.Cmd):
                     hex(pc)
                 )
                 self.callstack.append(new_callframe)
-                new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE{RESET_COLOR} 0x0")
+                new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE{RESET_COLOR} {contract_address}")
                 self.curr_tree_node = new_tree_node
                 self.list_tree_nodes.append(new_tree_node)
 
@@ -1440,10 +1442,14 @@ class EthDbgShell(cmd.Cmd):
                 contract_value = hex(read_stack_int(computation, 1))
                 code_offset = hex(read_stack_int(computation, 2))
                 code_size = hex(read_stack_int(computation, 3))
-                salt = hex(read_stack_int(computation, 4))
+                salt = read_stack_bytes(computation, 4)
+
+                contract_address = calculate_create2_contract_address(self.w3, computation.msg.code_address, salt,
+                                                                    self.comp._memory.read(int(code_offset,16),
+                                                                                           int(code_size,16)).tobytes())
 
                 new_callframe = CallFrame(
-                    normalize_contract_address(0x0),
+                    normalize_contract_address(contract_address),
                     normalize_contract_address(computation.msg.code_address),
                     normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
@@ -1451,7 +1457,7 @@ class EthDbgShell(cmd.Cmd):
                     hex(pc)
                 )
                 self.callstack.append(new_callframe)
-                new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE2{RESET_COLOR} 0x0")
+                new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE2{RESET_COLOR} {contract_address}")
                 self.curr_tree_node = new_tree_node
                 self.list_tree_nodes.append(new_tree_node)
 

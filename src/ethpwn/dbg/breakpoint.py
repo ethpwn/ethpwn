@@ -168,7 +168,7 @@ class Breakpoint():
                     expr = f'{msg_val} {when} {last_frame.value}'
                     if not eval(expr):
                         return False
-                    
+
                 elif what == 'gas_remaining':
                     gas_remaining = comp.get_gas_remaining() + comp.get_gas_refund()
                     expr = f'{gas_remaining} {when} {int(value, 0)}'

@@ -196,6 +196,7 @@ ALL_EVM_OPCODES = [
      'LOG3',
      'LOG4',
      'CREATE',
+     'CREATE2',
      'CALL',
      'CALLCODE',
      'RETURN',

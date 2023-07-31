@@ -116,3 +116,28 @@ def read_stack_int(computation, pos: int) -> int:
     if val_type == bytes:
         val = int.from_bytes(val, byteorder='big', signed=False)
     return val
+
+def read_stack_bytes(computation, pos: int) -> int:
+    """
+    Read a value from the stack on the given computation, at the given position (1 = top)
+    """
+    _, val = computation._stack.values[-pos]
+    return val
+
+
+def calculate_create_contract_address(w3, sender_address, nonce):
+    assert(False)
+
+
+def calculate_create2_contract_address(w3, sender_address, salt, init_code_bytes):
+    # Convert the sender address to bytes
+    pre = '0xff'
+    arg1 = bytes.fromhex(pre[2:])
+    arg2 = sender_address
+    arg3 = salt
+    arg4 = init_code_bytes
+
+    keccak_b_code = w3.keccak(arg4)
+    b_result = w3.keccak(arg1+arg2+arg3+keccak_b_code)
+    contract_address = w3.to_checksum_address(b_result[12:].hex())
+    return contract_address
