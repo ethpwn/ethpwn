@@ -46,3 +46,26 @@ def set_default_node_url(node_url, network='mainnet'):
     '''
     from . import GLOBAL_CONFIG
     GLOBAL_CONFIG['default_node_urls'][network] = node_url
+
+COMPILER_WARNING_LEVELS = ['none', 'error', 'warning', 'info', 'debug']
+def get_compiler_message_log_level():
+    '''
+    Get the logging level for compiler warnings
+    '''
+    from . import GLOBAL_CONFIG
+    return GLOBAL_CONFIG.get('compiler_message_log_level', 'error')
+
+def set_compiler_message_log_level(level):
+    '''
+    Set the logging level for compiler warnings
+    '''
+    from . import GLOBAL_CONFIG
+    assert level in COMPILER_WARNING_LEVELS
+    GLOBAL_CONFIG['compiler_message_log_level'] = level
+
+def should_log_compiler_message(level):
+    '''
+    Check whether a compiler warning of the given level should be logged
+    '''
+    warn_level = get_compiler_message_log_level()
+    return COMPILER_WARNING_LEVELS.index(level) <= COMPILER_WARNING_LEVELS.index(warn_level)

@@ -13,7 +13,7 @@ from time import sleep
 from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union
 from hexbytes import HexBytes
 from web3.contract import Contract
-from ansi.color.fx import reset, bold, faint as dim
+from ansi.color.fx import reset, bold
 from ansi.color.fg import red
 from rich.tree import Tree
 from rich.table import Table
@@ -23,6 +23,8 @@ from ethpwn.ethlib.compilation.compiler_vyper import VyperCompiler
 from .serialization_utils import Serializable
 from .transactions import transact
 from .global_context import context
+
+from .config.misc import should_log_compiler_message
 from .compilation.srcmap import SymbolizedSourceMap, InstructionSourceInfo
 from .compilation.compiler_solidity import SolidityCompiler
 from .compilation.compiler_vyper import VyperCompiler
@@ -522,11 +524,12 @@ class ContractMetadataRegistry:
         '''
         compilation_error = False
         for error in output_json.get('errors', []):
-            log = getattr(context.logger, error['severity'], context.logger.info)
-            # import ipdb; ipdb.set_trace()
-            log(f"# {red}{bold}{error['severity'].upper()}:{error['type']} {error['formattedMessage']}{reset}")
-            for location in error.get('secondarySourceLocations', []):
-                log(f"    {location['file']}:{location['start']}:{location['end']}: {location['message']}")
+            if should_log_compiler_message(error['severity']):
+                log = getattr(context.logger, error['severity'], context.logger.info)
+                # import ipdb; ipdb.set_trace()
+                log(f"# {red}{bold}{error['severity'].upper()}:{error['type']} {error['formattedMessage']}{reset}")
+                for location in error.get('secondarySourceLocations', []):
+                    log(f"    {location['file']}:{location['start']}:{location['end']}: {location['message']}")
             if error['severity'] == 'error':
                 compilation_error = True
         if compilation_error:
