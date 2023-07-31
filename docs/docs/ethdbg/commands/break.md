@@ -35,6 +35,7 @@ Currently we support the following `<what>` and `<when>`:
 |`addr`  | specify what is the value of the code address executing        | 
 |`saddr` | specify what is the value of the storage address executing     | 
 |`value` | stop when a particular amount of ETH is sent as part of a CALL | 
+|`gas_remaining` | stop when a specific value of gas is remaining         |
 
 | ❗️ Note                               | 
 |------------------------------------------|

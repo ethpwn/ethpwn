@@ -84,7 +84,7 @@ Additionally, under the key `dbg` the following options are available:
 |`hide_source_view` | whether you want to display the Source View | True |
 |`source_view_cutoff` | the amount of source code lines that are displayed | None |
 
-An examples configuration file would look like this:
+Here two possible configuration files:
 
 ```json
 {

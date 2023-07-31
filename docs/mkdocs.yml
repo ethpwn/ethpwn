@@ -32,6 +32,7 @@ nav:
       - sloads: ethdbg/commands/sloads.md
       - sstores: ethdbg/commands/sstores.md
       - storageat: ethdbg/commands/storageat.md
+      - storagelayout: ethdbg/commands/storagelayout.md
       - callhistory: ethdbg/commands/callhistory.md
       - ethtowei: ethdbg/commands/ethtowei.md
       - weitoeth: ethdbg/commands/weitoeth.md
