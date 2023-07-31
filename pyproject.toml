@@ -25,10 +25,9 @@ dependencies = [
     "virtualenv",
     "ipdb",
 
-    # pyevmasm from github, not pypi
-    "pyevmasm @ git+https://github.com/ethpwn/pyevmasm.git",
-    "ethcx @ git+https://github.com/ethpwn/ethcx.git",
-    "py-evm @ git+https://github.com/ucsb-seclab/py-evm.git",
+    "ethcx",
+    "ethtools-py-evm",
+    "ethtools-pyevmasm",
 
     "ansi",
     "rich",
