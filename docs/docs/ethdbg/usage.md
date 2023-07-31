@@ -81,7 +81,7 @@ Additionally, under the key `dbg` the following options are available:
 |`stop_on_reverts` | whether you want `ethdbg` to always stop at REVERT opcodes | True |
 |`hide_sstores` | whether you want to hide the sstores issued for the current account in the context view | False |
 |`hide_sloads` | whether you want to hide the sloads issued for the current account in the context view | False |
-|`hide_source_view` | whether you want to display the Source View | True |
+|`hide_source_view` | whether you want to display the Source View | False |
 |`source_view_cutoff` | the amount of source code lines that are displayed | None |
 
 Here two possible configuration files:
