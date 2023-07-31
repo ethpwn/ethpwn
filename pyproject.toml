@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 allow-direct-references = true # to allow github dependencies
 
 [project]
-name = "ethtools"
+name = "ethpwn"
 license = {text = "MIT License"}
 version = "0.0.1"
 authors = [
@@ -26,8 +26,8 @@ dependencies = [
     "ipdb",
 
     "ethcx",
-    "ethtools-py-evm",
-    "ethtools-pyevmasm",
+    "ethpwn-py-evm",
+    "ethpwn-pyevmasm",
 
     "ansi",
     "rich",
