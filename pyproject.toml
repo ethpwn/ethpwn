@@ -78,5 +78,5 @@ classifiers = [
 "Bug Tracker" = "https://github.com/ethpwn/ethtools/issues"
 
 [project.scripts]
-ethdbg = "ethtools.dbg.ethdbg:main"
-ethpwn = "ethtools.pwn.cli:main"
+ethdbg = "ethpwn.dbg.ethdbg:main"
+ethpwn = "ethpwn.lib.cli:main"
