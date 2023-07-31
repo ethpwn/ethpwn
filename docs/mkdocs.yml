@@ -44,12 +44,13 @@ nav:
       - ethpwn.ethlib.contract_registry: ethpwn/modules/contract_registry.md
       - ethpwn.ethlib.contract_metadata: ethpwn/modules/contract_metadata.md
       - ethpwn.ethlib.transactions: ethpwn/modules/transactions.md
-      - ethpwn.ethlib.srcmap: ethpwn/modules/srcmap.md
       - ethpwn.ethlib.hashes: ethpwn/modules/hashes.md
-      - ethpwn.ethlib.solidity_utils: ethpwn/modules/solidity_utils.md
       - ethpwn.ethlib.assembly_utils: ethpwn/modules/assembly_utils.md
       - ethpwn.ethlib.currency_utils: ethpwn/modules/currency_utils.md
-      - ethpwn.ethlib.alchemy_utils: ethpwn/modules/alchemy_utils.md
+      - ethpwn.ethlib.cli: ethpwn/modules/cli.md
+      - ethpwn.ethlib.compilation: ethpwn/modules/compilation.md
+      - ethpwn.ethlib.config: ethpwn/modules/config.md
+      - ethpwn.ethlib.prelude: ethpwn/modules/prelude.md
       - ethpwn.ethlib.serialization_utils: ethpwn/modules/serialization_utils.md
       - ethpwn.ethlib.utils: ethpwn/modules/utils.md
     - Showroom: ethpwn/showroom.md
