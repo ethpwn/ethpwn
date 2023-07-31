@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 from ..serialization_utils import serialize_to_file
 
-class EthtoolsConfigurable(ABC):
+class EthpwnConfigurable(ABC):
     @abstractmethod
     def get_serializable_config(self):
         raise NotImplementedError
@@ -23,34 +23,29 @@ class EthtoolsConfigurable(ABC):
         path = pwn_config_root_dir() / self.relative_config_path()
         serialize_to_file(self.get_serializable_config(), path)
 
-def ethtools_config_root_dir() -> Path:
-    dir = os.path.expanduser('~/.config/ethtools/')
-    os.makedirs(dir, exist_ok=True)
-    return Path(dir)
-
-def pwn_config_root_dir() -> Path:
-    dir = os.path.expanduser('~/.config/ethtools/pwn/')
+def ethpwn_config_root_dir() -> Path:
+    dir = os.path.expanduser('~/.config/ethpwn/')
     os.makedirs(dir, exist_ok=True)
     return Path(dir)
 
 def dbg_config_root_dir():
-    dir = os.path.expanduser('~/.config/ethtools/dbg/')
+    dir = os.path.expanduser('~/.config/ethpwn/dbg/')
     os.makedirs(dir, exist_ok=True)
     return dir
 
 def get_default_wallet_path() -> Path:
-    return ethtools_config_root_dir() / 'wallets.json'
+    return ethpwn_config_root_dir() / 'wallets.json'
 
 def get_default_global_config_path() -> Path:
-    return ethtools_config_root_dir() / 'config.json'
+    return ethpwn_config_root_dir() / 'config.json'
 
 def get_logged_deployed_contracts_dir() -> Path:
-    d = pwn_config_root_dir() / 'deployed_contracts'
+    d = ethpwn_config_root_dir() / 'deployed_contracts'
     d.mkdir(parents=True, exist_ok=True)
     return d
 
 def get_contract_registry_dir() -> Path:
-    d = pwn_config_root_dir() / 'contract_registry'
+    d = ethpwn_config_root_dir() / 'contract_registry'
     d.mkdir(parents=True, exist_ok=True)
     return d
 

@@ -1,11 +1,11 @@
-# ethtools
+# ethpwn
 Tooling to make interacting with the Ethereum ecosystem less painful
 
-# INSTALL 
+# INSTALL
 
 ```
-1. git clone git@github.com:shellphish/ethtools.git && pip install -e ethtools/pwn
-2. touch ~/.config/ethtools/wallets.json
+1. git clone git@github.com:shellphish/ethpwn.git && pip install -e ethpwn
+2. touch ~/.config/ethpwn/wallets.json
 
 The wallets.json file should be:
 

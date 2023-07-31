@@ -1,30 +1,30 @@
 # Table of Contents
 
-* [ethtools.pwn.contract\_registry](#ethtools.pwn.contract_registry)
-  * [best\_effort\_get\_contract\_address\_and\_tx\_hash\_and\_receipt](#ethtools.pwn.contract_registry.best_effort_get_contract_address_and_tx_hash_and_receipt)
-  * [Contract](#ethtools.pwn.contract_registry.Contract)
-    * [to\_serializable](#ethtools.pwn.contract_registry.Contract.to_serializable)
-    * [w3](#ethtools.pwn.contract_registry.Contract.w3)
-    * [merge](#ethtools.pwn.contract_registry.Contract.merge)
-    * [update](#ethtools.pwn.contract_registry.Contract.update)
-  * [ContractRegistry](#ethtools.pwn.contract_registry.ContractRegistry)
-    * [register\_contract\_metadata](#ethtools.pwn.contract_registry.ContractRegistry.register_contract_metadata)
-    * [\_\_contains\_\_](#ethtools.pwn.contract_registry.ContractRegistry.__contains__)
-    * [\_\_getitem\_\_](#ethtools.pwn.contract_registry.ContractRegistry.__getitem__)
-    * [get](#ethtools.pwn.contract_registry.ContractRegistry.get)
-    * [store](#ethtools.pwn.contract_registry.ContractRegistry.store)
-    * [load](#ethtools.pwn.contract_registry.ContractRegistry.load)
-  * [contract\_registry](#ethtools.pwn.contract_registry.contract_registry)
-  * [load\_or\_create\_contract\_registry](#ethtools.pwn.contract_registry.load_or_create_contract_registry)
-  * [register\_deployed\_contract](#ethtools.pwn.contract_registry.register_deployed_contract)
-  * [register\_contract\_at\_address](#ethtools.pwn.contract_registry.register_contract_at_address)
-  * [decode\_function\_input](#ethtools.pwn.contract_registry.decode_function_input)
+* [ethpwn.ethlib.contract\_registry](#ethpwn.ethlib.contract_registry)
+  * [best\_effort\_get\_contract\_address\_and\_tx\_hash\_and\_receipt](#ethpwn.ethlib.contract_registry.best_effort_get_contract_address_and_tx_hash_and_receipt)
+  * [Contract](#ethpwn.ethlib.contract_registry.Contract)
+    * [to\_serializable](#ethpwn.ethlib.contract_registry.Contract.to_serializable)
+    * [w3](#ethpwn.ethlib.contract_registry.Contract.w3)
+    * [merge](#ethpwn.ethlib.contract_registry.Contract.merge)
+    * [update](#ethpwn.ethlib.contract_registry.Contract.update)
+  * [ContractRegistry](#ethpwn.ethlib.contract_registry.ContractRegistry)
+    * [register\_contract\_metadata](#ethpwn.ethlib.contract_registry.ContractRegistry.register_contract_metadata)
+    * [\_\_contains\_\_](#ethpwn.ethlib.contract_registry.ContractRegistry.__contains__)
+    * [\_\_getitem\_\_](#ethpwn.ethlib.contract_registry.ContractRegistry.__getitem__)
+    * [get](#ethpwn.ethlib.contract_registry.ContractRegistry.get)
+    * [store](#ethpwn.ethlib.contract_registry.ContractRegistry.store)
+    * [load](#ethpwn.ethlib.contract_registry.ContractRegistry.load)
+  * [contract\_registry](#ethpwn.ethlib.contract_registry.contract_registry)
+  * [load\_or\_create\_contract\_registry](#ethpwn.ethlib.contract_registry.load_or_create_contract_registry)
+  * [register\_deployed\_contract](#ethpwn.ethlib.contract_registry.register_deployed_contract)
+  * [register\_contract\_at\_address](#ethpwn.ethlib.contract_registry.register_contract_at_address)
+  * [decode\_function\_input](#ethpwn.ethlib.contract_registry.decode_function_input)
 
-<a id="ethtools.pwn.contract_registry"></a>
+<a id="ethpwn.ethlib.contract_registry"></a>
 
-# ethtools.pwn.contract\_registry
+# ethpwn.ethlib.contract\_registry
 
-<a id="ethtools.pwn.contract_registry.best_effort_get_contract_address_and_tx_hash_and_receipt"></a>
+<a id="ethpwn.ethlib.contract_registry.best_effort_get_contract_address_and_tx_hash_and_receipt"></a>
 
 #### best\_effort\_get\_contract\_address\_and\_tx\_hash\_and\_receipt
 
@@ -48,7 +48,7 @@ However, with either of the two we can obtain all three.
 
 A tuple of (contract_address, tx_hash, tx_receipt)
 
-<a id="ethtools.pwn.contract_registry.Contract"></a>
+<a id="ethpwn.ethlib.contract_registry.Contract"></a>
 
 ## Contract Objects
 
@@ -56,9 +56,9 @@ A tuple of (contract_address, tx_hash, tx_receipt)
 class Contract(Serializable)
 ```
 
-Represents a contract that has been deployed to the blockchain. Binds a contract address to its metadata, associated transaction hash and receipt, and the deployment wallet if it was self-deployed by ethtools (e.g. via `deploy`).
+Represents a contract that has been deployed to the blockchain. Binds a contract address to its metadata, associated transaction hash and receipt, and the deployment wallet if it was self-deployed by ethpwn (e.g. via `deploy`).
 
-<a id="ethtools.pwn.contract_registry.Contract.to_serializable"></a>
+<a id="ethpwn.ethlib.contract_registry.Contract.to_serializable"></a>
 
 #### to\_serializable
 
@@ -70,7 +70,7 @@ def to_serializable()
 
 A dictionary that can be serialized to JSON
 
-<a id="ethtools.pwn.contract_registry.Contract.w3"></a>
+<a id="ethpwn.ethlib.contract_registry.Contract.w3"></a>
 
 #### w3
 
@@ -84,7 +84,7 @@ Get a web3 contract object for this contract. Automatically has the correct ABI 
 
 The web3 contract object
 
-<a id="ethtools.pwn.contract_registry.Contract.merge"></a>
+<a id="ethpwn.ethlib.contract_registry.Contract.merge"></a>
 
 #### merge
 
@@ -94,7 +94,7 @@ def merge(other: 'Contract') -> bool
 
 Merge the given contract into this contract. Ensures changes are compatible, e.g. if the address is already set, it cannot be changed. Information can only be added. See `update()` for more details.
 
-<a id="ethtools.pwn.contract_registry.Contract.update"></a>
+<a id="ethpwn.ethlib.contract_registry.Contract.update"></a>
 
 #### update
 
@@ -122,7 +122,7 @@ e.g. if the address is already set, it cannot be changed. Information can only b
 
 True if any value was changed, False otherwise
 
-<a id="ethtools.pwn.contract_registry.ContractRegistry"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry"></a>
 
 ## ContractRegistry Objects
 
@@ -131,17 +131,17 @@ class ContractRegistry()
 ```
 
 A registry of contracts. Maps contract addresses to contract objects which hold metadata, transaction hash
-and receipt, and the deployment wallet of each contract (if self-deployed by ethtools (e.g. via `deploy`).
+and receipt, and the deployment wallet of each contract (if self-deployed by ethpwn (e.g. via `deploy`).
 
 Serialized to the local configuration directory to ensure persistence across runs. This allows us to remember contracts
 we've deployed in the past, and also to remember contracts we've interacted with in the past (e.g. via `call`,
 `transact` or seen in `ethdbg`).f
 
-In the future we plan on having a global contract registry that is shared across all users of ethtools that users
+In the future we plan on having a global contract registry that is shared across all users of ethpwn that users
 can opt into. This will allows us to collect a superset of verified contracts that can be used to automatically
 populate the local contract registry if the user did not have them available locally.
 
-<a id="ethtools.pwn.contract_registry.ContractRegistry.register_contract_metadata"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry.register_contract_metadata"></a>
 
 #### register\_contract\_metadata
 
@@ -158,7 +158,7 @@ updated / merged with the new information.
 
 If a contract is newly registered, the registry is automatically saved back to disk.
 
-<a id="ethtools.pwn.contract_registry.ContractRegistry.__contains__"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry.__contains__"></a>
 
 #### \_\_contains\_\_
 
@@ -172,7 +172,7 @@ Check if the given contract address has registered metadata available in the reg
 
 - `contract_address`: The address of the contract
 
-<a id="ethtools.pwn.contract_registry.ContractRegistry.__getitem__"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry.__getitem__"></a>
 
 #### \_\_getitem\_\_
 
@@ -183,7 +183,7 @@ def __getitem__(contract_address) -> Contract
 Get the registered metadata for the given contract address (if any). Throws an exception if no metadata is
 registered for the given contract address.
 
-<a id="ethtools.pwn.contract_registry.ContractRegistry.get"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry.get"></a>
 
 #### get
 
@@ -194,7 +194,7 @@ def get(contract_address, default=None) -> Contract
 Get the registered metadata for the given contract address (if any). Returns the given default value if no
 metadata is registered for the given contract address.
 
-<a id="ethtools.pwn.contract_registry.ContractRegistry.store"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry.store"></a>
 
 #### store
 
@@ -205,7 +205,7 @@ def store(contract_registry_dir)
 Store the registry to the given directory. Creates the directory if it does not exist.
 Stores each contract metadata to `contract_registry_dir/<address>.json`.
 
-<a id="ethtools.pwn.contract_registry.ContractRegistry.load"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry.load"></a>
 
 #### load
 
@@ -216,7 +216,7 @@ def load(contract_registry_dir) -> 'ContractRegistry'
 
 Load the registry from the given directory. Loads each contract metadata from `contract_registry_dir/<address>.json`.
 
-<a id="ethtools.pwn.contract_registry.contract_registry"></a>
+<a id="ethpwn.ethlib.contract_registry.contract_registry"></a>
 
 #### contract\_registry
 
@@ -226,7 +226,7 @@ def contract_registry() -> ContractRegistry
 
 Get the global contract registry. Loads the registry from disk if it is not already loaded.
 
-<a id="ethtools.pwn.contract_registry.load_or_create_contract_registry"></a>
+<a id="ethpwn.ethlib.contract_registry.load_or_create_contract_registry"></a>
 
 #### load\_or\_create\_contract\_registry
 
@@ -236,7 +236,7 @@ def load_or_create_contract_registry() -> ContractRegistry
 
 Load the contract registry from disk if it exists, or create a new one if it does not exist.
 
-<a id="ethtools.pwn.contract_registry.register_deployed_contract"></a>
+<a id="ethpwn.ethlib.contract_registry.register_deployed_contract"></a>
 
 #### register\_deployed\_contract
 
@@ -250,7 +250,7 @@ def register_deployed_contract(metadata,
 Helper function to easily register a deployed contract. If the contract is already registered, it is
 updated / merged with the new information.
 
-<a id="ethtools.pwn.contract_registry.register_contract_at_address"></a>
+<a id="ethpwn.ethlib.contract_registry.register_contract_at_address"></a>
 
 #### register\_contract\_at\_address
 
@@ -261,7 +261,7 @@ def register_contract_at_address(metadata, address)
 Helper function to easily register a contract at a given address. If the contract is already registered, it is
 updated / merged with the new information.
 
-<a id="ethtools.pwn.contract_registry.decode_function_input"></a>
+<a id="ethpwn.ethlib.contract_registry.decode_function_input"></a>
 
 #### decode\_function\_input
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ~/.virtualenvs/ethtools-build/bin/activate
+source ~/.virtualenvs/ethpwn-build/bin/activate
 
 python3 -m build
 

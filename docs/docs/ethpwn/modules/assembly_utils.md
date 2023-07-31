@@ -1,25 +1,25 @@
 # Table of Contents
 
-* [ethtools.pwn.assembly\_utils](#ethtools.pwn.assembly_utils)
-  * [value\_to\_smallest\_hexbytes](#ethtools.pwn.assembly_utils.value_to_smallest_hexbytes)
-  * [asm\_push\_value](#ethtools.pwn.assembly_utils.asm_push_value)
-  * [asm\_codecopy](#ethtools.pwn.assembly_utils.asm_codecopy)
-  * [asm\_return](#ethtools.pwn.assembly_utils.asm_return)
-  * [asm\_mstore](#ethtools.pwn.assembly_utils.asm_mstore)
-  * [asm\_mload](#ethtools.pwn.assembly_utils.asm_mload)
-  * [asm\_sstore](#ethtools.pwn.assembly_utils.asm_sstore)
-  * [asm\_sload](#ethtools.pwn.assembly_utils.asm_sload)
-  * [create\_shellcode\_deployer\_bin](#ethtools.pwn.assembly_utils.create_shellcode_deployer_bin)
-  * [disassemble\_pro](#ethtools.pwn.assembly_utils.disassemble_pro)
+* [ethpwn.ethlib.assembly\_utils](#ethpwn.ethlib.assembly_utils)
+  * [value\_to\_smallest\_hexbytes](#ethpwn.ethlib.assembly_utils.value_to_smallest_hexbytes)
+  * [asm\_push\_value](#ethpwn.ethlib.assembly_utils.asm_push_value)
+  * [asm\_codecopy](#ethpwn.ethlib.assembly_utils.asm_codecopy)
+  * [asm\_return](#ethpwn.ethlib.assembly_utils.asm_return)
+  * [asm\_mstore](#ethpwn.ethlib.assembly_utils.asm_mstore)
+  * [asm\_mload](#ethpwn.ethlib.assembly_utils.asm_mload)
+  * [asm\_sstore](#ethpwn.ethlib.assembly_utils.asm_sstore)
+  * [asm\_sload](#ethpwn.ethlib.assembly_utils.asm_sload)
+  * [create\_shellcode\_deployer\_bin](#ethpwn.ethlib.assembly_utils.create_shellcode_deployer_bin)
+  * [disassemble\_pro](#ethpwn.ethlib.assembly_utils.disassemble_pro)
 
-<a id="ethtools.pwn.assembly_utils"></a>
+<a id="ethpwn.ethlib.assembly_utils"></a>
 
-# ethtools.pwn.assembly\_utils
+# ethpwn.ethlib.assembly\_utils
 
 Module containing utility functions for assembling and disassembling EVM bytecode manually
 and automatically.
 
-<a id="ethtools.pwn.assembly_utils.value_to_smallest_hexbytes"></a>
+<a id="ethpwn.ethlib.assembly_utils.value_to_smallest_hexbytes"></a>
 
 #### value\_to\_smallest\_hexbytes
 
@@ -29,7 +29,7 @@ def value_to_smallest_hexbytes(value)
 
 Convert an integer to the smallest possible hexbytes
 
-<a id="ethtools.pwn.assembly_utils.asm_push_value"></a>
+<a id="ethpwn.ethlib.assembly_utils.asm_push_value"></a>
 
 #### asm\_push\_value
 
@@ -39,7 +39,7 @@ def asm_push_value(value)
 
 Push value to the stack
 
-<a id="ethtools.pwn.assembly_utils.asm_codecopy"></a>
+<a id="ethpwn.ethlib.assembly_utils.asm_codecopy"></a>
 
 #### asm\_codecopy
 
@@ -49,7 +49,7 @@ def asm_codecopy(dst, src, size)
 
 Copy code from src to dst
 
-<a id="ethtools.pwn.assembly_utils.asm_return"></a>
+<a id="ethpwn.ethlib.assembly_utils.asm_return"></a>
 
 #### asm\_return
 
@@ -59,7 +59,7 @@ def asm_return(mem_offset, length)
 
 Return a value from memory
 
-<a id="ethtools.pwn.assembly_utils.asm_mstore"></a>
+<a id="ethpwn.ethlib.assembly_utils.asm_mstore"></a>
 
 #### asm\_mstore
 
@@ -69,7 +69,7 @@ def asm_mstore(mem_offset, value)
 
 Store value at key
 
-<a id="ethtools.pwn.assembly_utils.asm_mload"></a>
+<a id="ethpwn.ethlib.assembly_utils.asm_mload"></a>
 
 #### asm\_mload
 
@@ -79,7 +79,7 @@ def asm_mload(mem_offset)
 
 Load value at key
 
-<a id="ethtools.pwn.assembly_utils.asm_sstore"></a>
+<a id="ethpwn.ethlib.assembly_utils.asm_sstore"></a>
 
 #### asm\_sstore
 
@@ -89,7 +89,7 @@ def asm_sstore(key, value)
 
 Store value at key
 
-<a id="ethtools.pwn.assembly_utils.asm_sload"></a>
+<a id="ethpwn.ethlib.assembly_utils.asm_sload"></a>
 
 #### asm\_sload
 
@@ -99,7 +99,7 @@ def asm_sload(key)
 
 Load value at key
 
-<a id="ethtools.pwn.assembly_utils.create_shellcode_deployer_bin"></a>
+<a id="ethpwn.ethlib.assembly_utils.create_shellcode_deployer_bin"></a>
 
 #### create\_shellcode\_deployer\_bin
 
@@ -109,7 +109,7 @@ def create_shellcode_deployer_bin(shellcode)
 
 Create a contract that deploys shellcode at a specific address
 
-<a id="ethtools.pwn.assembly_utils.disassemble_pro"></a>
+<a id="ethpwn.ethlib.assembly_utils.disassemble_pro"></a>
 
 #### disassemble\_pro
 

@@ -1,8 +1,8 @@
-<a id="ethtools.pwn.solidity_utils"></a>
+<a id="ethpwn.ethlib.solidity_utils"></a>
 
-# ethtools.pwn.solidity\_utils
+# ethpwn.ethlib.solidity\_utils
 
-<a id="ethtools.pwn.solidity_utils.decode_solidity_metadata_from_bytecode"></a>
+<a id="ethpwn.ethlib.solidity_utils.decode_solidity_metadata_from_bytecode"></a>
 
 #### decode\_solidity\_metadata\_from\_bytecode
 
@@ -14,7 +14,7 @@ Decodes the CBOR encoded solidity compiler metadata appended to the bytecode.
 Should include at least the IPFS hash and the solc version, but may include
 other information as well.
 
-<a id="ethtools.pwn.solidity_utils.try_match_optimizer_settings"></a>
+<a id="ethpwn.ethlib.solidity_utils.try_match_optimizer_settings"></a>
 
 #### try\_match\_optimizer\_settings
 
@@ -32,7 +32,7 @@ Tries to match the optimizer settings of the given contract to the given bytecod
 compiling the contract with different optimizer settings until a match is found.
 
 ```
-from ethtools.pwn.prelude import *
+from ethpwn import *
 
 compiler = SolidityCompiler()
 do_compile = functools.partial(compiler.compile_files, ['contracts/MyContract.sol'])

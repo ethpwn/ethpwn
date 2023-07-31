@@ -50,7 +50,7 @@ def best_effort_get_contract_address_and_tx_hash_and_receipt(contract_address=No
 
 class Contract(Serializable):
     '''
-    Represents a contract that has been deployed to the blockchain. Binds a contract address to its metadata, associated transaction hash and receipt, and the deployment wallet if it was self-deployed by ethtools (e.g. via `deploy`).
+    Represents a contract that has been deployed to the blockchain. Binds a contract address to its metadata, associated transaction hash and receipt, and the deployment wallet if it was self-deployed by ethpwn (e.g. via `deploy`).
     '''
     def __init__(self, address=None, metadata=None, deploy_tx_hash=None, deploy_tx_receipt=None, deploy_wallet=None) -> None:
         super().__init__()
@@ -141,13 +141,13 @@ class Contract(Serializable):
 class ContractRegistry:
     '''
     A registry of contracts. Maps contract addresses to contract objects which hold metadata, transaction hash
-    and receipt, and the deployment wallet of each contract (if self-deployed by ethtools (e.g. via `deploy`).
+    and receipt, and the deployment wallet of each contract (if self-deployed by ethpwn (e.g. via `deploy`).
 
     Serialized to the local configuration directory to ensure persistence across runs. This allows us to remember contracts
     we've deployed in the past, and also to remember contracts we've interacted with in the past (e.g. via `call`,
-    `transact` or seen in `ethdbg`).f
+    `transact` or seen in `ethdbg`).
 
-    In the future we plan on having a global contract registry that is shared across all users of ethtools that users
+    In the future we plan on having a global contract registry that is shared across all users of ethpwn that users
     can opt into. This will allows us to collect a superset of verified contracts that can be used to automatically
     populate the local contract registry if the user did not have them available locally.
     '''

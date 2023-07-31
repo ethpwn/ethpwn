@@ -1,4 +1,4 @@
-<a id="ethtools.pwn.contract_registry"></a>
+<a id="ethpwn.ethlib.contract_registry"></a>
 
-# ethtools.pwn.contract\_registry
+# ethpwn.ethlib.contract\_registry
 

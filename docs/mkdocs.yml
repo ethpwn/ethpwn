@@ -1,4 +1,4 @@
-site_name: ethtools - the Swiss Army Knife for Ethereum 
+site_name: ethpwn - the Swiss Army Knife for Ethereum
 theme:
   name: material
   features:
@@ -16,9 +16,9 @@ markdown_extensions:
   - pymdownx.superfences
 nav:
   - 🏠 Home: index.md
-  - 🪲 ethdbg: 
+  - 🪲 ethdbg:
     - Usage: ethdbg/usage.md
-    - Commands: 
+    - Commands:
       - start: ethdbg/commands/start.md
       - continue: ethdbg/commands/continue.md
       - context: ethdbg/commands/context.md
@@ -37,21 +37,21 @@ nav:
       - ethtowei: ethdbg/commands/ethtowei.md
       - weitoeth: ethdbg/commands/weitoeth.md
     - Showroom: ethdbg/showroom.md
-  - ⚔️ ethpwn: 
+  - ⚔️ ethpwn:
     - Usage: ethpwn/usage.md
     - Modules:
-      - ethtools.pwn.global_context: ethpwn/modules/global_context.md
-      - ethtools.pwn.contract_registry: ethpwn/modules/contract_registry.md
-      - ethtools.pwn.contract_metadata: ethpwn/modules/contract_metadata.md
-      - ethtools.pwn.transactions: ethpwn/modules/transactions.md
-      - ethtools.pwn.srcmap: ethpwn/modules/srcmap.md
-      - ethtools.pwn.hashes: ethpwn/modules/hashes.md
-      - ethtools.pwn.solidity_utils: ethpwn/modules/solidity_utils.md
-      - ethtools.pwn.assembly_utils: ethpwn/modules/assembly_utils.md
-      - ethtools.pwn.currency_utils: ethpwn/modules/currency_utils.md
-      - ethtools.pwn.alchemy_utils: ethpwn/modules/alchemy_utils.md
-      - ethtools.pwn.serialization_utils: ethpwn/modules/serialization_utils.md
-      - ethtools.pwn.utils: ethpwn/modules/utils.md
+      - ethpwn.ethlib.global_context: ethpwn/modules/global_context.md
+      - ethpwn.ethlib.contract_registry: ethpwn/modules/contract_registry.md
+      - ethpwn.ethlib.contract_metadata: ethpwn/modules/contract_metadata.md
+      - ethpwn.ethlib.transactions: ethpwn/modules/transactions.md
+      - ethpwn.ethlib.srcmap: ethpwn/modules/srcmap.md
+      - ethpwn.ethlib.hashes: ethpwn/modules/hashes.md
+      - ethpwn.ethlib.solidity_utils: ethpwn/modules/solidity_utils.md
+      - ethpwn.ethlib.assembly_utils: ethpwn/modules/assembly_utils.md
+      - ethpwn.ethlib.currency_utils: ethpwn/modules/currency_utils.md
+      - ethpwn.ethlib.alchemy_utils: ethpwn/modules/alchemy_utils.md
+      - ethpwn.ethlib.serialization_utils: ethpwn/modules/serialization_utils.md
+      - ethpwn.ethlib.utils: ethpwn/modules/utils.md
     - Showroom: ethpwn/showroom.md
   #- ⚙️ hacking ethtools: hacking.md
   - ⛓️ chains support: chains.md

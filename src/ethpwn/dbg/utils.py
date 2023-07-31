@@ -57,7 +57,7 @@ def get_terminal_size():
             return 600, 100
 
 def load_cmds_history():
-    target_file = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
+    target_file = Path().home() / ".config" / "ethpwn" / ".ethdbg_history"
 
     if os.path.exists(target_file):
 
@@ -85,7 +85,7 @@ def load_cmds_history():
                     readline.add_history(cmd)
 
 def save_cmds_history(cmd):
-    target_file = Path().home() / ".config" / "ethtools" / ".ethdbg_history"
+    target_file = Path().home() / ".config" / "ethpwn" / ".ethdbg_history"
     if os.path.exists(target_file):
         with open(target_file, 'a') as f:
             f.write('\n'+cmd +'\n')
@@ -94,7 +94,7 @@ def save_cmds_history(cmd):
             f.write('\n'+cmd + '\n')
 
 def load_ethdbg_config():
-    target_file = Path().home() / ".config" / "ethtools" / "ethdbg_config"
+    target_file = Path().home() / ".config" / "ethpwn" / "ethdbg_config"
     if os.path.exists(target_file):
         with open(target_file) as f:
             return json.load(f)

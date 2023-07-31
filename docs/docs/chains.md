@@ -1,5 +1,5 @@
 
-`ethtools` currently has a backend that can only support EVM-based chains.
+`ethpwn` currently has a backend that can only support EVM-based chains.
 
 Currently we support the following ones:
 

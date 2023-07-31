@@ -1492,7 +1492,7 @@ def main():
     parser.add_argument("--target", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--block", help="reference block", default=None)
     parser.add_argument("--calldata", help="calldata to use for the transaction", default=None)
-    parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethtools/pwn/wallets.json )", default=None)
+    parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethpwn/pwn/wallets.json )", default=None)
 
     args = parser.parse_args()
 
@@ -1506,7 +1506,7 @@ def main():
             sys.exit()
     elif get_default_node_url() is None:
         print(f"{RED_COLOR} ❌ No RPC node url specified and no default one avaialable in config.{RESET_COLOR}")
-        print(f"{RED_COLOR} To fix this error, create a config.json in ~/.config/ethtools/config.json'{RESET_COLOR}")
+        print(f"{RED_COLOR} To fix this error, create a config.json in ~/.config/ethpwn/config.json'{RESET_COLOR}")
         sys.exit()
     else:
         try:
@@ -1516,7 +1516,7 @@ def main():
             sys.exit()
 
     # Get the wallet
-    wallet_conf = get_wallet(args.wallet)
+    wallet_conf = get_wallet(args.wallet, network=get_chain_name(context.w3.eth.chain_id))
 
     # Check if we support the chain
     if context.w3.eth.chain_id not in SUPPORTED_CHAINS:

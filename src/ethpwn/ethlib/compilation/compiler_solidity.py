@@ -292,7 +292,7 @@ def try_match_optimizer_settings(
     compiling the contract with different optimizer settings until a match is found.
 
     ```
-    from ethtools.pwn.prelude import *
+    from ethpwn import *
 
     compiler = SolidityCompiler()
     do_compile = functools.partial(compiler.compile_files, ['contracts/MyContract.sol'])

@@ -1,4 +1,4 @@
-# ethtools.pwn
+# ethpwn.ethlib
 
 A tool to help with ethereum smart contract exploit interaction, designed with CTF challenges in mind.
 One might call it a set of pwn tools for ethereum exploitation :P. ethpwn is designed to help you waste the smallest amount
@@ -31,7 +31,7 @@ test wallets (see consolidate_ctf_funds_into.py)
 import os
 import sys
 from time import sleep
-from ethtools.pwn.prelude import *
+from ethpwn import *
 
 
 context.connect_http(sys.argv[1])

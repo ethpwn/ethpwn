@@ -1,5 +1,5 @@
 from .config import GLOBAL_CONFIG
-from .config.wallets import get_wallet, add_wallet, add_default_wallet, delete_wallet, delete_default_wallet, get_wallet_by_address, get_wallet_by_name, all_wallets
+from .config.wallets import get_wallet, add_wallet, delete_wallet, get_wallet_by_address, get_wallet_by_name, all_wallets
 from .currency_utils import ether, gwei, wei, parse_wei
 from .global_context import context
 from .serialization_utils import deserialize_from_file, serialize_to_file

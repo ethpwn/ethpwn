@@ -1,18 +1,18 @@
 # Table of Contents
 
-* [ethtools.pwn.currency\_utils](#ethtools.pwn.currency_utils)
-  * [parse\_wei](#ethtools.pwn.currency_utils.parse_wei)
-  * [wei](#ethtools.pwn.currency_utils.wei)
-  * [ether](#ethtools.pwn.currency_utils.ether)
-  * [gwei](#ethtools.pwn.currency_utils.gwei)
+* [ethpwn.ethlib.currency\_utils](#ethpwn.ethlib.currency_utils)
+  * [parse\_wei](#ethpwn.ethlib.currency_utils.parse_wei)
+  * [wei](#ethpwn.ethlib.currency_utils.wei)
+  * [ether](#ethpwn.ethlib.currency_utils.ether)
+  * [gwei](#ethpwn.ethlib.currency_utils.gwei)
 
-<a id="ethtools.pwn.currency_utils"></a>
+<a id="ethpwn.ethlib.currency_utils"></a>
 
-# ethtools.pwn.currency\_utils
+# ethpwn.ethlib.currency\_utils
 
 Utilities for dealing with the different units of currency in the Ethereum ecosystem.
 
-<a id="ethtools.pwn.currency_utils.parse_wei"></a>
+<a id="ethpwn.ethlib.currency_utils.parse_wei"></a>
 
 #### parse\_wei
 
@@ -23,7 +23,7 @@ def parse_wei(value_string)
 Parse a string representing into a wei value. The string can be in ether, gwei, or wei.
 If no unit is specified, it is assumed to be wei.
 
-<a id="ethtools.pwn.currency_utils.wei"></a>
+<a id="ethpwn.ethlib.currency_utils.wei"></a>
 
 #### wei
 
@@ -34,7 +34,7 @@ def wei(ether=None, gwei=None, wei=None)
 Convert some amount of ether, gwei, and/or wei to wei. Returns the sum of all values so you can
 do `wei(ether=1, gwei=1)` to get 1 ether and 1 gwei in wei.
 
-<a id="ethtools.pwn.currency_utils.ether"></a>
+<a id="ethpwn.ethlib.currency_utils.ether"></a>
 
 #### ether
 
@@ -44,7 +44,7 @@ def ether(wei)
 
 Convert wei to ether
 
-<a id="ethtools.pwn.currency_utils.gwei"></a>
+<a id="ethpwn.ethlib.currency_utils.gwei"></a>
 
 #### gwei
 

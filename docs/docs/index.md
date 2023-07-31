@@ -1,25 +1,25 @@
-# ♦ ethtools - EVM Hacking on Steroids #
-[![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/ethpwn/ethtools/blob/main/LICENSE)  [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ethpwn/ethtools)
+# ♦ ethpwn - EVM Hacking on Steroids #
+[![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/ethpwn/ethpwn/blob/main/LICENSE)  [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ethpwn/ethpwn)
   ![Python3](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
 
 
-`ethtools` is a project inspired by the widely popular CTF exploitation framework [`pwntools`](https://github.com/Gallopsled/pwntools), and the amazing enhanced GDB utility [`GEF`](https://github.com/hugsy/gef/) by [@hugsy](https://github.com/hugsy).
-In other words, `ethtools` is all you ever wanted for debugging and interacting with smart contracts on EVM-based blockchains.
+`ethpwn` is a project inspired by the widely popular CTF exploitation framework [`pwntools`](https://github.com/Gallopsled/pwntools), and the amazing enhanced GDB utility [`GEF`](https://github.com/hugsy/gef/) by [@hugsy](https://github.com/hugsy).
+In other words, `ethpwn` is all you ever wanted for debugging and interacting with smart contracts on EVM-based blockchains.
 
 The project started due to the frustration of [@honululu](https://twitter.com/dreselli) and I ([@degrigis](https://twitter.com/degrigis)), when trying to debug exploits for the [ethernaut](https://ethernaut.openzeppelin.com/) challenges.
-With `ethtools`, we hope to improve educational capabilities when it comes to smart contract and blockchain analysis, and facilitate research efforts in the area.
+With `ethpwn`, we hope to improve educational capabilities when it comes to smart contract and blockchain analysis, and facilitate research efforts in the area.
 
-Currently, `ethtools` is composed of two modules: `ethpwn`, a set of handy wrappers for the `web3` Python package (in pwntools style!), and `ethdbg`, a CLI debugger that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from Etherscan if it can find it!
+Currently, `ethpwn` is composed of two modules: `ethpwn`, a set of handy wrappers for the `web3` Python package (in pwntools style!), and `ethdbg`, a CLI debugger that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from Etherscan if it can find it!
 
-`ethtools` requires *Python3*.
+`ethpwn` requires *Python3*.
 
 ![](./imgs/ethdbg.png)
 
 ## ⚡️ Quick Start
 
 #### Installation
-To start with `ethtools`, you only need *Python3*, we will take care of the rest.
+To start with `ethpwn`, you only need *Python3*, we will take care of the rest.
 
 You can verify your *Python* version with:
 
@@ -38,7 +38,7 @@ We strongly suggest that you create a *Python3* [virtual environment](hhttps://o
 Once you have done that, just:
 
 ```bash
-git clone git@github.com:ethpwn/ethtools.git && pip install -e ethtools/pwn
+git clone git@github.com:ethpwn/ethpwn.git && pip install -e ethpwn
 ```
 
 This command will install both `ethdbg` and `ethpwn` in your system.
@@ -75,10 +75,10 @@ To learn more about the debugging features available in `ethdbg`, and the functi
 
 
 ## 🪲 Bugs & Feedbacks
-For any bugs and feedback please either open an issue on our [Github repository](https://github.com/ethpwn/ethtools), or, even better, a pull request!
+For any bugs and feedback please either open an issue on our [Github repository](https://github.com/ethpwn/ethpwn), or, even better, a pull request!
 Please keep in mind this is a tool developed for fun in our spare time, while we will try to maintain it, we currently cannot commit to regular releases and bug fixes.
 
 ## 🛠️ Contributions
-`ethtools` is currently mainly maintained by [degrigis](https://github.com/degrigis) and [honululu](https://github.com/Lukas-Dresel) and the following contributors:
+`ethpwn` is currently mainly maintained by [degrigis](https://github.com/degrigis) and [honululu](https://github.com/Lukas-Dresel) and the following contributors:
 
-![contributors-img](https://contrib.rocks/image?repo=ethpwn/ethtools)
+![contributors-img](https://contrib.rocks/image?repo=ethpwn/ethpwn)

@@ -1,8 +1,8 @@
-<a id="ethtools.pwn.utils"></a>
+<a id="ethpwn.ethlib.utils"></a>
 
-# ethtools.pwn.utils
+# ethpwn.ethlib.utils
 
-<a id="ethtools.pwn.utils.normalize_contract_address"></a>
+<a id="ethpwn.ethlib.utils.normalize_contract_address"></a>
 
 #### normalize\_contract\_address
 

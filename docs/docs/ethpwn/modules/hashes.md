@@ -1,17 +1,17 @@
 # Table of Contents
 
-* [ethtools.pwn.hashes](#ethtools.pwn.hashes)
-  * [signature\_hash](#ethtools.pwn.hashes.signature_hash)
-  * [register\_signature\_hash](#ethtools.pwn.hashes.register_signature_hash)
-  * [lookup\_signature\_hash\_local](#ethtools.pwn.hashes.lookup_signature_hash_local)
-  * [lookup\_signature\_hash\_database](#ethtools.pwn.hashes.lookup_signature_hash_database)
-  * [lookup\_signature\_hash](#ethtools.pwn.hashes.lookup_signature_hash)
+* [ethpwn.ethlib.hashes](#ethpwn.ethlib.hashes)
+  * [signature\_hash](#ethpwn.ethlib.hashes.signature_hash)
+  * [register\_signature\_hash](#ethpwn.ethlib.hashes.register_signature_hash)
+  * [lookup\_signature\_hash\_local](#ethpwn.ethlib.hashes.lookup_signature_hash_local)
+  * [lookup\_signature\_hash\_database](#ethpwn.ethlib.hashes.lookup_signature_hash_database)
+  * [lookup\_signature\_hash](#ethpwn.ethlib.hashes.lookup_signature_hash)
 
-<a id="ethtools.pwn.hashes"></a>
+<a id="ethpwn.ethlib.hashes"></a>
 
-# ethtools.pwn.hashes
+# ethpwn.ethlib.hashes
 
-<a id="ethtools.pwn.hashes.signature_hash"></a>
+<a id="ethpwn.ethlib.hashes.signature_hash"></a>
 
 #### signature\_hash
 
@@ -21,7 +21,7 @@ def signature_hash(plaintext)
 
 Computes the signature hash of a plaintext string.
 
-<a id="ethtools.pwn.hashes.register_signature_hash"></a>
+<a id="ethpwn.ethlib.hashes.register_signature_hash"></a>
 
 #### register\_signature\_hash
 
@@ -31,7 +31,7 @@ def register_signature_hash(value, hash)
 
 Register a signature hash and its given pre-image (plaintext) in the global hash table.
 
-<a id="ethtools.pwn.hashes.lookup_signature_hash_local"></a>
+<a id="ethpwn.ethlib.hashes.lookup_signature_hash_local"></a>
 
 #### lookup\_signature\_hash\_local
 
@@ -41,7 +41,7 @@ def lookup_signature_hash_local(hash)
 
 Look up a signature hash locally in the current global hash table.
 
-<a id="ethtools.pwn.hashes.lookup_signature_hash_database"></a>
+<a id="ethpwn.ethlib.hashes.lookup_signature_hash_database"></a>
 
 #### lookup\_signature\_hash\_database
 
@@ -51,7 +51,7 @@ def lookup_signature_hash_database(hash)
 
 Look up a signature hash in the 4byte.directory database.
 
-<a id="ethtools.pwn.hashes.lookup_signature_hash"></a>
+<a id="ethpwn.ethlib.hashes.lookup_signature_hash"></a>
 
 #### lookup\_signature\_hash
 

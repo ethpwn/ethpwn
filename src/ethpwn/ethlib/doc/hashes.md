@@ -1,4 +1,4 @@
-<a id="ethtools.pwn.hashes"></a>
+<a id="ethpwn.ethlib.hashes"></a>
 
-# ethtools.pwn.hashes
+# ethpwn.ethlib.hashes
 

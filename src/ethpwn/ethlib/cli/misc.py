@@ -105,14 +105,19 @@ def fetch_verified_contract_at(address, api_key=None):
     return fetch_verified_contract_source(normalize_contract_address(address), api_key=api_key)
 
 @cmdline
-def decode_calldata(target_contract: HexBytes, calldata: HexBytes=None, tx_hash: HexBytes=None, guess: bool=False):
+def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_hash: HexBytes=None, guess: bool=False):
     '''
-    Decode a transaction. Either `bytes` or `tx_hash` must be provided.
+    Decode a transaction. Either `target_contract`+`calldata` or `tx_hash` must be provided.
     '''
-    if calldata is None:
-        assert tx_hash is not None
+    if tx_hash is not None:
         tx = context.w3.eth.get_transaction(tx_hash)
-        calldata = tx.input
+        if target_contract is None:
+            target_contract = tx.to
+        if calldata is None:
+            calldata = tx.input
+
+    assert target_contract is not None
+    assert calldata is not None
 
     contract, metadata, decoded = decode_function_input(target_contract, calldata, guess=guess)
     if metadata is not None:

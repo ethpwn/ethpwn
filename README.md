@@ -1,2 +1,2 @@
-# ethtools
+# ethpwn
 ethdbg &amp; ethpwn

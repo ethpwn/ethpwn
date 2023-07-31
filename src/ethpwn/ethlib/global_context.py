@@ -34,8 +34,8 @@ class Web3Context:
         if get_disable_autoconnect():
             return False
         try:
-            if os.environ.get('ETHTOOLS_NODE_URL', None) is not None:
-                self.connect(os.environ['ETHTOOLS_NODE_URL'])
+            if os.environ.get('ETHPWN_NODE_URL', None) is not None:
+                self.connect(os.environ['ETHPWN_NODE_URL'])
                 return True
             if (default_node_url := get_default_node_url())is not None:
                 self.connect(default_node_url)

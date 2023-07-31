@@ -38,7 +38,7 @@ def get_default_node_url(network=None):
     from . import GLOBAL_CONFIG
     if network is None:
         network = get_default_network()
-    return os.environ.get(f'ETHTOOLS_NODE_URL', GLOBAL_CONFIG.get('default_node_urls', {}).get(network, None))
+    return os.environ.get(f'ETHPWN_NODE_URL', GLOBAL_CONFIG.get('default_node_urls', {}).get(network, None))
 
 def set_default_node_url(node_url, network='mainnet'):
     '''
