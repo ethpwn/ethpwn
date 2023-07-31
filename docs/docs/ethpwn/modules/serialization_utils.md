@@ -1,15 +1,3 @@
-# Table of Contents
-
-* [ethpwn.ethlib.serialization\_utils](#ethpwn.ethlib.serialization_utils)
-  * [Serializable](#ethpwn.ethlib.serialization_utils.Serializable)
-  * [register\_serializable](#ethpwn.ethlib.serialization_utils.register_serializable)
-  * [CustomEncoder](#ethpwn.ethlib.serialization_utils.CustomEncoder)
-  * [custom\_decoder](#ethpwn.ethlib.serialization_utils.custom_decoder)
-  * [deserialize\_from\_file](#ethpwn.ethlib.serialization_utils.deserialize_from_file)
-  * [deserialize\_from\_string](#ethpwn.ethlib.serialization_utils.deserialize_from_string)
-  * [serialize\_to\_file](#ethpwn.ethlib.serialization_utils.serialize_to_file)
-  * [serialize\_to\_string](#ethpwn.ethlib.serialization_utils.serialize_to_string)
-
 <a id="ethpwn.ethlib.serialization_utils"></a>
 
 # ethpwn.ethlib.serialization\_utils

@@ -1,17 +1,3 @@
-# Table of Contents
-
-* [ethpwn.ethlib.assembly\_utils](#ethpwn.ethlib.assembly_utils)
-  * [value\_to\_smallest\_hexbytes](#ethpwn.ethlib.assembly_utils.value_to_smallest_hexbytes)
-  * [asm\_push\_value](#ethpwn.ethlib.assembly_utils.asm_push_value)
-  * [asm\_codecopy](#ethpwn.ethlib.assembly_utils.asm_codecopy)
-  * [asm\_return](#ethpwn.ethlib.assembly_utils.asm_return)
-  * [asm\_mstore](#ethpwn.ethlib.assembly_utils.asm_mstore)
-  * [asm\_mload](#ethpwn.ethlib.assembly_utils.asm_mload)
-  * [asm\_sstore](#ethpwn.ethlib.assembly_utils.asm_sstore)
-  * [asm\_sload](#ethpwn.ethlib.assembly_utils.asm_sload)
-  * [create\_shellcode\_deployer\_bin](#ethpwn.ethlib.assembly_utils.create_shellcode_deployer_bin)
-  * [disassemble\_pro](#ethpwn.ethlib.assembly_utils.disassemble_pro)
-
 <a id="ethpwn.ethlib.assembly_utils"></a>
 
 # ethpwn.ethlib.assembly\_utils

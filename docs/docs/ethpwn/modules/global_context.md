@@ -1,19 +1,3 @@
-# Table of Contents
-
-* [ethpwn.ethlib.global\_context](#ethpwn.ethlib.global_context)
-  * [Web3Context](#ethpwn.ethlib.global_context.Web3Context)
-    * [try\_auto\_connect](#ethpwn.ethlib.global_context.Web3Context.try_auto_connect)
-    * [default\_from\_addr](#ethpwn.ethlib.global_context.Web3Context.default_from_addr)
-    * [default\_signing\_key](#ethpwn.ethlib.global_context.Web3Context.default_signing_key)
-    * [log\_level](#ethpwn.ethlib.global_context.Web3Context.log_level)
-    * [connect](#ethpwn.ethlib.global_context.Web3Context.connect)
-    * [connect\_http](#ethpwn.ethlib.global_context.Web3Context.connect_http)
-    * [connect\_ipc](#ethpwn.ethlib.global_context.Web3Context.connect_ipc)
-    * [connect\_websocket](#ethpwn.ethlib.global_context.Web3Context.connect_websocket)
-    * [pessimistic\_gas\_price\_estimate](#ethpwn.ethlib.global_context.Web3Context.pessimistic_gas_price_estimate)
-    * [pessimistic\_transaction\_cost](#ethpwn.ethlib.global_context.Web3Context.pessimistic_transaction_cost)
-  * [with\_local\_context](#ethpwn.ethlib.global_context.with_local_context)
-
 <a id="ethpwn.ethlib.global_context"></a>
 
 # ethpwn.ethlib.global\_context

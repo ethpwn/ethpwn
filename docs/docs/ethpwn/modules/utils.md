@@ -1,13 +1,3 @@
-# Table of Contents
-
-* [ethpwn.ethlib.utils](#ethpwn.ethlib.utils)
-  * [normalize\_contract\_address](#ethpwn.ethlib.utils.normalize_contract_address)
-  * [get\_shared\_prefix\_len](#ethpwn.ethlib.utils.get_shared_prefix_len)
-  * [to\_snake\_case](#ethpwn.ethlib.utils.to_snake_case)
-  * [show\_diff](#ethpwn.ethlib.utils.show_diff)
-  * [get\_chainid](#ethpwn.ethlib.utils.get_chainid)
-  * [get\_chain\_name](#ethpwn.ethlib.utils.get_chain_name)
-
 <a id="ethpwn.ethlib.utils"></a>
 
 # ethpwn.ethlib.utils

@@ -1,11 +1,3 @@
-# Table of Contents
-
-* [ethpwn.ethlib.currency\_utils](#ethpwn.ethlib.currency_utils)
-  * [parse\_wei](#ethpwn.ethlib.currency_utils.parse_wei)
-  * [wei](#ethpwn.ethlib.currency_utils.wei)
-  * [ether](#ethpwn.ethlib.currency_utils.ether)
-  * [gwei](#ethpwn.ethlib.currency_utils.gwei)
-
 <a id="ethpwn.ethlib.currency_utils"></a>
 
 # ethpwn.ethlib.currency\_utils

@@ -1,15 +1,3 @@
-# Table of Contents
-
-* [ethpwn.ethlib.transactions](#ethpwn.ethlib.transactions)
-  * [InsufficientFundsError](#ethpwn.ethlib.transactions.InsufficientFundsError)
-  * [TransactionFailedError](#ethpwn.ethlib.transactions.TransactionFailedError)
-  * [encode\_transaction](#ethpwn.ethlib.transactions.encode_transaction)
-  * [transfer\_funds](#ethpwn.ethlib.transactions.transfer_funds)
-  * [debug\_transaction](#ethpwn.ethlib.transactions.debug_transaction)
-  * [transact](#ethpwn.ethlib.transactions.transact)
-  * [deploy\_bare\_contract](#ethpwn.ethlib.transactions.deploy_bare_contract)
-  * [deploy\_shellcode\_contract](#ethpwn.ethlib.transactions.deploy_shellcode_contract)
-
 <a id="ethpwn.ethlib.transactions"></a>
 
 # ethpwn.ethlib.transactions

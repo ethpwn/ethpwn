@@ -1,6 +1,6 @@
 # ethpwn.ethlib
 
-A tool to help with ethereum smart contract exploit interaction, designed with CTF challenges in mind.
+Tooling to help with ethereum smart contract exploit interaction, designed with CTF challenges in mind.
 One might call it a set of pwn tools for ethereum exploitation :P. ethpwn is designed to help you waste the smallest amount
 of time possible on the annoying parts of interacting with ethereum smart contracts, mainly deployment, transaction sending,
 and interaction.

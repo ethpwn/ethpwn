@@ -1,12 +1,3 @@
-# Table of Contents
-
-* [ethpwn.ethlib.hashes](#ethpwn.ethlib.hashes)
-  * [signature\_hash](#ethpwn.ethlib.hashes.signature_hash)
-  * [register\_signature\_hash](#ethpwn.ethlib.hashes.register_signature_hash)
-  * [lookup\_signature\_hash\_local](#ethpwn.ethlib.hashes.lookup_signature_hash_local)
-  * [lookup\_signature\_hash\_database](#ethpwn.ethlib.hashes.lookup_signature_hash_database)
-  * [lookup\_signature\_hash](#ethpwn.ethlib.hashes.lookup_signature_hash)
-
 <a id="ethpwn.ethlib.hashes"></a>
 
 # ethpwn.ethlib.hashes

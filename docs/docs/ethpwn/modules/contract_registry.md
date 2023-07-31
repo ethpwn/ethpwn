@@ -1,25 +1,3 @@
-# Table of Contents
-
-* [ethpwn.ethlib.contract\_registry](#ethpwn.ethlib.contract_registry)
-  * [best\_effort\_get\_contract\_address\_and\_tx\_hash\_and\_receipt](#ethpwn.ethlib.contract_registry.best_effort_get_contract_address_and_tx_hash_and_receipt)
-  * [Contract](#ethpwn.ethlib.contract_registry.Contract)
-    * [to\_serializable](#ethpwn.ethlib.contract_registry.Contract.to_serializable)
-    * [w3](#ethpwn.ethlib.contract_registry.Contract.w3)
-    * [merge](#ethpwn.ethlib.contract_registry.Contract.merge)
-    * [update](#ethpwn.ethlib.contract_registry.Contract.update)
-  * [ContractRegistry](#ethpwn.ethlib.contract_registry.ContractRegistry)
-    * [register\_contract\_metadata](#ethpwn.ethlib.contract_registry.ContractRegistry.register_contract_metadata)
-    * [\_\_contains\_\_](#ethpwn.ethlib.contract_registry.ContractRegistry.__contains__)
-    * [\_\_getitem\_\_](#ethpwn.ethlib.contract_registry.ContractRegistry.__getitem__)
-    * [get](#ethpwn.ethlib.contract_registry.ContractRegistry.get)
-    * [store](#ethpwn.ethlib.contract_registry.ContractRegistry.store)
-    * [load](#ethpwn.ethlib.contract_registry.ContractRegistry.load)
-  * [contract\_registry](#ethpwn.ethlib.contract_registry.contract_registry)
-  * [load\_or\_create\_contract\_registry](#ethpwn.ethlib.contract_registry.load_or_create_contract_registry)
-  * [register\_deployed\_contract](#ethpwn.ethlib.contract_registry.register_deployed_contract)
-  * [register\_contract\_at\_address](#ethpwn.ethlib.contract_registry.register_contract_at_address)
-  * [decode\_function\_input](#ethpwn.ethlib.contract_registry.decode_function_input)
-
 <a id="ethpwn.ethlib.contract_registry"></a>
 
 # ethpwn.ethlib.contract\_registry
@@ -135,7 +113,7 @@ and receipt, and the deployment wallet of each contract (if self-deployed by eth
 
 Serialized to the local configuration directory to ensure persistence across runs. This allows us to remember contracts
 we've deployed in the past, and also to remember contracts we've interacted with in the past (e.g. via `call`,
-`transact` or seen in `ethdbg`).f
+`transact` or seen in `ethdbg`).
 
 In the future we plan on having a global contract registry that is shared across all users of ethpwn that users
 can opt into. This will allows us to collect a superset of verified contracts that can be used to automatically
