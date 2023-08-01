@@ -22,8 +22,7 @@ dependencies = [
     "requests",
     "pysha3",
     "hexbytes",
-    "virtualenv",
-    "ipdb",
+    "virtualenv"
 
     "ethcx",
     "ethpwn-py-evm",
@@ -40,11 +39,6 @@ dependencies = [
     "cachetools",
     "alive-progress",
     "coolname",
-    "mkdocs",
-    "mkdocs-click",
-    "mkdocs-material",
-    "pydoc-markdown",
-    "bumpversion",
 ]
 
 keywords = [

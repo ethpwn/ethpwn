@@ -1,0 +1,5 @@
+mkdocs
+mkdocs-click
+mkdocs-material
+pydoc-markdown
+bumpversion
