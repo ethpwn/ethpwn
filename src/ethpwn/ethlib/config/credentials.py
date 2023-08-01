@@ -13,6 +13,12 @@ def add_credentials_for(service, creds):
         GLOBAL_CONFIG['credentials'] = {}
     GLOBAL_CONFIG['credentials'][service] = creds
 
+def all_credentials():
+    from . import GLOBAL_CONFIG
+    if 'credentials' not in GLOBAL_CONFIG:
+        GLOBAL_CONFIG['credentials'] = {}
+    return GLOBAL_CONFIG['credentials']
+
 
 def get_etherscan_api_key(api_key=None):
     from . import GLOBAL_CONFIG

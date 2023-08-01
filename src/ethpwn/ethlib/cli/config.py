@@ -4,9 +4,13 @@ from ..utils import get_chain_name
 from ..global_context import context
 from ..config.misc import set_default_node_url as _set_default_node_url
 
-from . import cmdline
+from . import cmdline, subcommand_callable
 
-@cmdline
+
+config_handler = subcommand_callable(cmdline, 'config', doc='Manage config for ethlib')
+
+
+@config_handler
 def set_default_node_url(node_url: str, network: str=None, force: bool=False, **kwargs):
     '''
     Adds a default node URL to the context. If the node is not available, a warning is printed.
@@ -35,8 +39,8 @@ def set_default_node_url(node_url: str, network: str=None, force: bool=False, **
     update_config()
     return True
 
-@cmdline
-def show_config(**kwargs):
+@config_handler
+def show(**kwargs):
     '''
     Show the current config
     '''
