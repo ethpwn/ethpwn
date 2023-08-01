@@ -37,6 +37,8 @@ dependencies = [
     "cachetools",
     "alive-progress",
     "coolname",
+    "simanneal",
+    "editdistance"
 ]
 
 keywords = [

@@ -603,7 +603,11 @@ class EthDbgShell(cmd.Cmd):
             print("Usage: storageat [<address>:]<slot>[:<count>]")
             return
 
+        if type(arg) != int:
+            return
+
         address = None
+
         if ':' in arg:
             address, slot = arg.split(':')
             address = HexBytes(address)
