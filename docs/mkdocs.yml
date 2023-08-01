@@ -39,6 +39,7 @@ nav:
     - Showroom: ethdbg/showroom.md
   - ⚔️ ethpwn:
     - Usage: ethpwn/usage.md
+    - CLI: ethpwn/cli.md
     - Global State: ethpwn/global_state.md
     - Modules:
       - ethpwn.ethlib.global_context: ethpwn/modules/global_context.md

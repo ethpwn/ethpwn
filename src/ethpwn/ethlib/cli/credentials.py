@@ -17,9 +17,9 @@ def add(service: str, cred: str, **kwargs):
     update_config()
 
 @credentials_handler
-def list(**kwargs):
+def show(**kwargs):
     """
-    List credentials
+    Show credentials
     """
     from ..config.credentials import all_credentials
     return all_credentials()

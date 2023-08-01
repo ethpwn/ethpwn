@@ -37,13 +37,13 @@ As an example, we will use the following setup to illustrate the benefits of thi
 pip install ethpwn
 
 # configure your ethereum node url
-ethpwn set_default_node_url --network mainnet https://mainnet.infura.io/v3/<API_KEY>
+ethpwn config set_default_node_url --network mainnet https://mainnet.infura.io/v3/<API_KEY>
 
 # configure your etherscan api key
-ethpwn add_credentials etherscan <API_KEY>
+ethpwn credentials add etherscan <API_KEY>
 
 # configure your wallet in ~/.config/ethpwn/wallets.json or via the CLI
-ethpwn add_wallet wallet --name my-wallet --description="My wallet" --network mainnet <ADDRESS> 0x<PRIVKEY>
+ethpwn wallets add --name my-wallet --description="My wallet" --network mainnet <ADDRESS> 0x<PRIVKEY>
 
 ########## FOR EACH CONTRACT
 
