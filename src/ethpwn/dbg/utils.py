@@ -32,6 +32,28 @@ FOUR_BYTE_URL = "https://raw.githubusercontent.com/ethereum-lists/4bytes/master/
 
 SUPPORTED_CHAINS = [ChainName.MAINNET, ChainName.SEPOLIA]
 
+
+DEFAULT_CONFIG_FILE = """
+{
+  "default_network": "mainnet",
+  "default_node_urls": {
+    "mainnet": "<CHANGE_ME>"
+  },
+  "credentials": {
+    "etherscan": "<OPTIONAL_ETHERSCAN_API>"
+  },
+  "dbg": {
+    "show_opcodes_desc": false,
+    "stop_on_returns": false,
+    "stop_on_reverts": true,
+    "hide_sstores": true,
+    "hide_sloads": true,
+    "hide_source_view": false,
+    "source_view_cutoff": 20
+  }
+}
+"""
+
 def get_terminal_size():
     """Return the current terminal size."""
     if platform.system() == "Windows":

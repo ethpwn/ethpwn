@@ -30,6 +30,7 @@ from ..ethlib.prelude import *
 from ..ethlib.utils import normalize_contract_address
 from ..ethlib.config.wallets import get_wallet
 from ..ethlib.config.dbg import DebugConfig
+from ..ethlib.config import get_default_global_config_path
 
 from .breakpoint import Breakpoint, ETH_ADDRESS
 from .analyzer import Analyzer
@@ -1508,6 +1509,22 @@ def main():
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethpwn/pwn/wallets.json )", default=None)
 
     args = parser.parse_args()
+
+    # CHECK 0: do we have a config file?
+    config_file_path = get_default_global_config_path()
+    if not os.path.exists(config_file_path):
+        print(f"{YELLOW_COLOR} No config file found at {config_file_path} {RESET_COLOR}")
+        print(f"{YELLOW_COLOR} Dropping a template file there for you, but please edit it. Check https://ethpwn.github.io/ethpwn/ethdbg/usage/{RESET_COLOR}.")
+        # Let's drop a default config file
+        with open(config_file_path, "w") as f:
+            f.write(DEFAULT_CONFIG_FILE)
+        sys.exit(0)
+
+    # Are you still using the template?
+    if "<CHANGE_ME>" in open(config_file_path).read():
+        print(f"{YELLOW_COLOR} Looks like you are still using the template config file at {config_file_path} :) {RESET_COLOR}")
+        print(f"{YELLOW_COLOR} Please edit the config file. Check https://ethpwn.github.io/ethpwn/ethdbg/usage/ {RESET_COLOR}")
+        sys.exit(0)
 
     # CHECK 1: do we have a valid chain RPC?
     if args.node_url is not None:
