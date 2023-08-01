@@ -16,7 +16,7 @@ markdown_extensions:
   - pymdownx.superfences
 nav:
   - 🏠 Home: index.md
-  - 🪲 ethdbg:
+  - 🐛 ethdbg:
     - Usage: ethdbg/usage.md
     - Commands:
       - start: ethdbg/commands/start.md

@@ -90,7 +90,7 @@ ethdbg --txid 0x82a11757c3f34c2882e209c6e5ae96aff3e4db7f7984d54f92b02e1fed87e834
 To learn more about the debugging features available in `ethdbg`, and the functionalities of `ethpwn`, please refer to their respective pages.
 
 
-## 🪲 Bugs & Feedbacks
+## 🐛 Bugs & Feedbacks
 For any bugs and feedback please either open an issue on our [Github repository](https://github.com/ethpwn/ethpwn), or, even better, a pull request!
 Please keep in mind this is a tool developed for fun in our spare time, while we will try to maintain it, we currently cannot commit to regular releases and bug fixes.
 
