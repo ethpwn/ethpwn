@@ -22,7 +22,7 @@ dependencies = [
     "requests",
     "pysha3",
     "hexbytes",
-    "virtualenv"
+    "virtualenv",
 
     "ethcx",
     "ethpwn-py-evm",
@@ -67,8 +67,14 @@ classifiers = [
 
 
 [project.optional-dependencies]
-
 settings_recovery = [
+    "simanneal",
+    "editdistance",
+]
+dev = [
+    "ipdb",
+    "ipython",
+    "deepdiff",
     "simanneal",
     "editdistance",
 ]
