@@ -1,5 +1,5 @@
 # ♦ ethpwn - EVM Hacking on Steroids #
-[![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/ethpwn/ethpwn/blob/main/LICENSE)  [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ethpwn/ethpwn)
+[![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/ethpwn/ethpwn/blob/main/LICENSE)  [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ethpwn/ethpwn)  [![PyPI](https://img.shields.io/pypi/v/ethpwn?style=for-the-badge)](https://pypi.org/project/ethpwn/)
   ![Python3](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
 
@@ -7,22 +7,19 @@
 `ethpwn` is a project inspired by the widely popular CTF exploitation framework [`pwntools`](https://github.com/Gallopsled/pwntools), and the amazing enhanced GDB utility [`GEF`](https://github.com/hugsy/gef/) by [@hugsy](https://github.com/hugsy).
 In other words, `ethpwn` is all you ever wanted for debugging and interacting with smart contracts on EVM-based blockchains.
 
-The project started due to the frustration of [@honululu](https://twitter.com/dreselli) and I ([@degrigis](https://twitter.com/degrigis)), when trying to debug exploits for the [ethernaut](https://ethernaut.openzeppelin.com/) challenges.
+The project started due to the frustration of [@honululu](https://twitter.com/dreselli) and [@degrigis](https://twitter.com/degrigis), when trying to debug exploits for the [ethernaut](https://ethernaut.openzeppelin.com/) challenges.
 With `ethpwn`, we hope to improve educational capabilities when it comes to smart contract and blockchain analysis, and facilitate research efforts in the area.
 
-Currently, `ethpwn` is composed of two modules: `ethpwn`, a set of handy wrappers for the `web3` Python package (in pwntools style!), and `ethdbg`, a CLI debugger that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from Etherscan if it can find it!
+Currently, `ethpwn` is composed of two modules: `ethlib`, a set of handy wrappers for the `web3` Python package (in pwntools style!), and `ethdbg`, a CLI debugger that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from Etherscan if it can find it!
 
 `ethpwn` requires *Python3*.
 
-## <span style="color:red">WARNING</span>
-
-`ethpwn` is optimized for ease-of-use. E.g., `ethpwn` aggresively over-allocates the gas price for transactions to ensure
-that they are mined quickly. This is not a problem for the CTF challenges that `ethpwn` was designed for, but *can* be a problem
-if you are using `ethpwn` to interact with real contracts on the mainnet. It can cause you to massively overpay in terms of transaction fees.
-
-<span style="color:red">**DO NOT USE `ethpwn` TO INTERACT WITH REAL CONTRACTS ON THE MAINNET UNLESS YOU ARE ABSOLUTELY SURE WHAT YOU ARE DOING.**</span>
-
 ![](./imgs/ethdbg.png)
+
+| ⚠️ WARNING ⚠️                             |
+|------------------------------------------|
+|`ethpwn` is optimized for ease-of-use. e.g., `ethpwn` aggresively over-allocates the gas price for transactions to ensure that they are mined quickly. This is not a problem for if you are using `ethpwn` to interact with real contracts on the mainnet. It can cause you to massively overpay in terms of transaction fees.the CTF challenges that `ethpwn` was designed for, but can be a problem if you are using `ethpwn` to interact with real contracts on the mainnet. It can cause you to massively overpay in terms of transaction fee. DO NOT USE `ethpwn` TO INTERACT WITH REAL CONTRACTS ON THE MAINNET UNLESS YOU ARE ABSOLUTELY SURE WHAT YOU ARE DOING. |
+
 
 ## ⚡️ Quick Start
 
@@ -36,20 +33,31 @@ hacker@eth:~$ python3 --version
 Python 3.8.10
 ```
 
-Make sure you have the latest version of `pip` or you won't be able to install the tool in editable mode.
-```bash
-hacker@eth:~$ pip --version
-pip 23.1.2
-```
+
 We strongly suggest that you create a *Python3* [virtual environment](hhttps://opensource.com/article/21/2/python-virtualenvwrapper) before proceeding.
 
 Once you have done that, just:
 
 ```bash
-git clone git@github.com:ethpwn/ethpwn.git && pip install -e ethpwn
+pip install ethpwn
 ```
 
 This command will install both `ethdbg` and `ethpwn` in your system.
+
+
+#### Dev Installation
+If you want to install `ethpwn` in developing mode (i.e., editable in the current folder), first: Make sure you have the latest version of `pip`:
+
+```bash
+hacker@eth:~$ pip --version
+pip 23.1.2
+```
+
+Then, just:
+
+```bash
+git clone git@github.com:ethpwn/ethpwn.git && pip install -e ethpwn
+```
 
 #### RPC Node
 Assuming that you want to work with Ethereum mainnet, you will need access to an Ethereum RPC node:
