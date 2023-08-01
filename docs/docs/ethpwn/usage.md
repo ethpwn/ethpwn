@@ -65,7 +65,7 @@ In both cases, `ethpwn` uses this information to associate the address of the co
 
 ```python
 # simulate the result of calling the `foo` function on the contract with arguments 0, 1, and 2
-result = contract_a_instance.w3.foo(0, 1, 2)
+result = contract_a_instance.w3.foo(0, 1, 2).call()
 
 # create a transaction on the real blockchain calling the `foo` function on the contract with arguments 0, 1, and 2
 transact(contract_a_instance.w3.foo(0, 1, 2))
