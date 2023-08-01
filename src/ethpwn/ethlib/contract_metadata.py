@@ -350,11 +350,25 @@ class ContractMetadata(Serializable):
         '''
         return self.symbolic_srcmap_constructor.get_source_info_for_instruction(insn_idx)
 
+    def source_info_for_constructor_pc(self, pc, fork='paris') -> InstructionSourceInfo:
+        '''
+        Returns the source info for the instruction at the given pc in the constructor bytecode.
+        '''
+        insn_idx = self.closest_instruction_index_for_constructor_pc(pc, fork=fork)
+        return self.source_info_for_constructor_instruction_idx(insn_idx)
+
     def source_info_for_runtime_instruction_idx(self, insn_idx) -> InstructionSourceInfo:
         '''
         Returns the source info for instruction at index `insn_idx` in the runtime bytecode.
         '''
         return self.symbolic_srcmap_runtime.get_source_info_for_instruction(insn_idx)
+
+    def source_info_for_pc(self, pc, fork='paris') -> InstructionSourceInfo:
+        '''
+        Returns the source info for the instruction at the given pc in the constructor bytecode.
+        '''
+        insn_idx = self.closest_instruction_index_for_constructor_pc(pc, fork=fork)
+        return self.source_info_for_constructor_instruction_idx(insn_idx)
 
     def deploy(self, *constructor_args, **tx_extras) -> Tuple[HexBytes, Contract]:
         '''
