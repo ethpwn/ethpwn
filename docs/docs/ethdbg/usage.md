@@ -12,10 +12,10 @@ The most basic configuration is the following:
 {
   "default_network": "mainnet",
   "default_node_urls": {
-    "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000",
+    "mainnet": "<YOUR_INFURA_RPC_URL>",
   },
   "credentials": {
-    "etherscan": "00000000000000000000000000000000"
+    "etherscan": "<OPTIONAL_ETHERSCAN_API>"
   },
   "dbg": {
   }
@@ -46,7 +46,7 @@ Here two possible configuration files:
 {
   "default_network": "mainnet",
   "default_node_urls": {
-    "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000"
+    "mainnet": "<YOUR_INFURA_MAINNET_RPC_URL>",
   },
   "credentials": {
     "etherscan": "<OPTIONAL_ETHERSCAN_API>"
@@ -67,8 +67,8 @@ Here two possible configuration files:
 {
   "default_network": "mainnet",
   "default_node_urls": {
-    "mainnet": "https://mainnet.infura.io/v3/00000000000000000000000000000000",
-    "sepolia": "https://eth-sepolia.g.alchemy.com/v2/00000000000000000000000000000000"
+    "mainnet": "<YOUR_INFURA_MAINNET_RPC_URL>",
+    "sepolia": "<YOUR_INFURA_SEPOLIA_RPC_URL>",
   },
   "credentials": {
     "etherscan": "<OPTIONAL_ETHERSCAN_API>"
@@ -121,7 +121,7 @@ Conversely, if you have multiple accounts such as:
 You can select the wallet you want to use by using the `--wallet` command line option and the "name" of the wallet. e.g.:
 
 ```bash
-ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222 --block 11469711 --wallet my-sepolia-wallet
+ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --node-url "<YOUR_INFURA_MAINNET_RPC_URL>" --block 11469711 --wallet my-sepolia-wallet
 ```
 
 ## ⚡️ Command Line Arguments
@@ -158,17 +158,17 @@ tr:nth-child(even) {
 
 #### ♦️ Replay an existing transaction on-chain as-is.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
+ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 #### ♦️ Replay an existing transaction on-chain as-is, with full context.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --full-context --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
+ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --full-context
 ```
 
 #### ♦️ Replay an existing transaction on-chain and change the sender.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
+ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C
 ```
 
 | ❗️ Note                               |
@@ -176,21 +176,21 @@ ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 | The chosen sender must have enough funds to execute the transaction. You can use `--balance` to edit this value. |
 
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --balance 1000000000000000 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
+ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --balance 1000000000000000
 ```
 
 #### ♦️ Replay an existing transaction at a different block.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --block 17700180 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
+ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --block 17700180
 ```
 
 #### ♦️ Send a new transaction to target contract with custom calldata.
 ```bash
-ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
+ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000
 ```
 
 #### ♦️ Send a new transaction to target contract with custom calldata at custom block.
 ```bash
-ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222 --block 11469711
+ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --block 11469711
 ```
 
