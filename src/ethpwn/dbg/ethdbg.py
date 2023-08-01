@@ -603,19 +603,18 @@ class EthDbgShell(cmd.Cmd):
             print("Usage: storageat [<address>:]<slot>[:<count>]")
             return
 
-        if type(arg) != int:
-            return
-
         address = None
 
-        if ':' in arg:
-            address, slot = arg.split(':')
-            address = HexBytes(address)
-            slot = int(slot, 16)
-        else:
-            address = self.comp.msg.storage_address if self.started else self.debug_target.target_address
-            slot = int(arg, 16)
-
+        try:
+            if ':' in arg:
+                address, slot = arg.split(':')
+                address = HexBytes(address)
+                slot = int(slot, 16)
+            else:
+                address = self.comp.msg.storage_address if self.started else self.debug_target.target_address
+                slot = int(arg, 16)
+        except Exception:
+            return
         try:
             value_read = self.comp.state.get_storage(address, slot)
         except Exception as e:
