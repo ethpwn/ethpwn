@@ -5,9 +5,9 @@ from web3.datastructures import AttributeDict
 
 context.connect_http('https://eth-sepolia.g.alchemy.com/v2/CIlvNRJd1iqhTV5d_KIBxWX_qCq0j71v')
 
-CONTRACT_METADATA.add_contracts_from_solidity_files(['../ethernaut/gatekeeper_three/exploit.sol'])
-CONTRACT_METADATA.add_contracts_from_solidity_files(['../ethernaut/puzzle_wallet/exploit.sol'])
-CONTRACT_METADATA.add_contracts_from_solidity_files(['../ethernaut/good_samaritan/exploit.sol'])
+CONTRACT_METADATA.compile_solidity_files(['../ethernaut/gatekeeper_three/exploit.sol'])
+CONTRACT_METADATA.compile_solidity_files(['../ethernaut/puzzle_wallet/exploit.sol'])
+CONTRACT_METADATA.compile_solidity_files(['../ethernaut/good_samaritan/exploit.sol'])
 
 # trace = simulate_execution([{'from': '0xE64E0e04D2279876984764D36d7e8588e2eD167d', 'to': '0x7ac5b6aac6eEB251eB33b885302feB54b6aF2F96', 'value': '0x0', 'data': '0x63d9b770'}])
 

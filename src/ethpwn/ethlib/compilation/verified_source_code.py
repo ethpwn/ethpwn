@@ -151,7 +151,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
     if source[:2] == '{"':
         # solidity multi-file version, this is basically the sources dict
         sources_dict = json.loads(source)
-        CONTRACT_METADATA.add_sources_dict(sources_dict, compiler=compiler, libraries=libraries, **compiler_kwargs)
+        CONTRACT_METADATA.compile_sources_dict(sources_dict, compiler=compiler, libraries=libraries, **compiler_kwargs)
     elif source.strip()[:2] == '{{' and source.strip()[-2:] == '}}':
         # solidity input-json format
         input_json = json.loads(source.strip()[1:-1])
@@ -165,11 +165,11 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
             assert result['Runs'] == opt_settings['runs']
         assert libraries is None or input_json.get('settings', {}).get('libraries', None) == libraries
         compiler_kwargs.pop('optimizer_settings', None)
-        CONTRACT_METADATA.add_standard_json(input_json, compiler=compiler, **compiler_kwargs)
+        CONTRACT_METADATA.compile_standard_json(input_json, compiler=compiler, **compiler_kwargs)
     else:
         # solidity single-file version
         contract_name = result['ContractName']
-        CONTRACT_METADATA.add_source(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, libraries=libraries, **compiler_kwargs)
+        CONTRACT_METADATA.compile_string(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, libraries=libraries, **compiler_kwargs)
 
 
 def fetch_verified_contract_source(contract_address, api_key=None) -> 'Contract':

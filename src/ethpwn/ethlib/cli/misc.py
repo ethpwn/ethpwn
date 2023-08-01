@@ -45,10 +45,10 @@ def deploy(contract_name,
         CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
 
     if source is not None:
-        CONTRACT_METADATA.add_solidity_source(source, source_filename)
+        CONTRACT_METADATA.compile_solidity_string(source, source_filename)
 
     if source_files is not None:
-        CONTRACT_METADATA.add_contracts_from_solidity_files(source_files)
+        CONTRACT_METADATA.compile_solidity_files(source_files)
 
     contract = CONTRACT_METADATA[contract_name]
     return contract.deploy(*constructor_args, **tx_args)
@@ -87,10 +87,10 @@ def contract_at(contract_name: str, contract_address: HexBytes,
         best_kwargs, meta, final_bytecode = try_match_optimizer_settings(do_compile, contract_name, bin_runtime=bin_runtime)
 
     if source is not None:
-        CONTRACT_METADATA.add_solidity_source(source, source_filename)
+        CONTRACT_METADATA.compile_solidity_string(source, source_filename)
 
     if source_files is not None:
-        CONTRACT_METADATA.add_contracts_from_solidity_files(source_files, **best_kwargs)
+        CONTRACT_METADATA.compile_solidity_files(source_files, **best_kwargs)
 
     contract = CONTRACT_METADATA[contract_name]
     return contract.get_contract_at(contract_address)

@@ -439,7 +439,7 @@ class ContractMetadataRegistry:
         })
         self.vyper_compiler: VyperCompiler = VyperCompiler()
 
-    def add_source(self, source: str, file_name: Union[Path, str], compiler: str = None, **kwargs):
+    def compile_string(self, source: str, file_name: Union[Path, str], compiler: str = None, **kwargs):
         result = None
         if compiler == 'vyper':
             result = self.vyper_compiler.compile_source(source, file_name, **kwargs)
@@ -448,7 +448,7 @@ class ContractMetadataRegistry:
             result = self.solidity_compiler.compile_source(source, file_name, **kwargs)
         self._process_compiler_output_json(result)
 
-    def add_sources_dict(self, sources: Dict[str, str], compiler: str = None, **kwargs):
+    def compile_sources_dict(self, sources: Dict[str, str], compiler: str = None, **kwargs):
         result = None
         if compiler == 'vyper':
             result = self.vyper_compiler.compile_sources(sources, **kwargs)
@@ -457,7 +457,7 @@ class ContractMetadataRegistry:
             result = self.solidity_compiler.compile_sources(sources, **kwargs)
         self._process_compiler_output_json(result)
 
-    def add_standard_json(self, input_json: Dict, compiler: str = None, **kwargs):
+    def compile_standard_json(self, input_json: Dict, compiler: str = None, **kwargs):
         result = None
         if compiler == 'vyper':
             result = self.vyper_compiler.compile_json(input_json, **kwargs)
@@ -466,7 +466,7 @@ class ContractMetadataRegistry:
             result = self.solidity_compiler.compile_json(input_json, **kwargs)
         self._process_compiler_output_json(result)
 
-    def add_files(self, files: List[Union[str, Path]], compiler: str = None, **kwargs):
+    def compile_files(self, files: List[Union[str, Path]], compiler: str = None, **kwargs):
         result = None
         if compiler == 'vyper':
             result = self.vyper_compiler.compile_files(files, **kwargs)
@@ -476,45 +476,57 @@ class ContractMetadataRegistry:
         self._process_compiler_output_json(result)
 
 
-    def add_solidity_source(self, source: str, file_name: Union[Path, str], **kwargs):
+    def compile_solidity_string(self, source: str, file_name: Union[Path, str], **kwargs):
         '''
         Compiles the given solidity source code and adds the resulting metadata
         of all contracts to the registry.
         '''
         self._process_compiler_output_json(self.solidity_compiler.compile_source(source, file_name, **kwargs))
 
-    def add_solidity_sources_dict(self, sources: Dict[str, str], **kwargs):
+    def compile_solidity_sources_dict(self, sources: Dict[str, str], **kwargs):
         '''
         Compiles the given solidity source dict `'sources'` in the input json and adds the
         resulting metadata of all contracts to the registry.
         '''
         self._process_compiler_output_json(self.solidity_compiler.compile_sources(sources, **kwargs))
 
-    def add_contracts_from_solidity_files(self, files: List[Union[str, Path]], **kwargs):
+    def compile_solidity_files(self, files: List[Union[str, Path]], **kwargs):
         '''
         Compiles the given files and adds the resulting metadata of all contracts to the registry.
         '''
         self._process_compiler_output_json(self.solidity_compiler.compile_files(files, **kwargs))
 
-    def add_vyper_source(self, source: str, file_name: Union[Path, str], **kwargs):
+    def compile_solidity_standard_json(self, input_json: Dict, **kwargs):
+        '''
+        Compiles the given standard json and adds the resulting metadata of all contracts to the registry.
+        '''
+        self._process_compiler_output_json(self.solidity_compiler.compile_json(input_json, **kwargs))
+
+    def compile_vyper_string(self, source: str, file_name: Union[Path, str], **kwargs):
         '''
         Compiles the given vyper source code and adds the resulting metadata
         of all contracts to the registry.
         '''
         self._process_compiler_output_json(self.vyper_compiler.compile_source(source, file_name, **kwargs))
 
-    def add_vyper_sources_dict(self, sources: Dict[str, str], **kwargs):
+    def compile_vyper_sources_dict(self, sources: Dict[str, str], **kwargs):
         '''
         Compiles the given vyper source dict `'sources'` in the input json and adds the
         resulting metadata of all contracts to the registry.
         '''
         self._process_compiler_output_json(self.vyper_compiler.compile_sources(sources, **kwargs))
 
-    def add_contracts_from_vyper_files(self, files: List[Union[str, Path]], **kwargs):
+    def compile_contracts_from_vyper_files(self, files: List[Union[str, Path]], **kwargs):
         '''
         Compiles the given files and adds the resulting metadata of all contracts to the registry.
         '''
         self._process_compiler_output_json(self.vyper_compiler.compile_files(files, **kwargs))
+
+    def compile_vyper_standard_json(self, input_json: Dict, **kwargs):
+        '''
+        Compiles the given standard json and adds the resulting metadata of all contracts to the registry.
+        '''
+        self._process_compiler_output_json(self.vyper_compiler.compile_json(input_json, **kwargs))
 
     # pylint: disable=line-too-long
     def _handle_errors(self, output_json):
