@@ -60,7 +60,7 @@ The link you will get should look something like: `https://mainnet.infura.io/v3/
 
 | ⚠️ Warning                               |
 |------------------------------------------|
-| While these providers offer public nodes access, the RPC URL is generated per-user. DO NOT spread the obtained URL on the internet or people will start to make requests using your account and you will quickly run out of queries (i.e., the free tier is rate-limited, but it's totally enough for using `ethtool` in a normal work-day). |
+| While these providers offer public nodes access, the RPC URL is generated per-user. DO NOT spread the obtained URL on the internet or people will start to make requests using your account and you will quickly run out of queries (i.e., the free tier is rate-limited, but it's totally enough for using `ethpwn` in a normal work-day). |
 
 
 ## 🚀 Run
