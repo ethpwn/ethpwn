@@ -62,13 +62,13 @@ WETH_addr = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
 DAI_addr = 0x6B175474E89094C44Da98b954EedeAC495271d0F
 MY_addr = 0x1234567890123456789012345678901234567890
 deadline = int(time.time()) + 30 * 60 # 30 minutes at most
+
+# fetch the Contract instance for the uniswap router contract
+# this automatically retrieves the ABI, source code, and storage layout for the contract
 uniswap_router = contract_registry().get(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)
 
-# amountOutMin = 100
-# path = [WETH, DAI]
-# to = <your address>
-# deadline = <some timestamp>
 transact(
+    # this uses the automatic abi to encode the function call
     uniswap_router.w3.swapExactETHForTokens(
         100,                    # amountOutMin
         [WETH_addr, DAI_addr],  # path

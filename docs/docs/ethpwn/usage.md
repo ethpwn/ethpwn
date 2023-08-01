@@ -71,5 +71,8 @@ result = contract_a_instance.w3.foo(0, 1, 2)
 transact(contract_a_instance.w3.foo(0, 1, 2))
 ```
 
-`ethpwn`'s `transact()` function sets up sensible defaults for gas estimation, handles transactions reverting by simulating them first,
-and, in the future, will be able to automatically launch `ethdbg` on the transaction to debug it in case of a revert.
+`ethpwn`'s `transact()` is your one-stop shop for creating new transactions.
+It estimates the gas costs of a transaction, checks that the funds necessary are available before launching it,
+handles transactions reverting by simulating them first, etc.
+In the future, it will be able to automatically launch `ethdbg` on the transaction to debug it in case of a revert.
+
