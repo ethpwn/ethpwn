@@ -49,7 +49,7 @@ def _unify_sources(compiler, input_sources, output_sources):
     memory. This way, we can be sure that the source code is always available in the output
     and does not change after the fact.
     '''
-    # import ipdb; ipdb.set_trace()
+
     assert input_sources.keys() == output_sources.keys()
     sources_out = []
     for file, values in output_sources.items():
@@ -177,10 +177,10 @@ class ContractMetadata(Serializable):
         Constructs a ContractMetadata object for a contract in `source_file` with
         name `contract_name` from the Compiler `output_json` and the `sources` dict.
         '''
-        # import ipdb; ipdb.set_trace()
+
         source_file = str(Path(source_file).resolve())
         sources = _unify_sources(compiler, input_sources, output_sources)
-        # import ipdb; ipdb.set_trace()
+
         abi = output_json['abi']
         bin_constructor = HexBytes(output_json['evm']['bytecode']['object'])
         bin_runtime = HexBytes(output_json['evm']['deployedBytecode']['object'])
@@ -538,7 +538,7 @@ class ContractMetadataRegistry:
         for error in output_json.get('errors', []):
             if should_log_compiler_message(error['severity']):
                 log = getattr(context.logger, error['severity'], context.logger.info)
-                # import ipdb; ipdb.set_trace()
+
                 log(f"# {red}{bold}{error['severity'].upper()}:{error['type']} {error['formattedMessage']}{reset}")
                 for location in error.get('secondarySourceLocations', []):
                     log(f"    {location['file']}:{location['start']}:{location['end']}: {location['message']}")

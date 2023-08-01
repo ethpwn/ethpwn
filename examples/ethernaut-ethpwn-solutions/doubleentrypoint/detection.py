@@ -27,7 +27,7 @@ CONTRACT_METADATA.compiler.add_import_remappings({
     'openzeppelin-contracts-08': solidity_includes / 'openzeppelin-contracts-0.8' / 'contracts',
 })
 
-# import ipdb; ipdb.set_trace()
+
 CONTRACT_METADATA.compile_solidity_files([FILE_DIR / 'detection.sol'])
 
 dep_token = CONTRACT_METADATA['DoubleEntryPoint'].get_contract_at(ARGS.proxy_addr)

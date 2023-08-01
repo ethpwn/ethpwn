@@ -7,7 +7,7 @@ from ..config.misc import set_default_node_url as _set_default_node_url
 from . import cmdline
 
 @cmdline
-def set_default_node_url(node_url: str, network: str=None, force: bool=False):
+def set_default_node_url(node_url: str, network: str=None, force: bool=False, **kwargs):
     '''
     Adds a default node URL to the context. If the node is not available, a warning is printed.
     All default node URLs are tried in order until one is available.
@@ -30,13 +30,13 @@ def set_default_node_url(node_url: str, network: str=None, force: bool=False):
         node_network = get_chain_name(int(context.w3.net.version))
         assert network is None or network == node_network, f"Node reports network {node_network}, but you specified {network}"
         network = node_network
-        # import ipdb; ipdb.set_trace()
+
     _set_default_node_url(node_url, network=network)
     update_config()
     return True
 
 @cmdline
-def show_config():
+def show_config(**kwargs):
     '''
     Show the current config
     '''

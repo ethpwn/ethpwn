@@ -8,7 +8,7 @@ import sys
 import cmd
 import traceback
 import sha3
-import ipdb
+
 
 from hexdump import hexdump
 from typing import List
@@ -47,12 +47,12 @@ def get_contract_for(contract_address: HexBytes):
     global FETCHED_VERIFIED_CONTRACTS
     contract_address = normalize_contract_address(contract_address)
     registry = contract_registry()
-    # import ipdb; ipdb.set_trace()
+
 
     if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
         # try to fetch the verified contract
         try:
-                fetch_verified_contract_source(contract_address, None) # auto-detect etherscan api key and fetch the code
+            fetch_verified_contract_source(contract_address, None) # auto-detect etherscan api key and fetch the code
         except Exception as ex:
             # print traceback
             #traceback.print_exc()
@@ -1420,7 +1420,7 @@ class EthDbgShell(cmd.Cmd):
 
                 # calculate the target address as per specification
                 contract_address = calculate_create_contract_address(self.w3, computation.msg.storage_address, computation.state.get_nonce(computation.msg.storage_address))
-                
+
                 # this means there was a nested CREATE/CREATE2
                 if not computation.msg.code_address:
                     msg_sender = computation.msg.storage_address
@@ -1454,7 +1454,7 @@ class EthDbgShell(cmd.Cmd):
                     msg_sender = computation.msg.storage_address
                 else:
                     msg_sender = computation.msg.code_address
-                
+
                 new_callframe = CallFrame(
                     normalize_contract_address(contract_address),
                     normalize_contract_address(msg_sender),

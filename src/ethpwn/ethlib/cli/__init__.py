@@ -6,6 +6,7 @@ from typing import Dict, List, Callable
 from rich import print as rprint
 
 main_cli_parser = argparse.ArgumentParser()
+main_cli_parser.add_argument('--silent', action='store_true', help="Don't print anything")
 main_cli_subparsers = main_cli_parser.add_subparsers(dest='subcommand')
 main_cli_subparsers.required = True
 
@@ -26,7 +27,8 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
     # extract the arguments, argument types and default values
     args = function.__code__.co_varnames[:function.__code__.co_argcount]
     # we don't support *args or **kwargs
-    assert function.__code__.co_flags & (inspect.CO_VARARGS | inspect.CO_VARKEYWORDS) == 0, f"unsupported function signature: *args or **kwargs in {function.__name__}"
+    assert function.__code__.co_flags & (inspect.CO_VARARGS) == 0, f"unsupported function signature: *args in {function.__name__}"
+    assert function.__code__.co_flags & inspect.CO_VARKEYWORDS != 0, f"must handle **kwargs in {function.__name__}"
     arg_types = function.__annotations__
     defaults = function.__defaults__ or []
     if len(defaults) > 0:
@@ -36,7 +38,7 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
         kwargs = []
 
     # if function.__name__ == 'set_default_node_url':
-    #     import ipdb; ipdb.set_trace()
+
 
     # create the subparser
     p: argparse.ArgumentParser = subparsers.add_parser(function.__name__, help=function.__doc__.strip())
@@ -60,9 +62,10 @@ def main():
     ARGS = main_cli_parser.parse_args()
 
     subcommand_function = main_cli_handlers[ARGS.subcommand]
-    kwargs = {k.replace('-', '_'): v for k, v in vars(ARGS).items() if k != 'subcommand'}
+    kwargs = {k.replace('-', '_'): v for k, v in vars(ARGS).items() if k not in {'subcommand', 'silent'}}
     result = subcommand_function(**kwargs)
-    rprint(result)
+    if result is not None and not ARGS.silent:
+        rprint(result)
 
 
 cmdline = parser_callable(main_cli_subparsers, main_cli_handlers)

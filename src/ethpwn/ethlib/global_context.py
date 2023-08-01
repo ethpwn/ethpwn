@@ -16,16 +16,18 @@ class Web3Context:
     '''
     # pylint: disable=invalid-name
     def __init__(self, w3=None, from_addr=None, private_key=None, log_level=logging.WARNING, disable_autoconnect=False):
-        self.w3 = w3
+        self._w3 = w3
 
         self._default_from_addr = from_addr
         self._default_signing_key = private_key
         self.logger = logging.getLogger('Web3Context')
         self.logger.setLevel(log_level)
 
-        if w3 is None:
+    @property
+    def w3(self):
+        if self._w3 is None:
             self.try_auto_connect()
-
+        return self._w3
 
     def try_auto_connect(self):
         '''
@@ -109,8 +111,8 @@ class Web3Context:
         '''
         Connect to a remote Ethereum node via HTTP/HTTPS
         '''
-        self.w3 = Web3(Web3.HTTPProvider(url, **kwargs))
-        if not self.w3 or not self.w3.is_connected():
+        self._w3 = Web3(Web3.HTTPProvider(url, **kwargs))
+        if not self._w3 or not self._w3.is_connected():
             if can_fail:
                 self.logger.warning('Could not connect to %s', url)
                 return False
@@ -125,8 +127,8 @@ class Web3Context:
         '''
         Connect to a local Ethereum node via IPC
         '''
-        self.w3 = Web3(Web3.IPCProvider(path))
-        if not self.w3 or not self.w3.is_connected():
+        self._w3 = Web3(Web3.IPCProvider(path))
+        if not self._w3 or not self._w3.is_connected():
             if can_fail:
                 self.logger.warning('Could not connect to %s', path)
                 return False
@@ -141,8 +143,8 @@ class Web3Context:
         '''
         Connect to an Ethereum node via WebSockets
         '''
-        self.w3 = Web3(Web3.WebsocketProvider(url, **kwargs))
-        if not self.w3 or not self.w3.is_connected():
+        self._w3 = Web3(Web3.WebsocketProvider(url, **kwargs))
+        if not self._w3 or not self._w3.is_connected():
             if can_fail:
                 self.logger.warning('Could not connect to %s', url)
                 return False
@@ -157,7 +159,7 @@ class Web3Context:
         '''
         Set up some reasonable defaults for gas estimation in the web3 context.
         '''
-        self.w3.eth.set_gas_price_strategy(
+        self._w3.eth.set_gas_price_strategy(
             construct_time_based_gas_price_strategy(
                 60, # 1 minute
                 sample_size=5,
@@ -165,9 +167,9 @@ class Web3Context:
                 weighted=True,
         ))
 
-        self.w3.middleware_onion.add(middleware.time_based_cache_middleware)
-        self.w3.middleware_onion.add(middleware.latest_block_based_cache_middleware)
-        self.w3.middleware_onion.add(middleware.simple_cache_middleware)
+        self._w3.middleware_onion.add(middleware.time_based_cache_middleware)
+        self._w3.middleware_onion.add(middleware.latest_block_based_cache_middleware)
+        self._w3.middleware_onion.add(middleware.simple_cache_middleware)
 
     def pessimistic_gas_price_estimate(self):
         '''

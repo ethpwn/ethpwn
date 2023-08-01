@@ -26,7 +26,7 @@ class SrcMapEntry(TypedDict):
 def parse_srcmap(srcmap: str) -> List[Tuple[int, int]]:
     if not srcmap:
         return []
-    # import ipdb; ipdb.set_trace()
+
     entries = srcmap.split(';')
 
     # src_start_character_index, num_chars, source_file_index, jumpType, modifierDepth
@@ -85,7 +85,7 @@ class InstructionSourceInfo:
         byte_start = self.source_byte_offset_start
         byte_end = self.source_byte_offset_start + self.source_bytes_len
 
-        # import ipdb; ipdb.set_trace()
+
         highlighted = ''
         if byte_start > 0:
             highlighted += self.source_content[:byte_start] + str(reset)
@@ -128,7 +128,7 @@ def get_line_col_from_byte_offset(source: str, byte_offset: int) -> Tuple[int, i
 
 def symbolize_source_map(src_map_entries: List[SrcMapEntry], source_lookup) -> List[InstructionSourceInfo]:
     result = []
-    # import ipdb; ipdb.set_trace()
+
     for entry in src_map_entries:
         if entry['source_file_index'] == -1:
             result.append(None)

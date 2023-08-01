@@ -12,6 +12,7 @@ from hexbytes import HexBytes
 import requests
 
 from ..utils import normalize_contract_address
+from ..config import get_contract_registry_dir
 from ..config.credentials import get_etherscan_api_key
 from ..contract_metadata import CONTRACT_METADATA
 from ..contract_registry import Contract, contract_registry
@@ -147,7 +148,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
             lib_name, lib_address = lib.split(':')
             libraries[lib_name] = normalize_contract_address(lib_address)
 
-    # import ipdb; ipdb.set_trace()
+
     if source[:2] == '{"':
         # solidity multi-file version, this is basically the sources dict
         sources_dict = json.loads(source)
@@ -173,8 +174,12 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
 
 
 def fetch_verified_contract_source(contract_address, api_key=None) -> 'Contract':
-    if contract := contract_registry().get(contract_address):
-        return contract
+    # fastpath: just check if the file exists instead of loading the entire registry
+
+    if os.path.exists(get_contract_registry_dir() / f'{contract_address.lower()}.json'):
+        return
+    if contract_registry().get(contract_address):
+        return
 
     if api_key is None:
         api_key = get_etherscan_api_key()
