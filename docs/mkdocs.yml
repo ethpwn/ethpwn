@@ -54,7 +54,7 @@ nav:
       - ethpwn.ethlib.serialization_utils: ethpwn/modules/serialization_utils.md
       - ethpwn.ethlib.utils: ethpwn/modules/utils.md
     - Showroom: ethpwn/showroom.md
-  #- ⚙️ hacking ethtools: hacking.md
+  #- ⚙️ hacking ethdbg: hacking.md
   - ⛓️ chains support: chains.md
   - ？ FAQ: faq.md
 
