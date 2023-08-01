@@ -33,5 +33,4 @@ NEW:
 BUGS:
 0x53a9a0bbc478632da7c3a28883eb8e501708c136 does not compile due to import name non-sense
 
-- showroom for ethpwn 
-- fix config in json
+- if there is a CREATE inside a CREATE, the comp.msg.code_address is EMPTY!

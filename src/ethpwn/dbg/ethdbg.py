@@ -897,7 +897,7 @@ class EthDbgShell(cmd.Cmd):
         legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Name ]\n'
         for call in self.callstack[::-1]:
             calltype_string = f'{call.calltype}'
-            if call.calltype == "CALL" or call.calltype == "CREATE2":
+            if call.calltype == "CALL":
                 color = PURPLE_COLOR
             elif call.calltype == "DELEGATECALL" or call.calltype == "CODECALL":
                 color = RED_COLOR
@@ -981,11 +981,7 @@ class EthDbgShell(cmd.Cmd):
         title = f'{message:{fill}{align}{width}}'+'\n'
 
         # Fetching the metadata from the state of the computation
-        try:
-            curr_account_code = normalize_contract_address(self.comp.msg.code_address)
-        except Exception as e:
-            curr_account_code = '0x'
-
+        curr_account_code = normalize_contract_address(self.comp.msg.code_address)
         curr_account_storage = normalize_contract_address(self.comp.msg.storage_address)
         curr_origin = normalize_contract_address(self.comp.transaction_context.origin)
         curr_balance = self.comp.state.get_balance(self.comp.msg.storage_address)
@@ -1418,15 +1414,14 @@ class EthDbgShell(cmd.Cmd):
                     self.curr_tree_node.add(f"{BLUE_COLOR}STATICCALL{RESET_COLOR} {contract_target}")
 
             elif opcode.mnemonic == "CREATE":
-                contract_value = hex(read_stack_int(computation, 1))
+                contract_value = read_stack_int(computation, 1)
                 code_offset = hex(read_stack_int(computation, 2))
                 code_size = hex(read_stack_int(computation, 3))
 
                 # calculate the target address as per specification
-                contract_address = calculate_create_contract_address(self.w3, computation.msg.sender, computation.transaction_context.nonce)
-
+                contract_address = calculate_create_contract_address(self.w3, computation.msg.storage_address, computation.state.get_nonce(computation.msg.storage_address))
                 new_callframe = CallFrame(
-                    normalize_contract_address(addr),
+                    normalize_contract_address(contract_address),
                     normalize_contract_address(computation.msg.code_address),
                     normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
@@ -1444,7 +1439,7 @@ class EthDbgShell(cmd.Cmd):
                 code_size = hex(read_stack_int(computation, 3))
                 salt = read_stack_bytes(computation, 4)
 
-                contract_address = calculate_create2_contract_address(self.w3, computation.msg.code_address, salt,
+                contract_address = calculate_create2_contract_address(self.w3, computation.msg.storage_address, salt,
                                                                     self.comp._memory.read(int(code_offset,16),
                                                                                            int(code_size,16)).tobytes())
 
