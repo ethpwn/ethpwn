@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import sys
 from time import sleep
-from ethpwn.ethlib.prelude import *
+from ethpwn import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('proxy_addr', type=str)
@@ -13,12 +13,10 @@ parser.add_argument('--force', action='store_true', help="Force the exploit even
 parser.add_argument('--wallet', type=str, default='Laptop CTF Metamask', help="Wallet to use for the exploit transaction")
 ARGS = parser.parse_args()
 
-MY_WALLET = get_wallet(ARGS.wallet)
-assert MY_WALLET is not None
-
 context.log_level = 'DEBUG'
 
-context.connect_http('https://eth-sepolia.g.alchemy.com/v2/CIlvNRJd1iqhTV5d_KIBxWX_qCq0j71v')
+MY_WALLET = get_wallet(ARGS.wallet)
+assert MY_WALLET is not None
 context.default_from_addr = MY_WALLET.address
 context.default_signing_key = MY_WALLET.private_key
 
@@ -34,10 +32,13 @@ CONTRACT_METADATA.compile_solidity_files([FILE_DIR / 'detection.sol'])
 
 dep_token = CONTRACT_METADATA['DoubleEntryPoint'].get_contract_at(ARGS.proxy_addr)
 print(f"DoubleEntryPointToken contract is at {dep_token.address}")
+
 vault = CONTRACT_METADATA['CryptoVault'].get_contract_at(dep_token.functions.cryptoVault().call())
 print(f"CryptoVault contract is at {vault.address}")
+
 legacy_token = CONTRACT_METADATA['LegacyToken'].get_contract_at(dep_token.functions.delegatedFrom().call())
 print(f"LegacyToken contract is at {legacy_token.address}")
+
 forta = CONTRACT_METADATA['Forta'].get_contract_at(dep_token.functions.forta().call())
 print(f"Forta contract is at {forta.address}")
 
