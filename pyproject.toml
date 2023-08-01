@@ -31,8 +31,6 @@ dependencies = [
     "ansi",
     "rich",
     "cbor",
-    "simanneal",
-    "editdistance",
     "pysha3>=1.0.2",
     "hexdump",
     "backoff",
@@ -65,6 +63,14 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+]
+
+
+[project.optional-dependencies]
+
+settings_recovery = [
+    "simanneal",
+    "editdistance",
 ]
 
 [project.urls]
