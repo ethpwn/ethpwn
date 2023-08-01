@@ -1,4 +1,4 @@
-# ethpwn
+# ethpwn 🪲 ⚔️
 
 [![PyPI](https://img.shields.io/pypi/v/ethpwn?style=flat)](https://pypi.org/project/ethpwn/)
 [![Docs](https://readthedocs.org/projects/ethpwn/badge/?version=stable)](https://ethpwn.github.io/ethpwn/)
