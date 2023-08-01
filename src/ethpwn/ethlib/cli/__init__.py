@@ -140,6 +140,6 @@ def main():
 cmdline = parser_callable(main_cli_subparsers, main_cli_handlers)
 
 from .config import *
-from .misc import *
+from .contracts import *
 from .wallets import *
 from .credentials import *

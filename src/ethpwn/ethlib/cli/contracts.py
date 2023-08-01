@@ -17,13 +17,13 @@ from ..utils import normalize_contract_address
 from ..transactions import transact, transfer_funds
 from ..compilation.verified_source_code import fetch_verified_contract_source
 
-from . import cmdline
+from . import cmdline, subcommand_callable
 
 
+contracts_handler = subcommand_callable(cmdline, 'contracts', doc='Manage contracts and their metadata')
 
 
-
-@cmdline
+@contracts_handler
 def address(address_string: str, **kwargs):
     '''
     Parse an address string into an address. The string can be in checksummed, non-checksummed,
@@ -31,7 +31,7 @@ def address(address_string: str, **kwargs):
     '''
     return normalize_contract_address(address_string)
 
-@cmdline
+@contracts_handler
 def deploy(contract_name,
            constructor_args: List[str] = [],
            source: str=None, source_filename=None, source_files=None, import_remappings=None,
@@ -55,14 +55,29 @@ def deploy(contract_name,
     return contract.deploy(*constructor_args, **tx_args)
 
 
-@cmdline
-def contract_at(contract_name: str, contract_address: HexBytes,
+@contracts_handler
+def register(contract_name: str, contract_address: HexBytes,
                 source: str=None, source_filename: str=None, source_files: List[str]=None, import_remappings=None,
                 find_optimizer_settings_to_match_bytecode: bool=False,
                 **kwargs
                 ):
     '''
-    Get a contract instance at the given address. Registers it in the contract registry.
+    Register an instance of the contract `contract_name` at `contract_address` in the contract registry.
+    Optionally, you can provide the contract source code, or a list of source files to compile the
+    contract first.
+
+    If `find_optimizer_settings_to_match_bytecode` is set, the compiler will try to find the
+    optimizer settings that were used to compile the contract. This is useful if you want to
+    register a contract that was already deployed, but you don't know the optimizer settings that
+    were used to compile it. This is a slow process, so it is disabled by default.
+
+    :param contract_name: the name of the contract
+    :param contract_address: the address of the contract
+    :param source: the source code of the contract
+    :param source_filename: the filename of the source code of the contract
+    :param source_files: a list of source files to compile the contract
+    :param import_remappings: a list of import remappings to use when compiling the contract
+    :param find_optimizer_settings_to_match_bytecode: whether to try to recover the optimizer settings that were used to compile the contract
     '''
     if import_remappings:
         CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
@@ -97,8 +112,8 @@ def contract_at(contract_name: str, contract_address: HexBytes,
     contract = CONTRACT_METADATA[contract_name]
     return contract.get_contract_at(contract_address)
 
-@cmdline
-def fetch_verified_contract_at(address, api_key=None, **kwargs):
+@contracts_handler
+def fetch_verified_source(address, api_key=None, **kwargs):
     '''
     Fetch the verified source code for the contract at `address` from Etherscan and register it in
     the code-registry. If the contract is not verified, an error is raised. If the contract is
@@ -107,7 +122,7 @@ def fetch_verified_contract_at(address, api_key=None, **kwargs):
     fetch_verified_contract_source(normalize_contract_address(address), api_key=api_key)
 
 
-@cmdline
+@contracts_handler
 def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_hash: HexBytes=None, guess: bool=False, **kwargs):
     '''
     Decode a transaction. Either `target_contract`+`calldata` or `tx_hash` must be provided.
