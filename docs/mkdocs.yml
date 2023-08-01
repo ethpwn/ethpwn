@@ -39,7 +39,6 @@ nav:
     - Showroom: ethdbg/showroom.md
   - ⚔️ ethpwn:
     - Usage: ethpwn/usage.md
-    - CLI: ethpwn/cli.md
     - Global State: ethpwn/global_state.md
     - Modules:
       - ethpwn.ethlib.global_context: ethpwn/modules/global_context.md
@@ -55,6 +54,7 @@ nav:
       - ethpwn.ethlib.prelude: ethpwn/modules/prelude.md
       - ethpwn.ethlib.serialization_utils: ethpwn/modules/serialization_utils.md
       - ethpwn.ethlib.utils: ethpwn/modules/utils.md
+    - CLI: ethpwn/cli.md
     - Showroom: ethpwn/showroom.md
   #- ⚙️ hacking ethdbg: hacking.md
   - ⛓️ chains support: chains.md
