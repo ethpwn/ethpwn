@@ -19,8 +19,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pylint
-          pip install -r ${{ github.workspace }}/docs_requirements.txt
-          pip install ${{ github.workspace }}
+          pip install ${{ github.workspace }}[docs]
       - name: Setup git author details
         run: |
           git config --global user.name "GitHub Actions Docs Deployer"

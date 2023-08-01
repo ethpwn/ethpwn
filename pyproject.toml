@@ -67,6 +67,12 @@ classifiers = [
 
 
 [project.optional-dependencies]
+docs = [
+    "mkdocs",
+    "mkdocs-click",
+    "mkdocs-material",
+    "pydoc-markdown",
+]
 settings_recovery = [
     "simanneal",
     "editdistance",
@@ -77,6 +83,15 @@ dev = [
     "deepdiff",
     "simanneal",
     "editdistance",
+
+    "mkdocs",
+    "mkdocs-click",
+    "mkdocs-material",
+    "pydoc-markdown",
+
+    "bumpversion",
+    "build",
+    "twine",
 ]
 
 [project.urls]
