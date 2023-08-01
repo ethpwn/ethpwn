@@ -16,6 +16,14 @@ Currently, `ethpwn` is composed of two modules: `ethpwn`, a set of handy wrapper
 
 ![](./imgs/ethdbg.png)
 
+## WARNING
+
+`ethpwn` is optimized for ease-of-use. E.g., `ethpwn` aggresively over-allocates the gas price for transactions to ensure
+that they are mined quickly. This is not a problem for the CTF challenges that `ethpwn` was designed for, but it *is* a problem
+if you are using `ethpwn` to interact with real contracts on the mainnet. It can cause you to massively overpay in terms of transaction fees.
+
+<span style="color:red">**DO NOT USE `ethpwn` TO INTERACT WITH REAL CONTRACTS ON THE MAINNET UNLESS YOU ARE ABSOLUTELY SURE WHAT YOU ARE DOING.**</span>
+
 ## ⚡️ Quick Start
 
 #### Installation
