@@ -1420,9 +1420,15 @@ class EthDbgShell(cmd.Cmd):
 
                 # calculate the target address as per specification
                 contract_address = calculate_create_contract_address(self.w3, computation.msg.storage_address, computation.state.get_nonce(computation.msg.storage_address))
+                
+                # this means there was a nested CREATE/CREATE2
+                if not computation.msg.code_address:
+                    msg_sender = computation.msg.storage_address
+                else:
+                    msg_sender = computation.msg.code_address
                 new_callframe = CallFrame(
                     normalize_contract_address(contract_address),
-                    normalize_contract_address(computation.msg.code_address),
+                    normalize_contract_address(msg_sender),
                     normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
                     "CREATE",
@@ -1443,9 +1449,15 @@ class EthDbgShell(cmd.Cmd):
                                                                     self.comp._memory.read(int(code_offset,16),
                                                                                            int(code_size,16)).tobytes())
 
+                # this means there was a nested CREATE/CREATE2
+                if not computation.msg.code_address:
+                    msg_sender = computation.msg.storage_address
+                else:
+                    msg_sender = computation.msg.code_address
+                
                 new_callframe = CallFrame(
                     normalize_contract_address(contract_address),
-                    normalize_contract_address(computation.msg.code_address),
+                    normalize_contract_address(msg_sender),
                     normalize_contract_address(computation.transaction_context.origin),
                     contract_value,
                     "CREATE2",
