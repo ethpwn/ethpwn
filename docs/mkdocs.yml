@@ -19,6 +19,7 @@ nav:
   - ⚔️ ethpwn:
     - Usage: ethpwn/usage.md
     - Global State: ethpwn/global_state.md
+    - CLI: ethpwn/cli.md
     - Modules:
       - ethpwn.ethlib.global_context: ethpwn/modules/global_context.md
       - ethpwn.ethlib.contract_registry: ethpwn/modules/contract_registry.md
@@ -33,8 +34,6 @@ nav:
       - ethpwn.ethlib.prelude: ethpwn/modules/prelude.md
       - ethpwn.ethlib.serialization_utils: ethpwn/modules/serialization_utils.md
       - ethpwn.ethlib.utils: ethpwn/modules/utils.md
-    - CLI: ethpwn/cli.md
-    - Showroom: ethpwn/showroom.md
   - 🐛 ethdbg:
     - Usage: ethdbg/usage.md
     - Commands:
@@ -55,7 +54,6 @@ nav:
       - callhistory: ethdbg/commands/callhistory.md
       - ethtowei: ethdbg/commands/ethtowei.md
       - weitoeth: ethdbg/commands/weitoeth.md
-    - Showroom: ethdbg/showroom.md
   #- ⚙️ hacking ethdbg: hacking.md
   - ⛓️ chains support: chains.md
   - ？ FAQ: faq.md

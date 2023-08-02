@@ -12,7 +12,7 @@ The main 3 principles for `ethpwn` are:
 2. provide a simple, consistent set of configuration that can simplify the process of interacting with smart contracts
 3. prioritize concise, easy to use, high-level API which keeps the most common operations as simple as possible
 
-## Installation
+## ⚙️ Installation
 
 The main logic of `ethpwn` is written in Python, and can be installed via `pip`:
 
@@ -24,7 +24,7 @@ Specifically, the core logic is found in the `ethpwn.ethlib` module, where the h
 For ease-of-use, this is also reexported in `ethpwn` itself, so that you can do `from ethpwn import *` to get convenient access
 to the high-level API functionality.
 
-## Tasks
+## 🎯 Tasks
 
 `ethpwn` aims to solve a few tasks that users might commonly come in contact with.
 
