@@ -1,4 +1,4 @@
-# ethpwn 🪲 ⚔️
+# ethpwn 🐛 ⚔️
 
 [![PyPI](https://img.shields.io/pypi/v/ethpwn?style=flat)](https://pypi.org/project/ethpwn/)
 [![Docs](https://img.shields.io/badge/Documentation-gh_pages)](https://ethpwn.github.io/ethpwn/)
@@ -9,8 +9,15 @@ More practically, this package includes a kick-ass command line debugger for sim
 
 ## ⚡️ Quick Setup ##
 
+# Release Installation
 ```bash
 pip install ethpwn
+```
+
+# Developer Installation
+Make sure your pip version is >= 23.1.2, then:
+```bash
+git clone git@github.com:ethpwn/ethpwn.git && pip install -e ethpwn
 ```
 
 ## ⚡️ Jump Start for ethdbg ## 
