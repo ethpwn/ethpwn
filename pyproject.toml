@@ -19,24 +19,20 @@ requires-python = ">=3.7"
 
 dependencies = [
     "web3>=6.0.0",
+    "pysha3>=1.0.2",
     "requests",
-    "pysha3",
     "hexbytes",
-    "virtualenv",
+    "ansi",
+    "rich",
+    "cbor",
+    "hexdump",
+    "cachetools",
+    "alive-progress",
+    "coolname",
 
     "ethcx",
     "ethpwn-py-evm",
     "ethpwn-pyevmasm",
-
-    "ansi",
-    "rich",
-    "cbor",
-    "pysha3>=1.0.2",
-    "hexdump",
-    "backoff",
-    "cachetools",
-    "alive-progress",
-    "coolname",
 ]
 
 keywords = [
