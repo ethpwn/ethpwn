@@ -1,12 +1,13 @@
-# `ethpwn`
+# Usage #
 
 `ethpwn` aims to make interacting with the ethereum blockchain easier.
 Specifically, when it comes to creating, deploying, and interacting with smart contracts, we found ourselves writing the same boilerplate code over and over again or performing such operations in a web browser (bleah!).
-Comparing this to the state of binary exploitation in CTFs (where the awesome[pwntools](https://github.com/gallopsled/pwntools/) library is predominantly used to interact with a target program), a lot was left to be desired for web3 hacking.
+Comparing this to the state of binary exploitation in CTFs (where the awesome [pwntools](https://github.com/gallopsled/pwntools/) library is predominantly used to interact with a target program), a lot was left to be desired for web3 hacking.
 
 `ethpwn` aims to be the `pwntools` for smart contracts, and provide a simple, easy to use interface for interacting with them.
 
 The main 3 principles for `ethpwn` are:
+
 1. allow integration of familiar smart contract technologies where appropriate to reduce the learning curve
 2. provide a simple, consistent set of configuration that can simplify the process of interacting with smart contracts
 3. prioritize concise, easy to use, high-level API which keeps the most common operations as simple as possible
@@ -31,7 +32,7 @@ to the high-level API functionality.
 
 Smart contracts are most commonly written in high-level programming languages, most commonly [Solidity](https://soliditylang.org/) or sometimes [Vyper](https://vyper.readthedocs.io/en/stable/).
 
-`ethpwn` provides a simple interface for compiling smart contracts, and programattic access to the compiled artifacts.
+`ethpwn` provides a simple interface for compiling smart contracts, and programmatically access to the compiled artifacts.
 
 ```python
 from ethpwn import *
@@ -50,7 +51,7 @@ print (f"ContractA: calldata calls function {func_name} with args {args}")
 
 Additionally to the compiled information accessible via the `ContractMetadata`, `ethpwn` also provides a `Contract` class which can be used to interact with contract instances on the blockchain.
 
-A contract instance can be retrieved either by newly deploying a given contract via `ContractMetadata.deploy()` or by the address of an already deployed contract via `ContractMetadata.get_contract_at()`.
+A contract instance can be retrieved either by deploying a (new) given contract via `ContractMetadata.deploy()`, or by the address of an already deployed contract via `ContractMetadata.get_contract_at()`.
 
 ```python
 # deploy an instance of ContractA onto the blockchain

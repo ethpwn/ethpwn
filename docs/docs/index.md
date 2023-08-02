@@ -10,7 +10,7 @@ In other words, `ethpwn` is all you ever wanted for debugging and interacting wi
 The project started due to the frustration of [@honululu](https://twitter.com/dreselli) and [@degrigis](https://twitter.com/degrigis), when trying to debug exploits for the [ethernaut](https://ethernaut.openzeppelin.com/) challenges.
 With `ethpwn`, we hope to improve educational capabilities when it comes to smart contract and blockchain analysis, and facilitate research efforts in the area.
 
-Currently, `ethpwn` is a package that ships a set of handy wrappers for the `web3` Python package (in pwntools style!), and a CLI debugger --`ethdbg`-- that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from Etherscan if it can find it!
+Currently, `ethpwn` is a package that ships a set of handy wrappers for the `web3` Python package (in pwntools style!), and a CLI debugger --`ethdbg`-- that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from [Etherscan](https://etherscan.io/) if it can find it!
 
 `ethpwn` requires *Python3*.
 
@@ -41,9 +41,6 @@ Once you have done that, just:
 ```bash
 pip install ethpwn
 ```
-
-This command will install both `ethdbg` and `ethlib` in your system.
-
 
 #### Developer Installation
 If you want to install `ethpwn` in developing mode (i.e., editable in the current folder), first: Make sure you have the latest version of `pip`:
@@ -87,7 +84,7 @@ To try out `ethdbg`, a simple way of debugging a transaction that happened on th
 ethdbg --txid 0x82a11757c3f34c2882e209c6e5ae96aff3e4db7f7984d54f92b02e1fed87e834 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
 ```
 
-To learn more about the debugging features available in `ethdbg`, and the functionalities of `ethlib`, please refer to their respective pages.
+To learn more about the debugging features available in `ethdbg`, and all the functionalities offered by `ethpwn`, please refer to their respective pages.
 
 
 ## 🐛 Bugs & Feedbacks

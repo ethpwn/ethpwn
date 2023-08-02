@@ -1,5 +1,8 @@
 # Usage #
 
+`ethdbg` is the CLI EVM debugger installed with the `ethpwn` package.
+Before starting to play with `ethdbg` you need to make a few steps.
+
 ## 📝 Config File
 
 There are two main configuration files that can be used to customize the behavior of `ethdbg`.
