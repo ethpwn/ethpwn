@@ -16,25 +16,25 @@ markdown_extensions:
   - pymdownx.superfences
 nav:
   - 🏠 Home: index.md
-  - ⚔️ ethlib:
-    - Usage: ethlib/usage.md
-    - Global State: ethlib/global_state.md
+  - ⚔️ ethpwn:
+    - Usage: ethpwn/usage.md
+    - Global State: ethpwn/global_state.md
     - Modules:
-      - ethpwn.ethlib.global_context: ethlib/modules/global_context.md
-      - ethpwn.ethlib.contract_registry: ethlib/modules/contract_registry.md
-      - ethpwn.ethlib.contract_metadata: ethlib/modules/contract_metadata.md
-      - ethpwn.ethlib.transactions: ethlib/modules/transactions.md
-      - ethpwn.ethlib.hashes: ethlib/modules/hashes.md
-      - ethpwn.ethlib.assembly_utils: ethlib/modules/assembly_utils.md
-      - ethpwn.ethlib.currency_utils: ethlib/modules/currency_utils.md
-      - ethpwn.ethlib.cli: ethlib/modules/cli.md
-      - ethpwn.ethlib.compilation: ethlib/modules/compilation.md
-      - ethpwn.ethlib.config: ethlib/modules/config.md
-      - ethpwn.ethlib.prelude: ethlib/modules/prelude.md
-      - ethpwn.ethlib.serialization_utils: ethlib/modules/serialization_utils.md
-      - ethpwn.ethlib.utils: ethlib/modules/utils.md
-    - CLI: ethlib/cli.md
-    - Showroom: ethlib/showroom.md
+      - ethpwn.ethlib.global_context: ethpwn/modules/global_context.md
+      - ethpwn.ethlib.contract_registry: ethpwn/modules/contract_registry.md
+      - ethpwn.ethlib.contract_metadata: ethpwn/modules/contract_metadata.md
+      - ethpwn.ethlib.transactions: ethpwn/modules/transactions.md
+      - ethpwn.ethlib.hashes: ethpwn/modules/hashes.md
+      - ethpwn.ethlib.assembly_utils: ethpwn/modules/assembly_utils.md
+      - ethpwn.ethlib.currency_utils: ethpwn/modules/currency_utils.md
+      - ethpwn.ethlib.cli: ethpwn/modules/cli.md
+      - ethpwn.ethlib.compilation: ethpwn/modules/compilation.md
+      - ethpwn.ethlib.config: ethpwn/modules/config.md
+      - ethpwn.ethlib.prelude: ethpwn/modules/prelude.md
+      - ethpwn.ethlib.serialization_utils: ethpwn/modules/serialization_utils.md
+      - ethpwn.ethlib.utils: ethpwn/modules/utils.md
+    - CLI: ethpwn/cli.md
+    - Showroom: ethpwn/showroom.md
   - 🐛 ethdbg:
     - Usage: ethdbg/usage.md
     - Commands:
