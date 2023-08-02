@@ -7,21 +7,21 @@
 
 More practically, this package includes a kick-ass command line debugger for simulating and re-playing Ethereum transactions (`ethdbg`), and a set of convenient wrappers for many `web3` functionalities that are useful for interacting with smart contracts.
 
-## Quick Setup ##
+## ⚡️ Quick Setup ##
 
 ```bash
 pip install ethpwn
 ```
 
-## Jump Start for ethdbg ## 
+## ⚡️ Jump Start for ethdbg ## 
 ``bash
 ethdbg --txid 0x82a11757c3f34c2882e209c6e5ae96aff3e4db7f7984d54f92b02e1fed87e834 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
 ``
 
-## Documentation ##
+## 📖 Documentation ##
 [![Docs](https://img.shields.io/badge/Documentation-gh_pages)](https://ethpwn.github.io/ethpwn/)
 
-## Currently Supported EVM-based Chains ##
+## ⚙️ Currently Supported EVM-based Chains ##
 
 | Chain Name | Chain Id | Supported |
 |-------------------|----------|----------|
