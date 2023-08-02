@@ -9,12 +9,12 @@ More practically, this package includes a kick-ass command line debugger for sim
 
 ## ⚡️ Quick Setup ##
 
-# Release Installation
+#### Release Installation
 ```bash
 pip install ethpwn
 ```
 
-# Developer Installation
+#### Developer Installation
 Make sure your pip version is >= 23.1.2, then:
 ```bash
 git clone git@github.com:ethpwn/ethpwn.git && pip install -e ethpwn
