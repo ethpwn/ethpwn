@@ -129,7 +129,6 @@ def rename(new_name):
 
 def main():
     ARGS = main_cli_parser.parse_args()
-    import ipdb; ipdb.set_trace()
     subcommand_function = main_cli_handlers[ARGS.subcommand]
     kwargs = {k.replace('-', '_'): v for k, v in vars(ARGS).items() if k not in {'subcommand', 'silent'}}
     result = subcommand_function(**kwargs)
@@ -140,6 +139,6 @@ def main():
 cmdline = parser_callable(main_cli_subparsers, main_cli_handlers)
 
 from .config import *
-from .contracts import *
-from .wallets import *
-from .credentials import *
+from .contract import *
+from .wallet import *
+from .credential import *

@@ -16,9 +16,9 @@ Currently, `ethpwn` is a package that ships a set of handy wrappers for the `web
 
 ![](./imgs/ethdbg.png)
 
-| ⚠️ WARNING ⚠️                             |
+|<span style="background-color: red;"> ⚠️ WARNING ⚠️                             </span>|
 |------------------------------------------|
-|`ethpwn` is optimized for ease-of-use. e.g., we aggresively over-allocates the gas price for transactions to ensure that they are mined quickly. This decision works well for CTF challenges, but can be a problem if you are using `ethpwn` to interact with real contracts on the mainnet (i.e., it can cause a massive overpay in terms of transaction fee). DO NOT USE `ethpwn` TO INTERACT WITH REAL CONTRACTS ON THE MAINNET UNLESS YOU ARE ABSOLUTELY SURE WHAT YOU ARE DOING. |
+|`ethpwn` is optimized for ease-of-use. e.g., we aggressively over-allocate the gas price for transactions to ensure that they are mined quickly. This decision works well for CTF challenges, but can be a problem if you are using `ethpwn` to interact with real contracts on the mainnet (i.e., it can cause a massive overpay in terms of transaction fee). DO NOT USE `ethpwn` TO INTERACT WITH REAL CONTRACTS ON THE MAINNET UNLESS YOU ARE ABSOLUTELY SURE WHAT YOU ARE DOING. |
 
 
 ## ⚡️ Quick Start

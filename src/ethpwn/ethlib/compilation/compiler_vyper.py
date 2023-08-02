@@ -3,25 +3,9 @@ This module contains the `VyperCompiler` class, which is a wrapper around `ethcx
 `VyperCompiler` provides a convenient interface to compile smart contracts implemented in Vyper.
 """
 
-from copy import deepcopy
-import functools
-import os
 from pathlib import Path
-import random
-import struct
 from typing import Dict, List, Union
-import cbor
-import editdistance
-from hexbytes import HexBytes
-from simanneal import Annealer
 import ethcx
-import rich
-from rich.table import Table
-
-from ..utils import get_shared_prefix_len
-
-from ..global_context import context
-
 
 def configure_vyper_from_version_line(version_line: str):
     if version_line is None:

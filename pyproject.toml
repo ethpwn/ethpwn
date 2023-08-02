@@ -8,7 +8,7 @@ allow-direct-references = true # to allow github dependencies
 [project]
 name = "ethpwn"
 license = {text = "MIT License"}
-version = "0.0.3"
+version = "0.0.4"
 authors = [
   { name="Lukas Dresel", email="Lukas-Dresel@noreply.github.com" },
   { name="Fabio Gritti", email="degrigis@ucsb.edu"}
@@ -19,26 +19,20 @@ requires-python = ">=3.7"
 
 dependencies = [
     "web3>=6.0.0",
+    "pysha3>=1.0.2",
     "requests",
-    "pysha3",
     "hexbytes",
-    "virtualenv",
+    "ansi",
+    "rich",
+    "cbor",
+    "hexdump",
+    "cachetools",
+    "alive-progress",
+    "coolname",
 
     "ethcx",
     "ethpwn-py-evm",
     "ethpwn-pyevmasm",
-
-    "ansi",
-    "rich",
-    "cbor",
-    "pysha3>=1.0.2",
-    "hexdump",
-    "backoff",
-    "cachetools",
-    "alive-progress",
-    "coolname",
-    "simanneal",
-    "editdistance"
 ]
 
 keywords = [
@@ -75,7 +69,7 @@ docs = [
     "mkdocs-material",
     "pydoc-markdown",
 ]
-settings_recovery = [
+full = [
     "simanneal",
     "editdistance",
 ]

@@ -7,9 +7,10 @@ import functools
 from typing import Dict, List
 from hexbytes import HexBytes
 
-from rich import print as rprint
+from rich.table import Table
 
 from ..compilation.compiler_solidity import try_match_optimizer_settings
+from ..contract_names import contract_names, name_for_contract, register_contract_name, names_for_contract, contract_by_name
 from ..contract_metadata import CONTRACT_METADATA
 from ..contract_registry import decode_function_input
 from ..global_context import context
@@ -17,13 +18,13 @@ from ..utils import normalize_contract_address
 from ..transactions import transact, transfer_funds
 from ..compilation.verified_source_code import fetch_verified_contract_source
 
-from . import cmdline, subcommand_callable
+from . import cmdline, rename, subcommand_callable
 
 
-contracts_handler = subcommand_callable(cmdline, 'contracts', doc='Manage contracts and their metadata')
+contract_handler = subcommand_callable(cmdline, 'contract', doc='Manage contracts and their metadata')
 
 
-@contracts_handler
+@contract_handler
 def address(address_string: str, **kwargs):
     '''
     Parse an address string into an address. The string can be in checksummed, non-checksummed,
@@ -31,7 +32,7 @@ def address(address_string: str, **kwargs):
     '''
     return normalize_contract_address(address_string)
 
-@contracts_handler
+@contract_handler
 def deploy(contract_name,
            constructor_args: List[str] = [],
            source: str=None, source_filename=None, source_files=None, import_remappings=None,
@@ -55,7 +56,7 @@ def deploy(contract_name,
     return contract.deploy(*constructor_args, **tx_args)
 
 
-@contracts_handler
+@contract_handler
 def register(contract_name: str, contract_address: HexBytes,
                 source: str=None, source_filename: str=None, source_files: List[str]=None, import_remappings=None,
                 find_optimizer_settings_to_match_bytecode: bool=False,
@@ -112,7 +113,7 @@ def register(contract_name: str, contract_address: HexBytes,
     contract = CONTRACT_METADATA[contract_name]
     return contract.get_contract_at(contract_address)
 
-@contracts_handler
+@contract_handler
 def fetch_verified_source(address, api_key=None, **kwargs):
     '''
     Fetch the verified source code for the contract at `address` from Etherscan and register it in
@@ -122,7 +123,7 @@ def fetch_verified_source(address, api_key=None, **kwargs):
     fetch_verified_contract_source(normalize_contract_address(address), api_key=api_key)
 
 
-@contracts_handler
+@contract_handler
 def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_hash: HexBytes=None, guess: bool=False, **kwargs):
     '''
     Decode a transaction. Either `target_contract`+`calldata` or `tx_hash` must be provided.
@@ -141,3 +142,36 @@ def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_
     if metadata is not None:
         metadata = (metadata.source_file, metadata.contract_name)
     return metadata, decoded
+
+
+contracts_name_handler = subcommand_callable(contract_handler, 'name', doc='Manage contract names')
+
+@contracts_name_handler
+def add(address: HexBytes, name: str, **kwargs):
+    '''
+    Add a contract name for a contract address.
+    '''
+    register_contract_name(address, name)
+
+@contracts_name_handler
+def get(address: HexBytes, **kwargs):
+    '''
+    Get the names of a contract address.
+    '''
+    return names_for_contract(contract_address)
+
+@contracts_name_handler
+@rename('list')
+def _list(**kwargs):
+    '''
+    Show all contract names.
+    '''
+    table = Table()
+    table.add_column("Contract Address")
+    table.add_column("Contract Name")
+    for name, address in contract_names().name_to_address.items():
+        table.add_row(
+            normalize_contract_address(address),
+            name
+        )
+    return table

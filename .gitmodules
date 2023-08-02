@@ -1,3 +1,3 @@
-[submodule "pwn/examples/ethernaut-ethpwn-solutions"]
-	path = pwn/examples/ethernaut-ethpwn-solutions
-	url = https://github.com/Lukas-Dresel/ethernaut-ethpwn-solutions/
+[submodule "examples/ethernaut-ethpwn-solutions"]
+	path = examples/ethernaut-ethpwn-solutions
+	url = git@Lukas-Dresel.github.com:Lukas-Dresel/ethernaut-ethpwn-solutions.git
