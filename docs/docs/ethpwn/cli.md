@@ -18,19 +18,26 @@ ethpwn config
 ethpwn config set_default_node_url
 ethpwn config show
 
-ethpwn wallets
-ethpwn wallets add
-ethpwn wallets show
-ethpwn wallets import
+ethpwn contract
+ethpwn contract address
+ethpwn contract deploy
+ethpwn contract register
+ethpwn contract fetch_verified_source
+ethpwn contract decode_calldata
 
-ethpwn credentials
-ethpwn credentials add
-ethpwn credentials show
-ethpwn credentials get
+ethpwn contract name
+ethpwn contract name add
+ethpwn contract name get
+ethpwn contract name list
 
-ethpwn address
-ethpwn deploy
-ethpwn contract_at
-ethpwn fetch_verified_contract_at
-ethpwn decode_calldata
+ethpwn wallet
+ethpwn wallet add
+ethpwn wallet show
+ethpwn wallet import
+
+ethpwn credential
+ethpwn credential add
+ethpwn credential list
+ethpwn credential get
+
 ```

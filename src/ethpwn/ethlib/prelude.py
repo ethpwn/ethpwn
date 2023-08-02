@@ -4,6 +4,7 @@ from .currency_utils import ether, gwei, wei, parse_wei
 from .global_context import context
 from .serialization_utils import deserialize_from_file, serialize_to_file
 from .hashes import lookup_signature_hash, register_signature_hash, signature_hash
+from .contract_names import register_contract_name, contract_names, contract_by_name, names_for_contract, name_for_contract
 from .contract_metadata import CONTRACT_METADATA, ContractMetadata, ContractMetadataRegistry
 from .contract_registry import register_deployed_contract, register_contract_at_address, decode_function_input, Contract, ContractRegistry, contract_registry
 from .transactions import transact, transfer_funds, TransactionFailedError, InsufficientFundsError, encode_transaction, deploy_bare_contract, deploy_shellcode_contract

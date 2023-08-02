@@ -1,11 +1,11 @@
 import functools
-from . import subcommand_callable, cmdline
+from . import rename, subcommand_callable, cmdline
 from ..config import update_config
 from ..config.credentials import add_credentials_for
 
-credentials_handler = subcommand_callable(cmdline, 'credentials', doc='Manage credentials for ethlib')
+credential_handler = subcommand_callable(cmdline, 'credential', doc='Manage credentials for ethlib')
 
-@credentials_handler
+@credential_handler
 def add(service: str, cred: str, **kwargs):
     """
     Add a credential
@@ -16,15 +16,16 @@ def add(service: str, cred: str, **kwargs):
     add_credentials_for(service, cred)
     update_config()
 
-@credentials_handler
-def show(**kwargs):
+@credential_handler
+@rename('list')
+def _list(**kwargs):
     """
     Show credentials
     """
     from ..config.credentials import all_credentials
     return all_credentials()
 
-@credentials_handler
+@credential_handler
 def get(service: str, **kwargs):
     """
     Get a credential

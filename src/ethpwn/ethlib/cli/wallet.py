@@ -12,10 +12,10 @@ from ..config.wallets import Wallet, add_wallet, all_wallets
 from ..utils import get_chainid
 
 
-wallets_handler = subcommand_callable(cmdline, 'wallets', doc='Manage wallets for ethlib')
+wallet_handler = subcommand_callable(cmdline, 'wallet', doc='Manage wallets for ethlib')
 
 
-@wallets_handler
+@wallet_handler
 @rename('import')
 def _import(wallets_file: str, **kwargs):
     '''
@@ -31,7 +31,7 @@ def _import(wallets_file: str, **kwargs):
         print(f"Imported {len(wallets)} wallets")
         update_config()
 
-@wallets_handler
+@wallet_handler
 def add(address: str, private_key: str, name: str=None, description=None, network=None, **kwargs):
     '''
     Add a wallet to the wallet registry.
@@ -55,7 +55,7 @@ def add(address: str, private_key: str, name: str=None, description=None, networ
     update_config()
     return wallet
 
-@wallets_handler
+@wallet_handler
 @rename('list')
 def _list(**kwargs):
     '''
