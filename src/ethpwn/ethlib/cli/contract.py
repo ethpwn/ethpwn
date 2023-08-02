@@ -147,14 +147,14 @@ def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_
 contracts_name_handler = subcommand_callable(contract_handler, 'name', doc='Manage contract names')
 
 @contracts_name_handler
-def add(contract_name: str, contract_address: HexBytes, **kwargs):
+def add(address: HexBytes, name: str, **kwargs):
     '''
     Add a contract name for a contract address.
     '''
-    register_contract_name(contract_address, contract_name)
+    register_contract_name(address, name)
 
 @contracts_name_handler
-def get(contract_address: HexBytes, **kwargs):
+def get(address: HexBytes, **kwargs):
     '''
     Get the names of a contract address.
     '''

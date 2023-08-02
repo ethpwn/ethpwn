@@ -45,6 +45,11 @@ ethpwn credentials add etherscan <API_KEY>
 # configure your wallet in ~/.config/ethpwn/wallets.json or via the CLI
 ethpwn wallets add --name my-wallet --description="My wallet" --network mainnet <ADDRESS> 0x<PRIVKEY>
 
+# set up names for the contracts we want to use for easy access
+ethpwn contract name add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D UniswapV2Router02
+ethpwn contract name add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH
+ethpwn contract name add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
+
 ########## FOR EACH CONTRACT
 
 # fetch the verified source code for the uniswap router contract from etherscan to access its metadata and ABI
@@ -58,20 +63,19 @@ Then, we can use the uniswap router contract in our scripts to interact with it.
 from ethpwn import *
 
 # get the contract instance for the uniswap router contract at address 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
-WETH_addr = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
-DAI_addr = 0x6B175474E89094C44Da98b954EedeAC495271d0F
+
 MY_addr = 0x1234567890123456789012345678901234567890
 deadline = int(time.time()) + 30 * 60 # 30 minutes at most
 
 # fetch the Contract instance for the uniswap router contract
 # this automatically retrieves the ABI, source code, and storage layout for the contract
-uniswap_router = contract_registry().get(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)
+uniswap_router = contract_registry().get(contract_by_name('UniswapV2Router02'))
 
 transact(
     # this uses the automatic abi to encode the function call
     uniswap_router.w3.swapExactETHForTokens(
         100,                    # amountOutMin
-        [WETH_addr, DAI_addr],  # path
+        [contract_by_name('WETH'), contract_by_name('DAI')],  # path
         my_addr,                # to
         deadline                # deadline
     ),
