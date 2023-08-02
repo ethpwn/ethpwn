@@ -13,7 +13,7 @@ More practically, this package includes a kick-ass command line debugger for sim
 pip install ethpwn
 ```
 
-## ethdbg Jump Start ## 
+## Jump Start for ethdbg ## 
 ``bash
 ethdbg --txid 0x82a11757c3f34c2882e209c6e5ae96aff3e4db7f7984d54f92b02e1fed87e834 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
 ``
