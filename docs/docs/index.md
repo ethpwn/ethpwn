@@ -10,7 +10,7 @@ In other words, `ethpwn` is all you ever wanted for debugging and interacting wi
 The project started due to the frustration of [@honululu](https://twitter.com/dreselli) and [@degrigis](https://twitter.com/degrigis), when trying to debug exploits for the [ethernaut](https://ethernaut.openzeppelin.com/) challenges.
 With `ethpwn`, we hope to improve educational capabilities when it comes to smart contract and blockchain analysis, and facilitate research efforts in the area.
 
-Currently, `ethpwn` is composed of two modules: `ethlib`, a set of handy wrappers for the `web3` Python package (in pwntools style!), and `ethdbg`, a CLI debugger that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from Etherscan if it can find it!
+Currently, `ethpwn` is a package that ships a set of handy wrappers for the `web3` Python package (in pwntools style!), and a CLI debugger --`ethdbg`-- that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from Etherscan if it can find it!
 
 `ethpwn` requires *Python3*.
 
@@ -18,7 +18,7 @@ Currently, `ethpwn` is composed of two modules: `ethlib`, a set of handy wrapper
 
 | ⚠️ WARNING ⚠️                             |
 |------------------------------------------|
-|`ethpwn` is optimized for ease-of-use. e.g., `ethpwn` aggresively over-allocates the gas price for transactions to ensure that they are mined quickly. This is not a problem for if you are using `ethpwn` to interact with real contracts on the mainnet. It can cause you to massively overpay in terms of transaction fees.the CTF challenges that `ethpwn` was designed for, but can be a problem if you are using `ethpwn` to interact with real contracts on the mainnet. It can cause you to massively overpay in terms of transaction fee. DO NOT USE `ethpwn` TO INTERACT WITH REAL CONTRACTS ON THE MAINNET UNLESS YOU ARE ABSOLUTELY SURE WHAT YOU ARE DOING. |
+|`ethpwn` is optimized for ease-of-use. e.g., we aggresively over-allocates the gas price for transactions to ensure that they are mined quickly. This decision works well for CTF challenges, but can be a problem if you are using `ethpwn` to interact with real contracts on the mainnet (i.e., it can cause a massive overpay in terms of transaction fee). DO NOT USE `ethpwn` TO INTERACT WITH REAL CONTRACTS ON THE MAINNET UNLESS YOU ARE ABSOLUTELY SURE WHAT YOU ARE DOING. |
 
 
 ## ⚡️ Quick Start
@@ -42,10 +42,10 @@ Once you have done that, just:
 pip install ethpwn
 ```
 
-This command will install both `ethdbg` and `ethpwn` in your system.
+This command will install both `ethdbg` and `ethlib` in your system.
 
 
-#### Dev Installation
+#### Developer Installation
 If you want to install `ethpwn` in developing mode (i.e., editable in the current folder), first: Make sure you have the latest version of `pip`:
 
 ```bash
@@ -87,7 +87,7 @@ To try out `ethdbg`, a simple way of debugging a transaction that happened on th
 ethdbg --txid 0x82a11757c3f34c2882e209c6e5ae96aff3e4db7f7984d54f92b02e1fed87e834 --node-url https://mainnet.infura.io/v3/38eb4be006004da4a89315232040e222
 ```
 
-To learn more about the debugging features available in `ethdbg`, and the functionalities of `ethpwn`, please refer to their respective pages.
+To learn more about the debugging features available in `ethdbg`, and the functionalities of `ethlib`, please refer to their respective pages.
 
 
 ## 🐛 Bugs & Feedbacks
