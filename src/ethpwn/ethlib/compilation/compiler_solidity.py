@@ -14,9 +14,7 @@ import random
 import struct
 from typing import Dict, List, Union
 import cbor
-import editdistance
 from hexbytes import HexBytes
-from simanneal import Annealer
 import ethcx
 import rich
 from rich.table import Table
@@ -314,6 +312,14 @@ def try_match_optimizer_settings(
     :param minimize: Whether to try to minimize the number of optimizer runs or not
 
     """
+    try:
+        from simanneal import Annealer
+        import editdistance
+    except ImportError:
+        raise ImportError(
+            "The optional `simanneal` and `editdistance` packages are required to use try_match_optimizer_settings"
+        )
+
     if bin is None and bin_runtime is None:
         raise ValueError("At least one of bin or bin_runtime must be provided")
     if bin is not None and bin_runtime is not None:

@@ -37,8 +37,6 @@ dependencies = [
     "cachetools",
     "alive-progress",
     "coolname",
-    "simanneal",
-    "editdistance"
 ]
 
 keywords = [
@@ -75,7 +73,7 @@ docs = [
     "mkdocs-material",
     "pydoc-markdown",
 ]
-settings_recovery = [
+full = [
     "simanneal",
     "editdistance",
 ]
