@@ -1,4 +1,4 @@
-site_name: ethpwn - the Swiss Army Knife for Ethereum
+site_name: ethpwn - the Swiss Army Knife for Smart Contract Hacking
 theme:
   name: material
   features:
