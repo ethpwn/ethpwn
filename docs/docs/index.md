@@ -53,7 +53,7 @@ pip 23.1.2
 Then, just:
 
 ```bash
-git clone git@github.com:ethpwn/ethpwn.git && pip install -e ethpwn
+git clone git@github.com:ethpwn/ethpwn.git && pip install -e .
 ```
 
 #### RPC Node
