@@ -54,6 +54,7 @@ nav:
       - callhistory: ethdbg/commands/callhistory.md
       - ethtowei: ethdbg/commands/ethtowei.md
       - weitoeth: ethdbg/commands/weitoeth.md
+    - Showroom: ethdbg/showroom.md
   #- ⚙️ hacking ethdbg: hacking.md
   - ⛓️ chains support: chains.md
   - ？ FAQ: faq.md
