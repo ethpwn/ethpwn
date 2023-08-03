@@ -1,6 +1,7 @@
 # ethpwn 🐛 ⚔️
 
 [![PyPI](https://img.shields.io/pypi/v/ethpwn?style=flat)](https://pypi.org/project/ethpwn/)
+[![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=flat)]([https://pypi.org/project/ethpwn/](https://raw.githubusercontent.com/ethpwn/ethpwn/main/LICENSE))
 [![Docs](https://img.shields.io/badge/Documentation-gh_pages)](https://ethpwn.github.io/ethpwn/)
 
 `ethpwn` is a project inspired by the widely popular CTF exploitation framework pwntools, and the amazing enhanced GDB utility GEF. In other words, ethpwn is all you ever wanted for debugging and interacting with smart contracts on EVM-based blockchains.
