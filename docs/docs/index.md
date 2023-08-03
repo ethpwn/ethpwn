@@ -1,4 +1,4 @@
-# ♦ ethpwn - the Swiss Army Knife for Smart Contract Hacking #
+# ♦ ethpwn - the Swiss Army Knife for Smart Contracts Hacking #
 [![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/ethpwn/ethpwn/blob/main/LICENSE)  [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ethpwn/ethpwn)  [![PyPI](https://img.shields.io/pypi/v/ethpwn?style=for-the-badge)](https://pypi.org/project/ethpwn/)
   ![Python3](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
