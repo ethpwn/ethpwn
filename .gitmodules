@@ -1,0 +1,3 @@
+[submodule "examples/ethernaut-ethpwn-solutions"]
+	path = examples/ethernaut-ethpwn-solutions
+	url = https://github.com/Lukas-Dresel/ethernaut-ethpwn-solutions/
