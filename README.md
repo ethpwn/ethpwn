@@ -18,7 +18,7 @@ pip install ethpwn
 #### Developer Installation
 Make sure your pip version is >= 23.1.2, then:
 ```bash
-git clone git@github.com:ethpwn/ethpwn.git && pip install -e ethpwn
+git clone git@github.com:ethpwn/ethpwn.git && pip install -e .
 ```
 
 
