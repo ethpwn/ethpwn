@@ -8,6 +8,8 @@
 More practically, this package includes a kick-ass command line debugger for simulating and re-playing Ethereum transactions (`ethdbg`), and a set of convenient wrappers for many `web3` functionalities that are useful for interacting with smart contracts.
 
 
+![](./docs/docs/imgs/598565.gif)
+
 ## ⚡️ Quick Setup ##
 
 #### Release Installation
