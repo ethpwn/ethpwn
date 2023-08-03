@@ -48,7 +48,7 @@ def best_effort_get_contract_address_and_tx_hash_and_receipt(contract_address=No
         return HexBytes(tx_receipt['contractAddress']), HexBytes(tx_receipt['transactionHash']), tx_receipt
 
 
-class Contract(Serializable):
+class ContractInstance(Serializable):
     '''
     Represents a contract that has been deployed to the blockchain. Binds a contract address to its metadata, associated transaction hash and receipt, and the deployment wallet if it was self-deployed by ethpwn (e.g. via `deploy`).
     '''
@@ -79,7 +79,7 @@ class Contract(Serializable):
 
     @staticmethod
     def from_serializable(data):
-        return Contract(**data)
+        return ContractInstance(**data)
 
     def __rich_console__(self, console, options):
         s = f'Contract {self.address} ({self.metadata.contract_name})'
@@ -98,7 +98,7 @@ class Contract(Serializable):
         '''
         return context.w3.eth.contract(address=self.address, abi=self.metadata.abi)
 
-    def merge(self, other: 'Contract') -> bool:
+    def merge(self, other: 'ContractInstance') -> bool:
         '''
         Merge the given contract into this contract. Ensures changes are compatible, e.g. if the address is already set, it cannot be changed. Information can only be added. See `update()` for more details.
         '''
@@ -152,7 +152,7 @@ class ContractRegistry:
     populate the local contract registry if the user did not have them available locally.
     '''
     def __init__(self) -> None:
-        self.registered_contracts: Dict[str, Contract] = {}
+        self.registered_contracts: Dict[str, ContractInstance] = {}
 
     def register_contract_metadata(self,
                                    metadata: 'ContractMetadata',
@@ -167,7 +167,7 @@ class ContractRegistry:
 
         If a contract is newly registered, the registry is automatically saved back to disk.
         '''
-        contract = Contract(
+        contract = ContractInstance(
             address=address,
             metadata=metadata,
             deploy_tx_hash=deploy_tx_hash,
@@ -194,7 +194,7 @@ class ContractRegistry:
         return address in self.registered_contracts
 
     # handler for `registry[contract_address]`
-    def __getitem__(self, contract_address) -> Contract:
+    def __getitem__(self, contract_address) -> ContractInstance:
         '''
         Get the registered metadata for the given contract address (if any). Throws an exception if no metadata is
         registered for the given contract address.
@@ -202,7 +202,7 @@ class ContractRegistry:
         address = normalize_contract_address(contract_address)
         return self.registered_contracts[address]
 
-    def get(self, contract_address, default=None) -> Contract:
+    def get(self, contract_address, default=None) -> ContractInstance:
         '''
         Get the registered metadata for the given contract address (if any). Returns the given default value if no
         metadata is registered for the given contract address.
@@ -215,7 +215,7 @@ class ContractRegistry:
     #     address = normalize_contract_address(contract_address)
     #     self.registered_contracts[address] = contract
 
-    def __iter__(self) -> Iterator[Tuple[HexBytes, Contract]]:
+    def __iter__(self) -> Iterator[Tuple[HexBytes, ContractInstance]]:
         return self.registered_contracts.items().__iter__()
 
     def store(self, contract_registry_dir):

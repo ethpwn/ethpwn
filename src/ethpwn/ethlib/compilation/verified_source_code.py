@@ -15,7 +15,7 @@ from ..utils import normalize_contract_address
 from ..config import get_contract_registry_dir
 from ..config.credentials import get_etherscan_api_key
 from ..contract_metadata import CONTRACT_METADATA
-from ..contract_registry import Contract, contract_registry
+from ..contract_registry import ContractInstance, contract_registry
 
 class EtherscanAPIError(Exception):
     pass
@@ -173,7 +173,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         CONTRACT_METADATA.compile_string(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, libraries=libraries, **compiler_kwargs)
 
 
-def fetch_verified_contract_source(contract_address, api_key=None) -> 'Contract':
+def fetch_verified_contract_source(contract_address, api_key=None) -> 'ContractInstance':
     # fastpath: just check if the file exists instead of loading the entire registry
 
     if os.path.exists(get_contract_registry_dir() / f'{contract_address.lower()}.json'):
