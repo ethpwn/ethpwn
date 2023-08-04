@@ -127,7 +127,7 @@ class SolidityCompiler:
 
     def compile_source(
         self,
-        input_json: str,
+        source: str,
         file_name: Union[Path, str],
         optimizer_settings=None,
         libraries=None,
@@ -135,13 +135,13 @@ class SolidityCompiler:
         extra_import_remappings=None,
         **kwargs,
     ):
-        configure_ethcx_for_solidity_pragma(find_pragma_line(input_json))
+        configure_ethcx_for_solidity_pragma(find_pragma_line(source))
 
         if optimizer_settings is None:
             optimizer_settings = self.get_default_optimizer_settings()
 
         input_json = self.get_solc_input_json(
-            {str(file_name): {"content": input_json}},
+            {str(file_name): {"content": source}},
             remappings=self.get_import_remappings(
                 no_default_import_remappings, extra_import_remappings
             ),

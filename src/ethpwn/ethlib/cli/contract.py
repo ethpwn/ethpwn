@@ -4,6 +4,7 @@ Helpful functions available in the CLI.
 
 import argparse
 import functools
+import ethcx
 from typing import Dict, List
 from hexbytes import HexBytes
 
@@ -102,10 +103,17 @@ def register(contract_name: str, contract_address: HexBytes,
         else:
             raise ValueError(f"Invalid parameters given: {source_files=!r} {source=!r} {source_filename=!r}")
         bin_runtime = context.w3.eth.get_code(contract_address)
-        best_kwargs, meta, final_bytecode = try_match_optimizer_settings(do_compile, contract_name, bin_runtime=bin_runtime)
+        best_kwargs, meta, final_bytecode = try_match_optimizer_settings(
+            do_compile,
+            contract_name,
+            bin_runtime=bin_runtime,
+            solc_versions=ethcx.get_installable_solc_versions(),
+        )
 
     if source is not None:
         CONTRACT_METADATA.compile_solidity_string(source, source_filename)
+    elif source_filename is not None:
+        CONTRACT_METADATA.compile_solidity_files([source_filename])
 
     if source_files is not None:
         CONTRACT_METADATA.compile_solidity_files(source_files, **best_kwargs)

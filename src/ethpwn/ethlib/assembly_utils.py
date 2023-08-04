@@ -71,6 +71,21 @@ def asm_sload(key):
 def create_shellcode_deployer_bin(shellcode):
     """
         Create a contract that deploys shellcode at a specific address
+
+        The deployer code is as follows:
+        ```
+        PUSH <len(shellcode)>   # len
+        PUSH <offsetof label>   # src (offset of shellcode in the deployer)
+        PUSH 0                  # dst-offset
+        CODECOPY                # copy shellcode to offset 0 from <code> + <offsetof label>
+
+        PUSH <len(shellcode)>   # length to return
+        PUSH 0                  # offset to return
+        RETURN                  # return shellcode
+        label:
+            <shellcode goes here>
+        ```
+
     """
     shellcode = bytes(HexBytes(shellcode))
 
@@ -78,6 +93,7 @@ def create_shellcode_deployer_bin(shellcode):
 
     prev_offset = 0
 
+    # find a length of the codecopy instruction that allows us to consistently place the shellcode after
     while True:
         cur_offset = len(asm_codecopy(0, prev_offset, len(shellcode))) + len(return_code)
         if cur_offset > prev_offset:

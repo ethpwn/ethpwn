@@ -50,7 +50,7 @@ def _unify_sources(compiler, input_sources, output_sources):
     and does not change after the fact.
     '''
 
-    assert input_sources.keys() == output_sources.keys()
+    assert set(input_sources.keys()).issubset(output_sources.keys())
     sources_out = []
     for file, values in output_sources.items():
         result = {
@@ -60,13 +60,14 @@ def _unify_sources(compiler, input_sources, output_sources):
             'language': get_language_for_compiler(compiler),
             'generated': False,
         }
-        if input_sources[file]['content'] is None:
+        if (content := input_sources.get(file, {}).get('content', None)) is not None:
+            result['content'] = content
+            result['local_path'] = None
+        else:
             with open(file, 'r', encoding='utf-8') as file_obj:
                 result['content'] = file_obj.read()
-            result['local_path'] = Path(file).resolve()
-        else:
-            result['content'] = input_sources[file]['content']
-            result['local_path'] = None
+            result['local_path'] = str(Path(file).resolve())
+
         result['contents'] = result['content']
         sources_out.append(result)
     return list(sorted(sources_out, key=lambda s: s['id']))
