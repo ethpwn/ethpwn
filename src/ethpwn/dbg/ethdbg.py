@@ -23,6 +23,8 @@ from rich import print as rich_print
 from rich.table import Table
 from rich.tree import Tree
 
+from functools import wraps
+
 from ethpwn.ethlib.config.misc import get_default_node_url
 
 
@@ -334,6 +336,7 @@ class EthDbgShell(cmd.Cmd):
 
     # === DECORATORS ===
     def only_when_started(func):
+        @wraps(func)
         def wrapper(self, *args, **kwargs):
             if self.started:
                 return func(self, *args, **kwargs)
