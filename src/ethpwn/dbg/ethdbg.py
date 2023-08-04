@@ -1462,26 +1462,26 @@ class EthDbgShell(cmd.Cmd):
 
         if self.temp_break:
             self.temp_break = False
-            self._display_context(with_message=f'🎯 Breakpoint [temp] reached')
+            self._display_context(with_message=f'🎯 {YELLOW_COLOR}Breakpoint [temp] reached {RESET_COLOR}')
         else:
             # BREAKPOINT MANAGEMENT
             for sbpid, sbp in enumerate(self.breakpoints):
                 if sbp.eval_bp(self.comp, pc, opcode, self.callstack):
                     if sbp.temp:
                         self.breakpoints.remove(sbp)
-                    self._display_context(with_message=f'🎯 Breakpoint [{sbpid}] reached')
+                    self._display_context(with_message=f'🎯 {YELLOW_COLOR}Breakpoint [{sbpid}] reached {RESET_COLOR}')
 
         if self.temp_break_finish and len(self.callstack) < self.finish_curr_stack_depth:
             # Reset finish break condition
             self.temp_break_finish = False
             self.finish_curr_stack_depth = None
-            self._display_context(with_message=f'🎯 Breakpoint [finish] reached')
+            self._display_context(with_message=f'🎯 {YELLOW_COLOR}Breakpoint [finish] reached {RESET_COLOR}')
 
         elif self.stop_on_returns and (opcode.mnemonic == "STOP" or opcode.mnemonic == "RETURN"):
-            self._display_context(with_message=f'🎯 Breakpoint [stop/return] reached')
+            self._display_context(with_message=f'🎯 {YELLOW_COLOR}Breakpoint [stop/return] reached {RESET_COLOR}')
 
         elif self.stop_on_reverts and opcode.mnemonic == "REVERT":
-            self._display_context(with_message=f'🎯 Breakpoint [revert] reached')
+            self._display_context(with_message=f'🎯 {YELLOW_COLOR}Breakpoint [revert] reached {RESET_COLOR}')
 
         if opcode.mnemonic == "SSTORE":
             ref_account = normalize_contract_address(computation.msg.storage_address)
