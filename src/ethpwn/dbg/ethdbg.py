@@ -701,6 +701,10 @@ class EthDbgShell(cmd.Cmd):
         print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {hex(slot)} | Value: {value_read}')
 
     def do_callhistory(self, arg):
+        '''
+        Print the call history of the current transaction.
+        Usage: callhistory
+        '''
         rich_print(self.root_tree_node)
 
     @only_when_started
