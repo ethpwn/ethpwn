@@ -343,9 +343,17 @@ class EthDbgShell(cmd.Cmd):
 
     # === COMMANDS ===
     def do_chain(self, arg):
+        '''
+        Print the current chain context
+        Usage: chain
+        '''
         print(f'{self.debug_target.chain}@{self.debug_target.block_number}:{self.w3.provider.endpoint_uri}')
 
     def do_options(self, arg):
+        '''
+        Print the options of the debugger
+        Usage: options
+        '''
         print(f'chain: {self.debug_target.chain}@{self.debug_target.block_number}')
         print(f'w3-endpoint: {self.w3.provider.endpoint_uri}')
         print(f'full-context: {self.debug_target.full_context}')
@@ -357,31 +365,51 @@ class EthDbgShell(cmd.Cmd):
 
 
     def do_block(self, arg):
+        '''
+        Set the block number for this tx (if not started)
+        Get the block number for this tx (if started)
+        '''
         if arg and not self.started:
             self.debug_target.block_number = int(arg,10)
         print(f'{self.debug_target.block_number}')
 
     def do_account(self, arg):
+        '''
+        Get the account sender for this tx (if started)
+        Usage: account
+        '''
         if self.debug_target.debug_type == "replay":
             print(f'{self.debug_target.source_address} (impersonating)')
         else:
             print(f'{self.debug_target.source_address}')
 
     def do_target(self, arg):
-        # Check if there is an argument
-        # (as of now, once the target is set, you cannot unset it)
+        '''
+        Set the target for this tx (if not started)
+        Get the target for this tx (if started)
+        Usage: target [<address>]
+        '''
         if arg and not self.started:
             self.debug_target.target_address = arg
         else:
             print(f'{self.debug_target.target_address}')
 
     def do_hextostr(self, arg):
+        '''
+        Convert a hex string to a string if possible
+        Usage: hextostr <hex_number>
+        '''
         try:
             print(f'"{HexBytes(arg).decode("utf-8")}"')
         except Exception:
             print(f'Invalid hex string')
 
     def do_guessfuncid(self, arg):
+        '''
+        Given a function signature, try to fetch the function name 
+        from 4bytes.directory 
+        Usage: guessfuncid <function_signature>
+        '''
         try:
             res = decode_function_input(None, arg, guess=True)
             if res is None:
@@ -397,25 +425,41 @@ class EthDbgShell(cmd.Cmd):
     do_guess = do_guessfuncid
 
     def do_funcid(self, arg):
+        '''
+        Calculate the function id for a given function name
+        Usage: funcid <function_name>
+        '''
         arg = arg.encode('utf-8')
         k = sha3.keccak_256()
         k.update(arg)
         print("Function signature: 0x{}".format(k.hexdigest()[0:8]))
 
     def do_value(self, arg):
+        '''
+        Set the amount of value sent for this tx (if not started)
+        Get the amount of value sent for this tx (if started)
+        Usage: value
+        '''
         if arg and not self.started:
             self.debug_target.value = int(arg,10)
         else:
             print(f'{self.debug_target.value}')
 
     def do_gas(self, arg):
+        '''
+        Set the amount of gas sent for this tx (if not started)
+        Get the amount of gas sent for this tx (if started)
+        Usage: gas
+        '''
         if arg and not self.started:
             self.debug_target.gas = int(arg,10)
         else:
             print(f'{self.debug_target.gas} wei')
 
     def do_start(self, arg):
-
+        '''
+        Start the execution of the EVM
+        '''
         # Check if the target address is a contract!
         if self.debug_target.target_address is not None:
             if self.w3.eth.get_code(self.debug_target.target_address, self.debug_target.block_number) == b'':
@@ -540,6 +584,10 @@ class EthDbgShell(cmd.Cmd):
             self._display_context(cmdloop=False, with_message=f'✔️ {GREEN_BACKGROUND} Execution Terminated!{RESET_COLOR}')
 
     def do_context(self, arg):
+        '''
+        Print the context of the current execution
+        Usage: context
+        '''
         if self.started:
             metadata_view = self._get_metadata()
             print(metadata_view)
@@ -558,6 +606,10 @@ class EthDbgShell(cmd.Cmd):
             print(quick_view)
 
     def do_calldata(self, arg):
+        '''
+        Print the original calldata of the transaction
+        Usage: calldata
+        '''
         if arg and not self.started:
             try:
                 self.debug_target.calldata = arg
@@ -569,12 +621,20 @@ class EthDbgShell(cmd.Cmd):
             print(f'{self.comp.msg.data.hex()}')
 
     def do_weitoeth(self, arg):
+        '''
+        Convert wei to eth
+        Usage: weitoeth <wei_amount>
+        '''
         try:
             print(f'{int(arg) / 10**18} ETH')
         except Exception:
             print(f'Invalid wei amount')
 
     def do_ethtowei(self, arg):
+        '''
+        Convert eth to wei
+        Usage: ethtowei <eth_amount>
+        '''
         try:
             print(f'{int(float(arg) * 10**18)} wei')
         except Exception:
@@ -582,6 +642,10 @@ class EthDbgShell(cmd.Cmd):
 
     @only_when_started
     def do_source(self, arg):
+        '''
+        Print the source code of the current contract if available
+        Usage: source
+        '''
         source_view = self._get_source_view(cutoff=None)
         if source_view is not None:
             print(source_view)
@@ -590,6 +654,10 @@ class EthDbgShell(cmd.Cmd):
 
     @only_when_started
     def do_storagelayout(self, arg):
+        '''
+        Print detailed information regarding the storage layout of the current contract
+        Usage: storagelayout
+        '''
         storage_layout_view = self._get_storage_layout_view()
         if storage_layout_view is not None:
             print(storage_layout_view)
@@ -599,8 +667,12 @@ class EthDbgShell(cmd.Cmd):
 
     @only_when_started
     def do_storageat(self, arg):
+        '''
+        Get the value of a storage slot of the current contract or of a given contract
+        Usage: storageat [<address>:]<slot>
+        '''
         if not arg:
-            print("Usage: storageat [<address>:]<slot>[:<count>]")
+            print("Usage: storageat [<address>:]<slot>")
             return
 
         address = None
@@ -630,6 +702,11 @@ class EthDbgShell(cmd.Cmd):
 
     @only_when_started
     def do_sstores(self, arg):
+        '''
+        Print all the SSTOREs that have been executed so far targeting the current storage address or 
+        a given contract.
+        Usage: sstores [<address>]
+        '''
          # Check if there is an argument
         if arg and arg in self.sstores.keys():
             sstores_account = self.sstores[arg]
@@ -650,6 +727,11 @@ class EthDbgShell(cmd.Cmd):
 
     @only_when_started
     def do_sloads(self, arg):
+        '''
+        Print all the SLOADs that have been executed so far targeting the current storage address or 
+        a given contract.
+        Usage: sstores [<address>]
+        '''
         if arg and arg in self.sloads.keys():
             sloads_account = self.sloads[arg]
             for sload_slot, sload_val in sloads_account.items():
@@ -661,11 +743,19 @@ class EthDbgShell(cmd.Cmd):
                     print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {sload_slot} | Value: {HexBytes(sload_val).hex()}')
 
     def do_breaks(self,arg):
+        '''
+        Print all the breakpoints
+        Usage: breaks
+        '''
         # Print all the breaks
         for b_idx, b in enumerate(self.breakpoints):
             print(f'Breakpoint {b_idx} | {b}')
 
     def do_break(self, arg):
+        '''
+        Set a breakpoint
+        Usage: break <what><when><value>,<what><when><value>
+        '''
         # parse the arg
         if not arg.strip():
             self.do_breaks(arg)
@@ -683,6 +773,10 @@ class EthDbgShell(cmd.Cmd):
             print(f'{RED_COLOR}  <what> in (addr, saddr, op, pc, value, gas_remaining){RESET_COLOR}')
 
     def do_tbreak(self, arg):
+        '''
+        Set a temporary breakpoint
+        Usage: tbreak <what><when><value>,<what><when><value>
+        '''
         if not arg.strip():
             self.do_breaks(arg)
             return
@@ -704,6 +798,10 @@ class EthDbgShell(cmd.Cmd):
 
     @only_when_started
     def do_finish(self, arg):
+        '''
+        Execute until the end of the current call frame
+        Usage: finish
+        '''
         if len(self.callstack) > 1:
             self.temp_break_finish = True
             self.finish_curr_stack_depth = len(self.callstack)
@@ -711,10 +809,18 @@ class EthDbgShell(cmd.Cmd):
 
 
     def do_ipython(self, arg):
+        '''
+        Drop into an IPython shell
+        Usage: ipython
+        '''
         import IPython; IPython.embed()
 
     @only_when_started
     def do_continue(self, arg):
+        '''
+        Continue the execution of the EVM
+        Usage: continue
+        '''
         self._resume()
 
     do_c = do_continue
@@ -722,6 +828,10 @@ class EthDbgShell(cmd.Cmd):
 
     @only_when_started
     def do_step(self, arg):
+        '''
+        Go to the next opcode (if the next opcode is in a different contract, it will follow the call)
+        Usage: step
+        '''
         if self.started == False:
             print("No execution started. Use 'start' command to start it.")
             return
@@ -733,6 +843,10 @@ class EthDbgShell(cmd.Cmd):
     do_s = do_step
 
     def do_next(self, arg):
+        '''
+        Go to the next opcode (if the next opcode is in a different contract, it will NOT follow the call)
+        Usage: next
+        '''
         pc = self.curr_pc
         with self.comp.code.seek(pc):
             opcode_bytes = self.comp.code.read(64) # max 32 byte immediate + 32 bytes should be enough, right???
@@ -749,6 +863,10 @@ class EthDbgShell(cmd.Cmd):
             self._resume()
 
     def do_clear(self, arg):
+        '''
+        Clear all the breakpoints or a specific one
+        Usage: clear [<breakpoint_id>]
+        '''
         if arg:
             if arg == "all":
                 self.breakpoints = []
@@ -765,26 +883,50 @@ class EthDbgShell(cmd.Cmd):
     do_del = do_clear
 
     def do_log_op(self, arg):
+        '''
+        Log and display all the opcodes executed (toggleable)
+        Usage: log_op
+        '''
         self.log_op = not self.log_op
         print(f'Logging opcodes: {self.log_op}')
 
     def do_hide_sloads(self, arg):
+        '''
+        Hide/Show the SLOADs view (toggleable)
+        Usage: hide_sloads
+        '''
         self.hide_sloads = not self.hide_sloads
         print(f'Hiding sloads: {self.hide_sloads}')
 
     def do_hide_sstores(self, arg):
+        '''
+        Hide/Show the SSTOREs view (toggleable)
+        Usage: hide_sloads
+        '''
         self.hide_sstores = not self.hide_sstores
         print(f'Hiding sstores: {self.hide_sstores}')
 
     def do_stop_on_returns(self, arg):
+        '''
+        Whether to stop on RETURN/STOP operations (toggleable)
+        Usage: stop_on_returns
+        '''
         self.stop_on_returns = not self.stop_on_returns
         print(f'Stopping on returns: {self.stop_on_returns}')
 
     def do_stop_on_reverts(self, arg):
+        '''
+        Whether to stop on REVERT operations (toggleable)
+        Usage: stop_on_reverts
+        '''
         self.stop_on_reverts = not self.stop_on_reverts
         print(f'Stopping on reverts: {self.stop_on_reverts}')
 
     def do_quit(self, arg):
+        '''
+        Quit the debugger
+        Usage: quit
+        '''
         sys.exit()
 
     def do_EOF(self, arg):
@@ -797,14 +939,21 @@ class EthDbgShell(cmd.Cmd):
         except KeyboardInterrupt:
             pass
 
-    def do_clear(self, arg):
-        # just clear the screen
+    def do_clearscr(self, arg):
+        '''
+        Clean the screen
+        Usage: clear
+        '''
         os.system('clear')
 
     do_q = do_quit
 
     @only_when_started
     def do_memory(self, args):
+        '''
+        Display the memory of the EVM at a given offset and length
+        Usage: memory <offset> <length>
+        '''
         read_args = args.split(" ")
         if len(read_args) != 2:
             print("Usage: memory <offset> <length>")
