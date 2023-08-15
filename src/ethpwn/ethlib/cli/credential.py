@@ -3,7 +3,7 @@ from . import rename, subcommand_callable, cmdline
 from ..config import update_config
 from ..config.credentials import add_credentials_for
 
-credential_handler = subcommand_callable(cmdline, 'credential', doc='Manage credentials for ethlib')
+credential_handler = subcommand_callable(cmdline, 'credential', __subcommand_doc='Manage credentials for ethlib')
 
 @credential_handler
 def add(service: str, cred: str, **kwargs):

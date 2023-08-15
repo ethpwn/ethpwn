@@ -22,7 +22,7 @@ from ..compilation.verified_source_code import fetch_verified_contract_source
 from . import cmdline, rename, subcommand_callable
 
 
-contract_handler = subcommand_callable(cmdline, 'contract', doc='Manage contracts and their metadata')
+contract_handler = subcommand_callable(cmdline, 'contract', __subcommand_doc='Manage contracts and their metadata')
 
 
 @contract_handler
@@ -60,7 +60,8 @@ def deploy(contract_name,
 @contract_handler
 def register(contract_name: str, contract_address: HexBytes,
                 source: str=None, source_filename: str=None, source_files: List[str]=None, import_remappings=None,
-                find_optimizer_settings_to_match_bytecode: bool=False,
+                recover_opt_settings: bool=False,
+                solc_version: str=None,
                 **kwargs
                 ):
     '''
@@ -79,20 +80,26 @@ def register(contract_name: str, contract_address: HexBytes,
     :param source_filename: the filename of the source code of the contract
     :param source_files: a list of source files to compile the contract
     :param import_remappings: a list of import remappings to use when compiling the contract
-    :param find_optimizer_settings_to_match_bytecode: whether to try to recover the optimizer settings that were used to compile the contract
+    :param recover_opt_settings: whether to try to recover the optimizer settings that were used to compile the contract
     '''
+    import ipdb; ipdb.set_trace()
     if import_remappings:
         CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
     assert source_files is None or (source is None and source_filename is None)
 
     best_kwargs = {}
-    if find_optimizer_settings_to_match_bytecode:
+    if recover_opt_settings:
         # from .solidity_utils import try_match_optimizer_settings
-        if source is None and source_filename is None:
+        if source is not None and source_filename is not None:
             do_compile = functools.partial(
                 CONTRACT_METADATA.solidity_compiler.compile_source,
                 source,
                 source_filename
+            )
+        elif source_filename is not None:
+            do_compile = functools.partial(
+                CONTRACT_METADATA.solidity_compiler.compile_files,
+                [source_filename]
             )
         elif source_files is not None:
             assert type(source_files) is list
@@ -107,7 +114,7 @@ def register(contract_name: str, contract_address: HexBytes,
             do_compile,
             contract_name,
             bin_runtime=bin_runtime,
-            solc_versions=ethcx.get_installable_solc_versions(),
+            solc_versions=ethcx.get_installable_solc_versions() if solc_version is None else [solc_version],
         )
 
     if source is not None:
@@ -152,7 +159,7 @@ def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_
     return metadata, decoded
 
 
-contracts_name_handler = subcommand_callable(contract_handler, 'name', doc='Manage contract names')
+contracts_name_handler = subcommand_callable(contract_handler, 'name', __subcommand_doc='Manage contract names')
 
 @contracts_name_handler
 def add(address: HexBytes, name: str, **kwargs):

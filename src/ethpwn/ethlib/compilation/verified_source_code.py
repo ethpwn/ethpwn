@@ -42,8 +42,14 @@ class VerifiedSourceCode:
         self.contract_name = None
         self.evm_version = None
 
-def _pull_verified_source_from_etherscan(contract_address, api_key):
-    url = f"https://api.etherscan.io/api?module=contract&action=getsourcecode&address={contract_address}&apikey={api_key}"
+def _pull_verified_source_from_etherscan(contract_address, network, api_key):
+    assert api_key is not None
+
+    URL_BASE = 'https://api.etherscan.io'
+    if network is not None and network != 'mainnet':
+        URL_BASE = f'https://api-{network}.etherscan.io'
+
+    url = URL_BASE + f"/api?module=contract&action=getsourcecode&address={contract_address}&apikey={api_key}"
     response = requests.get(url)
     response.raise_for_status()
     assert response.status_code == 200, "Etherscan API returned non-200 status code in a successful request?"
@@ -91,7 +97,7 @@ def _pull_verified_source_from_etherscan(contract_address, api_key):
     return result
 
 CACHED_REQUESTS: Dict[Tuple[str, str], Tuple[int, Any]] = {}
-def pull_verified_source_from_etherscan(contract_address, api_key=None):
+def pull_verified_source_from_etherscan(contract_address, network=None, api_key=None):
     api_key = get_etherscan_api_key(api_key)
     if api_key is None:
         raise ValueError("You need to set an etherscan api key in your config.json file to use the verified source codes feature.")
@@ -100,7 +106,7 @@ def pull_verified_source_from_etherscan(contract_address, api_key=None):
     if cache_key in CACHED_REQUESTS and time.time() < CACHED_REQUESTS[cache_key][0] + 60 * 5: # 5 minute cache hold
         return CACHED_REQUESTS[cache_key][1]
     try:
-        result = _pull_verified_source_from_etherscan(contract_address, api_key=api_key)
+        result = _pull_verified_source_from_etherscan(contract_address, network=network, api_key=api_key)
         CACHED_REQUESTS[cache_key] = (time.time(), result)
         return result
     except NotVerifiedError:
@@ -173,7 +179,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         CONTRACT_METADATA.compile_string(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, libraries=libraries, **compiler_kwargs)
 
 
-def fetch_verified_contract_source(contract_address, api_key=None) -> 'ContractInstance':
+def fetch_verified_contract_source(contract_address, network=None, api_key=None) -> 'ContractInstance':
     # fastpath: just check if the file exists instead of loading the entire registry
 
     if os.path.exists(get_contract_registry_dir() / f'{contract_address.lower()}.json'):
@@ -186,7 +192,7 @@ def fetch_verified_contract_source(contract_address, api_key=None) -> 'ContractI
 
     if api_key is not None:
         try:
-            result = pull_verified_source_from_etherscan(contract_address, api_key=api_key)
+            result = pull_verified_source_from_etherscan(contract_address, network=network, api_key=api_key)
             if result is None:
                 return None
             assert result['ContractName']

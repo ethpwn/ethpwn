@@ -7,11 +7,11 @@ from typing import Any, Dict
 
 from hexbytes import HexBytes
 
-from ..utils import get_chain_name
+from ..utils import get_chain_name, normalize_contract_address
 
 class Wallet:
     def __init__(self, address=None, private_key=None, name=None, description=None, network=None):
-        self.address = address
+        self.address = normalize_contract_address(address)
         self.private_key = private_key
         self.name = name
         self.description = description
@@ -30,10 +30,11 @@ class Wallet:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def from_json_dict(d: Dict[str, str]) -> 'Wallet':
-        return Wallet(**d)
+    @staticmethod
+    def from_serializable(value):
+        return Wallet(**value)
 
-    def to_serializable_dict(self) -> Dict[str, str]:
+    def to_serializable(self) -> Dict[str, str]:
         return {
             'address': self.address,
             'private_key': self.private_key,
@@ -78,7 +79,7 @@ def create_new_default_wallet(wallets_config_path, w3=None):
     with open(wallets_config_path, 'w') as f:
         json.dump([wallet], f, indent=2)
 
-    return Wallet.from_json_dict(wallet)
+    return Wallet.from_serializable(wallet)
 
 def load_default_wallets():
     wallets_config_path = get_default_wallet_path()
@@ -94,7 +95,7 @@ def load_default_wallets():
 
     with open(wallets_config_path, 'r') as f:
         result = json.load(f)
-    result = {d['address']: Wallet.from_json_dict(d) for d in result}
+    result = {d['address']: Wallet.from_serializable(d) for d in result}
 
     if os.environ.get('ETHPWN_ACCOUNTS', None) is not None:
         for account in os.environ['ETHPWN_ACCOUNTS'].split(';'):
@@ -107,11 +108,11 @@ def load_default_wallets():
 
     return result
 
-def save_default_wallets(wallets):
+def save_default_wallets(wallets: Dict[str, Wallet]):
     wallets_config_path = get_default_wallet_path()
     os.makedirs(os.path.dirname(wallets_config_path), exist_ok=True)
     with open(wallets_config_path, 'w') as f:
-        json.dump([wallet.to_serializable_dict() for wallet in wallets.values()], f, indent=2)
+        json.dump([wallet.to_serializable() for wallet in wallets.values()], f, indent=2)
 
 def add_wallet(wallet: Wallet):
     from . import GLOBAL_CONFIG
@@ -121,7 +122,7 @@ def add_wallet(wallet: Wallet):
 
 def get_wallet_by_address(address) -> Wallet:
     from . import GLOBAL_CONFIG
-    address = HexBytes(address).hex()
+    address = normalize_contract_address(address)
     return GLOBAL_CONFIG['wallets'].get(address, None)
 
 def get_wallet_by_name(name) -> Wallet:

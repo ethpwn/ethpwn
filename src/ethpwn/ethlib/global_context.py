@@ -159,13 +159,16 @@ class Web3Context:
         '''
         Set up some reasonable defaults for gas estimation in the web3 context.
         '''
-        self._w3.eth.set_gas_price_strategy(
-            construct_time_based_gas_price_strategy(
-                60, # 1 minute
-                sample_size=5,
-                probability=80,
-                weighted=True,
-        ))
+
+        # for pre-london, set the gas price strategy
+        if self._w3.eth.chain_id < 5_000_000:
+            self._w3.eth.set_gas_price_strategy(
+                construct_time_based_gas_price_strategy(
+                    60, # 1 minute
+                    sample_size=5,
+                    probability=80,
+                    weighted=True,
+            ))
 
         self._w3.middleware_onion.add(middleware.time_based_cache_middleware)
         self._w3.middleware_onion.add(middleware.latest_block_based_cache_middleware)

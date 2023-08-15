@@ -4,6 +4,8 @@ from typing import Union
 
 
 class DebugConfig:
+    VALID_CONTEXT_LAYOUT_STRINGS = 'status,source,storage_layout,storage_history,metadata,disass,stack,callstack'.split(',')
+
     @property
     def show_opcodes_desc(self) -> bool:
         from . import GLOBAL_CONFIG
@@ -73,5 +75,20 @@ class DebugConfig:
     def hide_sloads(self, value: bool):
         from . import GLOBAL_CONFIG
         GLOBAL_CONFIG['dbg']['hide_sloads'] = value
+
+    @property
+    def context_layout(self) -> str:
+        from . import GLOBAL_CONFIG
+        return GLOBAL_CONFIG['dbg'].get('context_layout', 'source,metadata,status,disass,stack,callstack')
+
+    @context_layout.setter
+    def context_layout(self, value: str):
+        from . import GLOBAL_CONFIG
+
+        for x in value.split(','):
+            if x not in DebugConfig.VALID_CONTEXT_LAYOUT_STRINGS:
+                raise ValueError(f'Invalid context layout string {repr(value)}, must be a comma-separated list of {repr(DebugConfig.VALID_CONTEXT_LAYOUT_STRINGS)}')
+
+        GLOBAL_CONFIG['dbg']['context_layout'] = value
 
 DebugConfig = DebugConfig()

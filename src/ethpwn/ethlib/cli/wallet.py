@@ -1,4 +1,5 @@
 import functools
+
 from . import subcommand_callable, cmdline, rename
 from ..config import update_config
 from ..config.credentials import add_credentials_for
@@ -7,12 +8,14 @@ import json
 from coolname import generate_slug
 
 from . import cmdline
+from ..currency_utils import ether
 from ..config import update_config
-from ..config.wallets import Wallet, add_wallet, all_wallets
+from ..config.misc import get_default_network
+from ..config.wallets import Wallet, add_wallet, all_wallets, get_wallet_by_address, get_wallet_by_name, get_wallet
 from ..utils import get_chainid
 
 
-wallet_handler = subcommand_callable(cmdline, 'wallet', doc='Manage wallets for ethlib')
+wallet_handler = subcommand_callable(cmdline, 'wallet', __subcommand_doc='Manage wallets for ethlib')
 
 
 @wallet_handler
@@ -63,3 +66,23 @@ def _list(**kwargs):
     '''
     for wallet in all_wallets().values():
         print(repr(wallet))
+
+@wallet_handler
+def balance(ident: str, network=None, **kwargs):
+    '''
+    Get the balance of a wallet.
+
+    :param ident: the identifier of the wallet to retrieve, either the address or the name
+    :param network: the network to get the balance on (default: mainnet)
+    '''
+
+    if network:
+        get_chainid(network) # validate the network name
+    else:
+        network = get_default_network()
+
+    wallet = get_wallet(ident, network)
+    if wallet is None:
+        raise ValueError(f"Wallet {ident} not found on {network}")
+    balance = wallet.balance()
+    print(f"Wallet {wallet.name} ({wallet.address}) on {wallet.network} has {ether(balance)} ether ({balance} wei)")

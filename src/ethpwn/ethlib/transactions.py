@@ -1,5 +1,5 @@
 from .assembly_utils import create_shellcode_deployer_bin
-from .currency_utils import ether
+from .currency_utils import ether, wei
 from .global_context import context
 import web3
 from hexbytes import HexBytes
@@ -48,8 +48,8 @@ def encode_transaction(contract_function=None, from_addr=None, **kwargs):
     extra = kwargs.copy()
     extra['nonce'] = kwargs.get('nonce', context.w3.eth.get_transaction_count(from_addr))
     extra['from'] = from_addr
-    # extra['maxPriorityFeePerGas'] = kwargs.get('maxPriorityFeePerGas', 1_000 * (10 ** 9)) # 1k gwei -- a lot (tip the miner for priority)
-    # extra['maxFeePerGas'] = kwargs.get('maxFeePerGas', 1_000 * (10 ** 9)) # 1k gwei -- a lot
+    extra['maxPriorityFeePerGas'] = kwargs.get('maxPriorityFeePerGas', wei(gwei=10)) # 10 gwei -- a lot (tip the miner for priority)
+    extra['maxFeePerGas'] = kwargs.get('maxFeePerGas', wei(gwei=1000)) # 1000 gwei -- a lot
     extra['value'] = kwargs.get('value', 0)
     extra['gas'] = kwargs.get('gas', 0)
     if contract_function is not None and type(contract_function):
@@ -119,8 +119,13 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
 
 
     balance = context.w3.eth.get_balance(from_addr)
-    funds_required = tx['value'] + tx['gas'] * 2 * tx['gasPrice']
-    if funds_required >= balance:
+    if 'gasPrice' in tx:
+        funds_required = tx['value'] + tx['gas'] * 2 * tx['gasPrice']
+    else:
+        # import ipdb; ipdb.set_trace()
+        # max_fee_per_gas = context.w3.eth.max_priority_fee
+        funds_required = None
+    if funds_required is not None and funds_required >= balance:
         err_msg = f"Likely insufficient funds to send transaction {contract_function}: {balance=} < {tx['value']=} + {tx['gas']=} * 4"
         if force:
             context.logger.error(err_msg + " (forced, continuing anyway)")

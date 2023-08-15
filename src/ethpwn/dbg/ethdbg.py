@@ -295,8 +295,7 @@ class EthDbgShell(cmd.Cmd):
         self.sloads = {}
         self.hide_sloads = DebugConfig.hide_sloads
 
-        # Whether we want to display the source code or not
-        self.hide_source_view = DebugConfig.hide_source_view
+        self.context_layout = DebugConfig.context_layout
         self.source_view_cutoff = DebugConfig.source_view_cutoff
 
         # Debugger state
@@ -365,6 +364,7 @@ class EthDbgShell(cmd.Cmd):
         print(f'stop_on_reverts: {self.stop_on_reverts}')
         print(f'hide_sstores: {self.hide_sstores}')
         print(f'hide_sloads: {self.hide_sloads}')
+        print(f'context-layout: {self.context_layout}')
 
 
     def do_block(self, arg):
@@ -592,18 +592,7 @@ class EthDbgShell(cmd.Cmd):
         Usage: context
         '''
         if self.started:
-            metadata_view = self._get_metadata()
-            print(metadata_view)
-            disass_view = self._get_disass()
-            print(disass_view)
-            if not self.hide_source_view:
-                source_view = self._get_source_view(cutoff=self.source_view_cutoff)
-                if source_view is not None:
-                    print(source_view)
-            stack_view = self._get_stack()
-            print(stack_view)
-            callstack_view = self._get_callstack()
-            print(callstack_view)
+            self._display_context(cmdloop=False, with_message=None)
         else:
             quick_view = self._get_quick_view(arg)
             print(quick_view)
@@ -665,8 +654,12 @@ class EthDbgShell(cmd.Cmd):
         if storage_layout_view is not None:
             print(storage_layout_view)
         else:
-            storage_view = self._get_storage_history_view()
-            print(storage_view)
+            print(f"No storage layout available for contract {normalize_contract_address(self.comp.msg.code_address)}")
+
+    @only_when_started
+    def do_storage_history(self, arg):
+        storage_view = self._get_storage_history_view()
+        print(storage_view)
 
     @only_when_started
     def do_storageat(self, arg):
@@ -896,6 +889,16 @@ class EthDbgShell(cmd.Cmd):
         '''
         self.log_op = not self.log_op
         print(f'Logging opcodes: {self.log_op}')
+
+    def do_context_layout(self, arg):
+        if arg:
+            for val in arg.split(','):
+                if val not in DebugConfig.VALID_CONTEXT_LAYOUT_STRINGS:
+                    print(f'Invalid context layout string: {val}')
+                    return
+            self.context_layout = arg
+        else:
+            print(f'Context layout: {self.context_layout}')
 
     def do_hide_sloads(self, arg):
         '''
@@ -1383,6 +1386,12 @@ class EthDbgShell(cmd.Cmd):
                 return title + '\n' + '\n'.join(lines[:cutoff]) + '\n' + f'{ORANGE_COLOR}... [source too big, use "source" command to see it all or change the "source_view_cutoff" in the config] ...{RESET_COLOR}'
 
     def _get_storage_layout_view(self):
+        message = f"{GREEN_COLOR}Storage Layout{RESET_COLOR}"
+        fill = HORIZONTAL_LINE
+        align = '<'
+        width = max(self.tty_columns,0)
+
+        title = f'{message:{fill}{align}{width}}'
 
         storage_layout = get_storage_layout_table(
             lambda slot: self.comp.state.get_storage(self.comp.msg.storage_address, slot).to_bytes(32, byteorder='big'),
@@ -1394,30 +1403,46 @@ class EthDbgShell(cmd.Cmd):
             with rich.get_console().capture() as capture:
                 rich.print(storage_layout)
             storage_layout = capture.get()
-            return storage_layout + '\n'
+            return title + storage_layout + '\n'
         else:
             return None
 
     def _display_context(self, cmdloop=True, with_message=''):
-        metadata_view = self._get_metadata()
 
-        if with_message != '':
-            metadata_view += f'\nStatus: {with_message}'
+        for val in self.context_layout.split(","):
+            if val == 'status':
+                if with_message:
+                    print(f'Status: {with_message}')
 
-        if not self.hide_source_view:
-            source_view = self._get_source_view(cutoff=self.source_view_cutoff)
-            if source_view is not None:
-                print(source_view)
+            elif val == 'source':
+                source_view = self._get_source_view(cutoff=self.source_view_cutoff)
+                if source_view is not None:
+                    print(source_view)
 
-        print(metadata_view)
+            elif val == 'storage_layout':
+                storage_layout_view = self._get_storage_layout_view()
+                if storage_layout_view is not None:
+                    print(storage_layout_view)
 
-        disass_view = self._get_disass()
-        print(disass_view)
+            elif val == 'storage_history':
+                storage_history_view = self._get_storage_history_view()
+                print(storage_history_view)
 
-        stack_view = self._get_stack()
-        print(stack_view)
-        callstack_view = self._get_callstack()
-        print(callstack_view)
+            elif val == 'metadata':
+                metadata_view = self._get_metadata()
+                print(metadata_view)
+
+            elif val == 'disass':
+                disass_view = self._get_disass()
+                print(disass_view)
+
+            elif val == 'stack':
+                stack_view = self._get_stack()
+                print(stack_view)
+
+            elif val == 'callstack':
+                callstack_view = self._get_callstack()
+                print(callstack_view)
 
         if cmdloop:
             try:

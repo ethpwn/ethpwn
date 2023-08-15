@@ -7,7 +7,7 @@ from ..config.misc import set_default_node_url as _set_default_node_url
 from . import cmdline, subcommand_callable
 
 
-config_handler = subcommand_callable(cmdline, 'config', doc='Manage config for ethlib')
+config_handler = subcommand_callable(cmdline, 'config', __subcommand_doc='Manage config for ethlib')
 
 
 @config_handler

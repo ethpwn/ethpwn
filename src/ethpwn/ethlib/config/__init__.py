@@ -2,9 +2,7 @@
 import json
 import os
 from pathlib import Path
-from abc import ABC, abstractmethod
 
-from ..serialization_utils import serialize_to_file
 
 def ethpwn_config_root_dir() -> Path:
     dir = os.path.expanduser('~/.config/ethpwn/')

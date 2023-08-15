@@ -269,10 +269,13 @@ def decode_solidity_metadata_from_bytecode(bytecode):
     end_len = struct.unpack(">H", bytecode[-2:])[0]
     start_cbor = len(bytecode) - 2 - end_len
     data = cbor.loads(bytecode[start_cbor:-2])
-    assert len(data["solc"]) == 3, "The solc version should have 3 digits"
-
-    data["ipfs"] = HexBytes(data["ipfs"])
-    data["solc"] = ".".join(str(x) for x in data["solc"])
+    if 'solc' not in data:
+        assert 'bzzr0' in data, "The metadata should contain either a solc version or a swarm hash"
+        return data, bytecode[:start_cbor]
+    else:
+        assert len(data["solc"]) == 3, "The solc version should have 3 digits"
+        # data["ipfs"] = HexBytes(data["ipfs"])
+        data["solc"] = ".".join(str(x) for x in data["solc"])
     return data, bytecode[:start_cbor]
 
 
@@ -334,13 +337,16 @@ def try_match_optimizer_settings(
     else:
         (selector, bin_data) = ("deployedBytecode", bin_runtime)
 
+
     sol_meta = None
-    try:
-        sol_meta, bin_data = decode_solidity_metadata_from_bytecode(bin_data)
-        solc_versions = [sol_meta["solc"]]
-    except Exception as e:
-        context.logger.exception("Could not decode metadata: %s", e)
-        # just continue, we just won't get an exact match
+    if not solc_versions:
+        try:
+            sol_meta, bin_data = decode_solidity_metadata_from_bytecode(bin_data)
+            if "solc" in sol_meta:
+                solc_versions = [sol_meta["solc"]]
+        except Exception as e:
+            context.logger.exception("Could not decode metadata: %s", e)
+            # just continue, we just won't get an exact match
 
     assert (
         solc_versions is not None and len(solc_versions) > 0
@@ -391,17 +397,17 @@ def try_match_optimizer_settings(
     def try_compile(optimizer_settings, solc_version=None):
         optimizer_settings = dict(optimizer_settings)
         try:
-            output_json = compile(
+            input_json, output_json = compile(
                 optimizer_settings=optimizer_settings, solc_version=solc_version
             )
         except Exception as exc:
-            context.logger.warning(
-                "Failed to compile with %s and %s: %s",
-                optimizer_settings,
-                solc_version,
-                exc,
-            )
-            return 100000000
+            # context.logger.warning(
+            #     "Failed to compile with %s and %s: %s",
+            #     optimizer_settings,
+            #     solc_version,
+            #     exc,
+            # )
+            return None, None, None
         compiled_bytecode = HexBytes(
             get_contract_bytecode_by_name(output_json, contract_name)
         )
@@ -409,16 +415,19 @@ def try_match_optimizer_settings(
         compiled_meta, compiled_bytecode = decode_solidity_metadata_from_bytecode(
             compiled_bytecode
         )
-        if sol_meta is not None:
+        if sol_meta is not None and sol_meta.get("solc", None) is not None:
             assert (
                 sol_meta["solc"] == compiled_meta["solc"]
             ), "The solc versions should match"
         return output_json, compiled_meta, compiled_bytecode
 
     def try_settings(optimizer_settings, solc_version=None):
-        output_json, _, compiled_bytecode = try_compile(
+
+        output_json, output_metadata, compiled_bytecode = try_compile(
             optimizer_settings, solc_version
         )
+        if compiled_bytecode is None:
+            return 10000000, False
 
         component_prefix = len(bin_data) - get_shared_prefix_len(
             compiled_bytecode, bin_data
@@ -437,6 +446,10 @@ def try_match_optimizer_settings(
         )
         return fitness, HexBytes(compiled_bytecode).hex() == HexBytes(bin_data).hex()
 
+    RUNS_TO_TEST = (
+        0, 100, 200, 300, 400, 500, 600, 700, 800, 900,
+        1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000
+    )
     class AnnealerGuesser(Annealer):
         """
         A simulated annealing implementation to guess the best optimizer settings
@@ -451,28 +464,10 @@ def try_match_optimizer_settings(
             self.best_seen_energy = len(bin_data)
             self.best_seen_energy = self.energy()
             self.runs_to_test = [
-                0,
-                #    1,    2,    3,    4,    5,    6,    7,    8,    9,
-                #   10,   20,   30,   40,   50,   60,   70,   80,   90,
-                100,
-                200,
-                300,
-                400,
-                500,
-                600,
-                700,
-                800,
-                900,
-                1000,
-                2000,
-                3000,
-                4000,
-                5000,
-                6000,
-                7000,
-                8000,
-                9000,
+                (runs, solc_version) for runs in RUNS_TO_TEST for solc_version in solc_versions
             ]
+            self.tested_runs = set()
+            self.queued_states_to_test = []
 
         def move(self):
             rich.print(
@@ -480,8 +475,22 @@ def try_match_optimizer_settings(
             )
 
             if self.runs_to_test and (val := self.runs_to_test.pop(0)):
-                self.state["runs"] = val
+                self.state["runs"], self.state["solc_version"] = val
                 return
+
+            if self.queued_states_to_test:
+                self.state = self.queued_states_to_test.pop(0)
+                return
+
+            if len(solc_versions) > 1 and random.randint(0, 1000) == 0:
+                # .01% chance to try all solc versions with the current best settings
+                # import ipdb; ipdb.set_trace()
+                states_to_test = [
+                    deepcopy(self.state) for _ in range(len(solc_versions))
+                ]
+                for i, solc_version in enumerate(solc_versions):
+                    states_to_test[i]["solc_version"] = solc_version
+                self.queued_states_to_test.extend(states_to_test)
 
             if len(solc_versions) > 1 and random.randint(0, 100) < 20:
                 # 50% chance for a known best solc_versions, 50% chance for a random one
@@ -576,7 +585,7 @@ def try_match_optimizer_settings(
         {
             "runs": 10,
             "solc_version": random.choice(solc_versions),
-            "evmVersion": "paris",
+            "evmVersion": "shanghai",
         }
     )
     _, final_energy = annealer.anneal()

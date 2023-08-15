@@ -2,6 +2,7 @@
 import argparse
 import functools
 import inspect
+import sys
 from typing import Dict, List, Callable
 from rich import print as rprint
 
@@ -98,22 +99,22 @@ def parser_callable(subparsers, handlers):
     return functools.partial(generate_subparser_for_function, subparsers, handlers)
 
 
-def subcommand_callable(super_callable, name, doc=''):
+def subcommand_callable(super_callable, __subcommand_name, __subcommand_doc=''):
     handlers = {}
 
-    def __handler(name, handlers, **kwargs):
-        subcommand = kwargs.pop('subcommand_' + name)
-        return handlers[subcommand](**kwargs)
+    def __handler(__subcommand_name, __subcommand_handlers, **kwargs):
+        subcommand = kwargs.pop('subcommand_' + __subcommand_name)
+        return __subcommand_handlers[subcommand](**kwargs)
 
-    __handler.__name__ = name
-    __handler.__doc__ = doc
+    __handler.__name__ = __subcommand_name
+    __handler.__doc__ = __subcommand_doc
 
     # bind handlers to the handler
-    __handler = functools.partial(__handler, name, handlers)
+    __handler = functools.partial(__handler, __subcommand_name, handlers)
 
     __handler = super_callable(__handler)
 
-    subparsers = __handler.__cli_parser__.add_subparsers(dest='subcommand_' + name)
+    subparsers = __handler.__cli_parser__.add_subparsers(dest='subcommand_' + __subcommand_name)
     __handler.__cli_subparsers__ = subparsers
     __handler.__cli_handlers__ = handlers
     __handler.__cli_parser_callable__ = parser_callable(subparsers, handlers)
@@ -127,8 +128,9 @@ def rename(new_name):
     return decorator
 
 
-def main():
-    ARGS = main_cli_parser.parse_args()
+def main(args=None):
+    args = args or sys.argv[1:]
+    ARGS = main_cli_parser.parse_args(args=args)
     subcommand_function = main_cli_handlers[ARGS.subcommand]
     kwargs = {k.replace('-', '_'): v for k, v in vars(ARGS).items() if k not in {'subcommand', 'silent'}}
     result = subcommand_function(**kwargs)
