@@ -144,3 +144,5 @@ site/
 .DS_Store
 ._.DS_Store
 
+# vscode history plugin
+.history/
