@@ -17,9 +17,10 @@ markdown_extensions:
 nav:
   - 🏠 Home: index.md
   - ⚔️ ethpwn:
-    - Usage: ethpwn/usage.md
+    - About: ethpwn/about.md
+    - Getting Started: ethpwn/getting_started.md
     - Global State: ethpwn/global_state.md
-    - CLI: ethpwn/cli.md
+    - Command Line Tools: ethpwn/cli.md
     - Modules:
       - ethpwn.ethlib.global_context: ethpwn/modules/global_context.md
       - ethpwn.ethlib.contract_registry: ethpwn/modules/contract_registry.md
