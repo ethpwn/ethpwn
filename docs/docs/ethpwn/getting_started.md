@@ -1,6 +1,5 @@
 
-`ethpwn` aims to solve a few tasks that users might commonly come in contact with.
-
+`ethpwn` aims to solve a few tasks that users might commonly come in contact with. 
 To become acquainted with `ethpwn`, let's start by walking through several examples.
 
 Similary to `pwntools`, `ethpwn` follows the “kitchen sink” approach.
@@ -11,9 +10,9 @@ from ethpwn import *
 
 This imports all you need to start compiling and interacting with smart contracts.
 
-### Tutorials
+### 🐥 Tutorials
 
-#### Compiling and managing smart contracts
+#### Compiling smart contracts
 
 Smart contracts are most commonly written in high-level programming languages, most commonly [Solidity](https://soliditylang.org/) or sometimes [Vyper](https://vyper.readthedocs.io/en/stable/).
 
@@ -23,11 +22,11 @@ Smart contracts are most commonly written in high-level programming languages, m
 from ethpwn import *
 
 CONTRACT_METADATA.compile_solidity_files(['contract_a.sol', 'contract_b.sol'])
-ca = CONTRACT_METADATA['ContractA']
-print (f"ContractA: ABI: {ca.abi}")
-print (f"ContractA: deployed bytecode: {ca.bin_runtime}")
-print (f"ContractA: storage layout: {ca.storage_layout}")
-print (f"ContractA: source code for pc=0x1234: {ca.source_info_for_pc(0x1234)}")
+contract_a = CONTRACT_METADATA['ContractA']
+print (f"ContractA: ABI: {contract_a.abi}")
+print (f"ContractA: deployed bytecode: {contract_a.bin_runtime}")
+print (f"ContractA: storage layout: {contract_a.storage_layout}")
+print (f"ContractA: source code for pc=0x1234: {contract_a.source_info_for_pc(0x1234)}")
 
 calldata = '0x12345678abcdef'
 func_name, args = contract_a.decode_function_input(calldata)
@@ -35,6 +34,8 @@ print (f"ContractA: calldata calls function {func_name} with args {args}")
 ```
 
 Additionally to the compiled information accessible via the `ContractMetadata`, `ethpwn` also provides a `Contract` class which can be used to interact with contract instances on the blockchain.
+
+#### Deploying smart contracts
 
 A contract instance can be retrieved either by deploying a (new) given contract via `ContractMetadata.deploy()`, or by the address of an already deployed contract via `ContractMetadata.get_contract_at()`.
 
@@ -49,6 +50,13 @@ contract_a_instance = contract_a.get_contract_at(0x1234)
 
 In both cases, `ethpwn` uses this information to associate the address of the contract with the contract metadata, and provides a `Contract` instance which can be used to interact with the contract using the [Web3](https://web3py.readthedocs.io/en/stable/) API.
 
+#### Interacting with smart contracts
+
+`ethpwn`'s `transact()` is your one-stop shop for creating new transactions.
+It estimates the gas costs of a transaction, checks that the funds necessary are available before launching it,
+handles transactions reverting by simulating them first, etc.
+In the future, it will be able to automatically launch `ethdbg` on the transaction to debug it in case of a revert.
+
 ```python
 # simulate the result of calling the `foo` function on the contract with arguments 0, 1, and 2
 result = contract_a_instance.w3.foo(0, 1, 2).call()
@@ -56,9 +64,4 @@ result = contract_a_instance.w3.foo(0, 1, 2).call()
 # create a transaction on the real blockchain calling the `foo` function on the contract with arguments 0, 1, and 2
 transact(contract_a_instance.w3.foo(0, 1, 2))
 ```
-
-`ethpwn`'s `transact()` is your one-stop shop for creating new transactions.
-It estimates the gas costs of a transaction, checks that the funds necessary are available before launching it,
-handles transactions reverting by simulating them first, etc.
-In the future, it will be able to automatically launch `ethdbg` on the transaction to debug it in case of a revert.
 
