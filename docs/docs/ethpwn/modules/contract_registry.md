@@ -26,17 +26,17 @@ However, with either of the two we can obtain all three.
 
 A tuple of (contract_address, tx_hash, tx_receipt)
 
-<a id="ethpwn.ethlib.contract_registry.Contract"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractInstance"></a>
 
-## Contract Objects
+## ContractInstance Objects
 
 ```python
-class Contract(Serializable)
+class ContractInstance(Serializable)
 ```
 
 Represents a contract that has been deployed to the blockchain. Binds a contract address to its metadata, associated transaction hash and receipt, and the deployment wallet if it was self-deployed by ethpwn (e.g. via `deploy`).
 
-<a id="ethpwn.ethlib.contract_registry.Contract.to_serializable"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractInstance.to_serializable"></a>
 
 #### to\_serializable
 
@@ -48,7 +48,7 @@ def to_serializable()
 
 A dictionary that can be serialized to JSON
 
-<a id="ethpwn.ethlib.contract_registry.Contract.w3"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractInstance.w3"></a>
 
 #### w3
 
@@ -62,17 +62,17 @@ Get a web3 contract object for this contract. Automatically has the correct ABI 
 
 The web3 contract object
 
-<a id="ethpwn.ethlib.contract_registry.Contract.merge"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractInstance.merge"></a>
 
 #### merge
 
 ```python
-def merge(other: 'Contract') -> bool
+def merge(other: 'ContractInstance') -> bool
 ```
 
 Merge the given contract into this contract. Ensures changes are compatible, e.g. if the address is already set, it cannot be changed. Information can only be added. See `update()` for more details.
 
-<a id="ethpwn.ethlib.contract_registry.Contract.update"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractInstance.update"></a>
 
 #### update
 
@@ -155,7 +155,7 @@ Check if the given contract address has registered metadata available in the reg
 #### \_\_getitem\_\_
 
 ```python
-def __getitem__(contract_address) -> Contract
+def __getitem__(contract_address) -> ContractInstance
 ```
 
 Get the registered metadata for the given contract address (if any). Throws an exception if no metadata is
@@ -166,7 +166,7 @@ registered for the given contract address.
 #### get
 
 ```python
-def get(contract_address, default=None) -> Contract
+def get(contract_address, default=None) -> ContractInstance
 ```
 
 Get the registered metadata for the given contract address (if any). Returns the given default value if no

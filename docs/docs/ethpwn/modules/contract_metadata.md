@@ -161,6 +161,16 @@ def source_info_for_constructor_instruction_idx(
 
 Returns the source info for instruction at index `insn_idx` in the constructor bytecode.
 
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadata.source_info_for_constructor_pc"></a>
+
+#### source\_info\_for\_constructor\_pc
+
+```python
+def source_info_for_constructor_pc(pc, fork='paris') -> InstructionSourceInfo
+```
+
+Returns the source info for the instruction at the given pc in the constructor bytecode.
+
 <a id="ethpwn.ethlib.contract_metadata.ContractMetadata.source_info_for_runtime_instruction_idx"></a>
 
 #### source\_info\_for\_runtime\_instruction\_idx
@@ -170,6 +180,16 @@ def source_info_for_runtime_instruction_idx(insn_idx) -> InstructionSourceInfo
 ```
 
 Returns the source info for instruction at index `insn_idx` in the runtime bytecode.
+
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadata.source_info_for_pc"></a>
+
+#### source\_info\_for\_pc
+
+```python
+def source_info_for_pc(pc, fork='paris') -> InstructionSourceInfo
+```
+
+Returns the source info for the instruction at the given pc in the constructor bytecode.
 
 <a id="ethpwn.ethlib.contract_metadata.ContractMetadata.deploy"></a>
 
@@ -230,69 +250,91 @@ to retrieve information about deployed contracts, associate new contracts with t
 and to retrieve metadata for contracts that are not deployed yet. This is the central point
 for all contract-related metadata.
 
-<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.add_solidity_source"></a>
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.compile_solidity_string"></a>
 
-#### add\_solidity\_source
+#### compile\_solidity\_string
 
 ```python
-def add_solidity_source(source: str, file_name: Union[Path, str], **kwargs)
+def compile_solidity_string(source: str, file_name: Union[Path, str],
+                            **kwargs)
 ```
 
 Compiles the given solidity source code and adds the resulting metadata
 of all contracts to the registry.
 
-<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.add_solidity_sources_dict"></a>
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.compile_solidity_sources_dict"></a>
 
-#### add\_solidity\_sources\_dict
+#### compile\_solidity\_sources\_dict
 
 ```python
-def add_solidity_sources_dict(sources: Dict[str, str], **kwargs)
+def compile_solidity_sources_dict(sources: Dict[str, str], **kwargs)
 ```
 
 Compiles the given solidity source dict `'sources'` in the input json and adds the
 resulting metadata of all contracts to the registry.
 
-<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.add_contracts_from_solidity_files"></a>
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.compile_solidity_files"></a>
 
-#### add\_contracts\_from\_solidity\_files
+#### compile\_solidity\_files
 
 ```python
-def add_contracts_from_solidity_files(files: List[Union[str, Path]], **kwargs)
+def compile_solidity_files(files: List[Union[str, Path]], **kwargs)
 ```
 
 Compiles the given files and adds the resulting metadata of all contracts to the registry.
 
-<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.add_vyper_source"></a>
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.compile_solidity_standard_json"></a>
 
-#### add\_vyper\_source
+#### compile\_solidity\_standard\_json
 
 ```python
-def add_vyper_source(source: str, file_name: Union[Path, str], **kwargs)
+def compile_solidity_standard_json(input_json: Dict, **kwargs)
+```
+
+Compiles the given standard json and adds the resulting metadata of all contracts to the registry.
+
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.compile_vyper_string"></a>
+
+#### compile\_vyper\_string
+
+```python
+def compile_vyper_string(source: str, file_name: Union[Path, str], **kwargs)
 ```
 
 Compiles the given vyper source code and adds the resulting metadata
 of all contracts to the registry.
 
-<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.add_vyper_sources_dict"></a>
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.compile_vyper_sources_dict"></a>
 
-#### add\_vyper\_sources\_dict
+#### compile\_vyper\_sources\_dict
 
 ```python
-def add_vyper_sources_dict(sources: Dict[str, str], **kwargs)
+def compile_vyper_sources_dict(sources: Dict[str, str], **kwargs)
 ```
 
 Compiles the given vyper source dict `'sources'` in the input json and adds the
 resulting metadata of all contracts to the registry.
 
-<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.add_contracts_from_vyper_files"></a>
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.compile_contracts_from_vyper_files"></a>
 
-#### add\_contracts\_from\_vyper\_files
+#### compile\_contracts\_from\_vyper\_files
 
 ```python
-def add_contracts_from_vyper_files(files: List[Union[str, Path]], **kwargs)
+def compile_contracts_from_vyper_files(files: List[Union[str, Path]],
+                                       **kwargs)
 ```
 
 Compiles the given files and adds the resulting metadata of all contracts to the registry.
+
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.compile_vyper_standard_json"></a>
+
+#### compile\_vyper\_standard\_json
+
+```python
+def compile_vyper_standard_json(input_json: Dict, **kwargs)
+```
+
+Compiles the given standard json and adds the resulting metadata of all contracts to the registry.
 
 <a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.__getitem__"></a>
 

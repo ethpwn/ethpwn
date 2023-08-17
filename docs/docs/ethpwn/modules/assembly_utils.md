@@ -95,15 +95,44 @@ def create_shellcode_deployer_bin(shellcode)
 
 Create a contract that deploys shellcode at a specific address
 
-<a id="ethpwn.ethlib.assembly_utils.disassemble_pro"></a>
+The deployer code is as follows:
+```
+PUSH <len(shellcode)>   # len
+PUSH <offsetof label>   # src (offset of shellcode in the deployer)
+PUSH 0                  # dst-offset
+CODECOPY                # copy shellcode to offset 0 from <code> + <offsetof label>
 
-#### disassemble\_pro
+PUSH <len(shellcode)>   # length to return
+PUSH 0                  # offset to return
+RETURN                  # return shellcode
+label:
+    <shellcode goes here>
+```
+
+<a id="ethpwn.ethlib.assembly_utils.disassemble"></a>
+
+#### disassemble
 
 ```python
-def disassemble_pro(code, start_pc=0, fork='paris')
+def disassemble(code, start_pc=0, fork='paris')
 ```
 
 Disassemble code and return a string containing the disassembly. This disassembly includes the
 pc, bytes, instruction, gas cost, and description of each instruction in addition to the
 standard disassembly.
+
+<a id="ethpwn.ethlib.assembly_utils.assemble"></a>
+
+#### assemble
+
+```python
+def assemble(code, start_pc=0, fork='paris')
+```
+
+Assemble code and return a string containing the bytecode.
+code is a string such as:
+    '''PUSH1 0x60
+         PUSH1 0x40
+         MSTORE
+     '''
 
