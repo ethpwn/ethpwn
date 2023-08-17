@@ -28,13 +28,14 @@ To use this feature, simply set the `ETHERSCAN_API_KEY` environment variable to 
 ## 🌱 Contract instances
 `ethpwn` also stores the addresses of all contracts that were ever deployed or interacted with using `ethpwn` in a global `ContractInstances` object, which can be accessed via `CONTRACT_INSTANCES`. Specifically, this associates the address of an instance of a contract with the `ContractMetadata` of the contract, allowing you to retrieve any metadata about it in the future via its address.
 
-# 🚀 Advantages
+## 🐥 Tutorial
 
-Together, this global state allows you to oftentimes write interaction scripts that only concern themselves with the logic of an interaction, without having to worry about the boilerplate of setting up the environment, compiling contracts, and associating each contract with its address.
+The global state allows you to write interaction scripts that only concern themselves with the logic of an interaction, without having to worry about the boilerplate of setting up the environment, compiling contracts, and associating each contract with its address.
 
 As an example, we will use the following setup to illustrate the benefits of this design:
-```
-########## ONCE
+
+```bash
+########## 
 # install ethpwn
 pip install ethpwn
 
@@ -58,7 +59,7 @@ ethpwn contract name add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
 ethpwn fetch_verified_contract_at 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 ```
 
-## 🚀 Direct Interaction in `ethpwn` Scripts
+## Direct Interaction in `ethpwn` Scripts
 
 Then, we can use the uniswap router contract in our scripts to interact with it.
 ```python
@@ -85,7 +86,7 @@ transact(
 )
 ```
 
-## 🚀 Integration in contract deployment
+## Integration in contract deployment
 
 Instead of performing this action manually, we can instead deploy a solidity contract to perform this action for us.
 ```python
@@ -130,14 +131,5 @@ txid, *_ = transact(contract_instance.w3.getDAI(100), value=1 * ETHER)
 print(f"Transaction ID: {txid.hex()}")
 ```
 
-## 🐛 Integration with `ethdbg`
-
-Finally, we can also use `ethdbg` to debug the contract we just deployed.
-```bash
-# launch ethdbg on the transaction we just created
-ethdbg --txid <txid>
-```
-
-Since we compiled the contract using `ethpwn`, `ethdbg` will automatically have the source-code available during the debug session and allow
-you to inspect the storage layout of the contract as well as step through to see how the arguments are setup.
-Similarly, because we have already fetched the source code of the Uniswap router, `ethdbg` will also have the source code of the Uniswap router available during the debug session, allowing you to step through the execution of the exact swapping logic as it happens.
+## Transparent integration with `ethdbg`
+Since we compiled the contract using `ethpwn`, `ethdbg` will automatically have the source-code available during a debug session.

@@ -65,3 +65,4 @@ result = contract_a_instance.w3.foo(0, 1, 2).call()
 transact(contract_a_instance.w3.foo(0, 1, 2))
 ```
 
+#### Assembling and Disassembling EVM code
