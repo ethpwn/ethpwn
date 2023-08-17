@@ -13,7 +13,7 @@ This includes the following settings:
 2. `default_node_urls`: default Ethereum node URLs for each network which can be used to retrieve blockchain information state
 3. `wallets`: Ethereum wallets to use to interact with the different blockchain networks
 4. `etherscan_api_key`: API key for etherscan, which can be used to retrieve verified source code for contracts
-5. `debugger configuration`: customizations for `ethdbg`. See [ethdbg](/ethdbg/usage/).
+5. `debugger configuration`: customizations for `ethdbg`. See [ethdbg](/ethpwn/ethdbg/usage/).
 
 The most basic configuration is the following:
 
