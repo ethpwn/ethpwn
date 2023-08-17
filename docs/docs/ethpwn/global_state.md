@@ -5,15 +5,17 @@
 Specifically, `ethpwn` maintains the following concepts in a global state: global configuration, including wallets and api keys, compiled contract metadata, and deployed contract instances.
 
 ## 📝 Configuration
-`ethpwn` allows you to configure a variety of settings globally, which are then used by the various modules to simplify the interaction process.
-This includes the following settings:
-1. default_network: the default network to use for all interactions
-2. default_node_urls: default Ethereum node URLs for each network which can be used to retrieve blockchain information state
-3. wallets: Ethereum wallets to use to interact with the different blockchain networks
-4. etherscan_api_key: API key for etherscan, which can be used to retrieve verified source code for contracts
-5. debugger configuration: customizations for the debugger interface
+The configuration for `ethpwn` is expected to be located at `~/.config/ethpwn/config.json`. This file allows you to configure a variety of settings globally, which are then used by the various modules to simplify the interaction process.
 
-## 📝 ContractMetadata
+This includes the following settings:
+
+1. `default_network`: the default network to use for all interactions
+2. `default_node_urls`: default Ethereum node URLs for each network which can be used to retrieve blockchain information state
+3. `wallets`: Ethereum wallets to use to interact with the different blockchain networks
+4. `etherscan_api_key`: API key for etherscan, which can be used to retrieve verified source code for contracts
+5. `debugger configuration`: customizations for `ethdbg`
+
+## 🪪 ContractMetadata
 `ethpwn` stores the compiled contract metadata in a global `ContractMetadata` object, which can be accessed via `CONTRACT_METADATA`.
 This holds the information about every contract that was ever compiled on your machine using `ethpwn`, and can be used to retrieve the `ContractMetadata` for all of these contracts.
 This allows you to simply refer to a contract by name, and `ethpwn` will automatically retrieve the correct `ContractMetadata` for you.
@@ -23,7 +25,7 @@ E.g. if you have previously compiled the code of the uniswap router contract, yo
 To improve this even further, `ethpwn` is also able to fetch any available verified source code for contracts from etherscan's source-code verification API if you have an API key. This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself.
 To use this feature, simply set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
 
-## 📄 Contract instances
+## 🌱 Contract instances
 `ethpwn` also stores the addresses of all contracts that were ever deployed or interacted with using `ethpwn` in a global `ContractInstances` object, which can be accessed via `CONTRACT_INSTANCES`. Specifically, this associates the address of an instance of a contract with the `ContractMetadata` of the contract, allowing you to retrieve any metadata about it in the future via its address.
 
 # 🚀 Advantages

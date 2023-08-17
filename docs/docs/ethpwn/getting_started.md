@@ -48,7 +48,7 @@ _, new_contract_address = contract_a.deploy(0, 1, 2)
 contract_a_instance = contract_a.get_contract_at(0x1234)
 ```
 
-In both cases, `ethpwn` uses this information to associate the address of the contract with the contract metadata, and provides a `Contract` instance which can be used to interact with the contract using the [Web3](https://web3py.readthedocs.io/en/stable/) API.
+In both cases, `ethpwn` associates the address of the contract with the contract metadata, and provides a `Contract` instance which can be used to interact with the contract using the [Web3](https://web3py.readthedocs.io/en/stable/) API.
 
 #### Interacting with smart contracts
 
