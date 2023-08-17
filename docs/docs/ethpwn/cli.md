@@ -1,4 +1,4 @@
-# CLI
+# Command Line Tools
 
 `ethpwn` comes with a CLI that can be used to manage, query, and interact with the global state, as well as having shortcuts to create, decode and manipulate transactions.
 

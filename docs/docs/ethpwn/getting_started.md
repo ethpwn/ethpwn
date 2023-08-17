@@ -1,4 +1,3 @@
-## ⚡️ Getting Started
 
 `ethpwn` aims to solve a few tasks that users might commonly come in contact with.
 

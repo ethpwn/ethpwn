@@ -14,7 +14,7 @@ The main 3 principles for `ethpwn` are:
 
 ## ⚙️ Installation
 
-The main logic of `ethpwn` is written in Python, and can be installed via `pip`:
+The main logic of `ethpwn` is written in Python3, and can be installed via `pip`:
 
 ```bash
 pip install ethpwn
