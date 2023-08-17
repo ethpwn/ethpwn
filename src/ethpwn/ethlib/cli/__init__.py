@@ -133,9 +133,14 @@ def main(args=None):
     ARGS = main_cli_parser.parse_args(args=args)
     subcommand_function = main_cli_handlers[ARGS.subcommand]
     kwargs = {k.replace('-', '_'): v for k, v in vars(ARGS).items() if k not in {'subcommand', 'silent'}}
-    result = subcommand_function(**kwargs)
-    if result is not None and not ARGS.silent:
-        rprint(result)
+    
+    try:
+        result = subcommand_function(**kwargs)
+        if result is not None and not ARGS.silent:
+            rprint(result)
+    except Exception as e:
+            # print usage 
+            main_cli_parser.print_help()
 
 
 cmdline = parser_callable(main_cli_subparsers, main_cli_handlers)
