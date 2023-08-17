@@ -19,18 +19,18 @@ Smart contracts are most commonly written in high-level programming languages, m
 `ethpwn` provides a simple interface for compiling smart contracts, and programmatically access to the compiled artifacts.
 
 ```python
-from ethpwn import *
+>>> from ethpwn import *
 
-CONTRACT_METADATA.compile_solidity_files(['contract_a.sol', 'contract_b.sol'])
-contract_a = CONTRACT_METADATA['ContractA']
-print (f"ContractA: ABI: {contract_a.abi}")
-print (f"ContractA: deployed bytecode: {contract_a.bin_runtime}")
-print (f"ContractA: storage layout: {contract_a.storage_layout}")
-print (f"ContractA: source code for pc=0x1234: {contract_a.source_info_for_pc(0x1234)}")
+>>> CONTRACT_METADATA.compile_solidity_files(['contract_a.sol', 'contract_b.sol'])
+>>> contract_a = CONTRACT_METADATA['ContractA']
+>>> print (f"ContractA: ABI: {contract_a.abi}")
+>>> print (f"ContractA: deployed bytecode: {contract_a.bin_runtime}")
+>>> print (f"ContractA: storage layout: {contract_a.storage_layout}")
+>>> print (f"ContractA: source code for pc=0x1234: {contract_a.source_info_for_pc(0x1234)}")
 
-calldata = '0x12345678abcdef'
-func_name, args = contract_a.decode_function_input(calldata)
-print (f"ContractA: calldata calls function {func_name} with args {args}")
+>>> calldata = '0x12345678abcdef'
+>>> func_name, args = contract_a.decode_function_input(calldata)
+>>> print (f"ContractA: calldata calls function {func_name} with args {args}")
 ```
 
 Additionally to the compiled information accessible via the `ContractMetadata`, `ethpwn` also provides a `Contract` class which can be used to interact with contract instances on the blockchain.
@@ -42,10 +42,10 @@ A contract instance can be retrieved either by deploying a (new) given contract 
 ```python
 # deploy an instance of ContractA onto the blockchain
 # calls the contract's constructor with arguments 0, 1, and 2
-_, new_contract_address = contract_a.deploy(0, 1, 2)
+>>> _, new_contract_address = contract_a.deploy(0, 1, 2)
 
 # get an instance of ContractA on the blockchain at address 0x1234
-contract_a_instance = contract_a.get_contract_at(0x1234)
+>>> contract_a_instance = contract_a.get_contract_at(0x1234)
 ```
 
 In both cases, `ethpwn` associates the address of the contract with the contract metadata, and provides a `Contract` instance which can be used to interact with the contract using the [Web3](https://web3py.readthedocs.io/en/stable/) API.
@@ -59,10 +59,10 @@ In the future, it will be able to automatically launch `ethdbg` on the transacti
 
 ```python
 # simulate the result of calling the `foo` function on the contract with arguments 0, 1, and 2
-result = contract_a_instance.w3.foo(0, 1, 2).call()
+>>> result = contract_a_instance.w3.foo(0, 1, 2).call()
 
 # create a transaction on the real blockchain calling the `foo` function on the contract with arguments 0, 1, and 2
-transact(contract_a_instance.w3.foo(0, 1, 2))
+>>> transact(contract_a_instance.w3.foo(0, 1, 2))
 ```
 
 #### Assembling and Disassembling EVM code
@@ -77,12 +77,4 @@ transact(contract_a_instance.w3.foo(0, 1, 2))
 ```python
 >>> from ethpwn import *
 >>> disassemble('60405858586000600155').split("\n")
->>> """['0000: 60 40        PUSH1 0x40          [gas=3, description="Place 1 byte item on stack."]',
- '0002: 58           PC                  [gas=2, description="Get the value of the program counter prior to the increment."]',
- '0003: 58           PC                  [gas=2, description="Get the value of the program counter prior to the increment."]',
- '0004: 58           PC                  [gas=2, description="Get the value of the program counter prior to the increment."]',
- '0005: 60 00        PUSH1 0x0           [gas=3, description="Place 1 byte item on stack."]',
- '0007: 60 01        PUSH1 0x1           [gas=3, description="Place 1 byte item on stack."]',
- '0009: 55           SSTORE              [gas=0, description="Save word to storage."]',
- '']"""
- ```
+```
