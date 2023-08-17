@@ -1,7 +1,19 @@
 
 `ethpwn` aims to solve a few tasks that users might commonly come in contact with.
 
-### Compiling and managing smart contracts
+To become acquainted with `ethpwn`, let's start by walking through several examples.
+
+Similary to `pwntools`, `ethpwn` follows the “kitchen sink” approach.
+
+```python
+from ethpwn import *
+```
+
+This imports all you need to start compiling and interacting with smart contracts.
+
+### Tutorials
+
+#### Compiling and managing smart contracts
 
 Smart contracts are most commonly written in high-level programming languages, most commonly [Solidity](https://soliditylang.org/) or sometimes [Vyper](https://vyper.readthedocs.io/en/stable/).
 
