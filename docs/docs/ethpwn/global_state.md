@@ -5,7 +5,7 @@
 Specifically, `ethpwn` maintains the following concepts in a global state: global configuration, including wallets and api keys, compiled contract metadata, and deployed contract instances.
 
 ## 📝 Configuration
-The configuration for `ethpwn` is expected to be located at `~/.config/ethpwn/config.json`. This file allows you to configure a variety of settings globally, which are then used by the various modules to simplify the interaction process.
+The configuration for `ethpwn` is located at `~/.config/ethpwn/config.json`. This file allows you to configure a variety of settings globally, which are then used by the various modules to simplify the interaction process.
 
 This includes the following settings:
 
@@ -25,7 +25,7 @@ E.g. if you have previously compiled the code of the uniswap router contract, yo
 To improve this even further, `ethpwn` is also able to fetch any available verified source code for contracts from etherscan's source-code verification API if you have an API key. This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself.
 To use this feature, simply set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
 
-## 🌱 Contract instances
+## 🌱 ContractInstances
 `ethpwn` also stores the addresses of all contracts that were ever deployed or interacted with using `ethpwn` in a global `ContractInstances` object, which can be accessed via `CONTRACT_INSTANCES`. Specifically, this associates the address of an instance of a contract with the `ContractMetadata` of the contract, allowing you to retrieve any metadata about it in the future via its address.
 
 ## 🐥 Tutorial
@@ -56,7 +56,7 @@ ethpwn contract name add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
 ########## FOR EACH CONTRACT
 
 # fetch the verified source code for the uniswap router contract from etherscan to access its metadata and ABI
-ethpwn fetch_verified_contract_at 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+ethpwn contract fetc_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 ```
 
 ## Direct Interaction in `ethpwn` Scripts

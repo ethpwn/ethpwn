@@ -4,7 +4,7 @@ and automatically.
 '''
 
 from hexbytes import HexBytes
-from pyevmasm import assemble, disassemble_all
+from pyevmasm import assemble, disassemble_all, assemble_all
 
 def value_to_smallest_hexbytes(value):
     """Convert an integer to the smallest possible hexbytes"""
@@ -68,6 +68,7 @@ def asm_sload(key):
     code += assemble('SLOAD')
     return code
 
+
 def create_shellcode_deployer_bin(shellcode):
     """
         Create a contract that deploys shellcode at a specific address
@@ -105,7 +106,7 @@ def create_shellcode_deployer_bin(shellcode):
     assert len(code) == prev_offset
     return HexBytes(code + shellcode)
 
-def disassemble_pro(code, start_pc=0, fork='paris'):
+def disassemble(code, start_pc=0, fork='paris'):
     """
     Disassemble code and return a string containing the disassembly. This disassembly includes the
     pc, bytes, instruction, gas cost, and description of each instruction in addition to the
@@ -123,3 +124,24 @@ def disassemble_pro(code, start_pc=0, fork='paris'):
         disassembly += f'[gas={insn.fee}, description="{insn.description}"]\n'
 
     return disassembly
+
+
+
+def assemble(code, start_pc=0, fork='paris'):
+    """
+    Assemble code and return a string containing the bytecode.
+    code is a string such as:
+        '''PUSH1 0x60\n \
+            PUSH1 0x40\n \
+            MSTORE\n \
+        '''
+    """
+    aaa = assemble_all(code, pc=start_pc, fork=fork)
+    
+    bytecode = None
+    for a in aaa:
+        if bytecode is None:
+            bytecode = HexBytes(a.bytes)
+        else:
+            bytecode += HexBytes(a.bytes)
+    return bytecode.hex()

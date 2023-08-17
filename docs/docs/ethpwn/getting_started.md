@@ -66,3 +66,24 @@ transact(contract_a_instance.w3.foo(0, 1, 2))
 ```
 
 #### Assembling and Disassembling EVM code
+
+```python
+>>> from ethpwn import *
+>>> bytecode = assemble("PUSH1 0x40\n PC\nPC\nPC\nPUSH1 0x00\nPUSH1 0x01\n SSTORE\n")
+>>> print(bytecode) 
+>>>'60405858586000600155'
+```
+
+```python
+>>> from ethpwn import *
+>>> disassemble('60405858586000600155').split("\n")
+>>>
+['0000: 60 40        PUSH1 0x40          [gas=3, description="Place 1 byte item on stack."]',
+ '0002: 58           PC                  [gas=2, description="Get the value of the program counter prior to the increment."]',
+ '0003: 58           PC                  [gas=2, description="Get the value of the program counter prior to the increment."]',
+ '0004: 58           PC                  [gas=2, description="Get the value of the program counter prior to the increment."]',
+ '0005: 60 00        PUSH1 0x0           [gas=3, description="Place 1 byte item on stack."]',
+ '0007: 60 01        PUSH1 0x1           [gas=3, description="Place 1 byte item on stack."]',
+ '0009: 55           SSTORE              [gas=0, description="Save word to storage."]',
+ '']
+ ```
