@@ -154,7 +154,7 @@ tr:nth-child(even) {
 
 | ❗️ Note                                                              |
 |----------------------------------------------------------------------|
-| Either `--txid` or `--target` must be specified when starting `ethdbg` |
+| Unless you are using the `--shellcode` option, either `--txid` or `--target` must be specified when starting `ethdbg` |
 
 
 ## 🚀 Examples Usage
