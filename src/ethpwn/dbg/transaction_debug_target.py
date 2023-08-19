@@ -268,7 +268,6 @@ class TransactionDebugTarget:
         self.calldata = calldata
 
         self.source_address = kwargs.pop('sender', None) or wallet_conf.address
-        print(f'self.source_address: {self.source_address}')
         self.block_number = kwargs.pop('block_number', None) or  self.w3.eth.block_number
         self.custom_balance = kwargs.pop('custom_balance', None) or None
 
@@ -288,6 +287,32 @@ class TransactionDebugTarget:
 
         return self
 
+
+    def new_shellcode(self, to, calldata, wallet_conf, **kwargs):
+        self.target_address = to
+        self.calldata = calldata
+
+        self.source_address = kwargs.pop('sender', None) or wallet_conf.address
+        print(f'self.source_address: {self.source_address}')
+        self.block_number = kwargs.pop('block_number', None) or  self.w3.eth.block_number
+        self.custom_balance = kwargs.pop('custom_balance', None) or None
+
+        if type(self.block_number) == str:
+            self.block_number = int(self.block_number, 10)
+
+        self.chain_id = self.w3.eth.chain_id
+
+        for k, v in kwargs.items():
+            if v is None:
+                continue
+            try:
+                setattr(self, k, v)
+            except AttributeError:
+                pass
+        self.debug_type = "shellcode"
+
+        return self
+    
 
     def get_transaction_dict(self, **defaults):
         if self.chain_id is None:

@@ -463,12 +463,6 @@ class EthDbgShell(cmd.Cmd):
         '''
         Start the execution of the EVM
         '''
-        # Check if the target address is a contract!
-        if self.debug_target.target_address is not None:
-            if self.w3.eth.get_code(self.debug_target.target_address, self.debug_target.block_number) == b'':
-                print(f"{RED_COLOR}Target address {self.debug_target.target_address} of transaction is not a contract {RESET_COLOR}")
-                sys.exit(0)
-
         if self.started:
             answer = input("Debugger already started. Do you want to restart the debugger? [y/N] ")
             if answer.lower() == 'y':
@@ -477,6 +471,57 @@ class EthDbgShell(cmd.Cmd):
         if self.debug_target.target_address == "0x0":
             print("No target set. Use 'target' command to set it.")
             return
+
+        # Is this a shellcode emulation? 
+        if self.debug_target.debug_type == 'shellcode':
+
+            # We need to deploy the shellcode as a contract before starting the debugger
+            analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number)
+            vm = analyzer.vm
+            vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
+
+            self.debug_target.set_default('fork', vm.fork)
+
+            txn = self.debug_target.get_transaction_dict()
+            raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
+            txn = vm.get_transaction_builder().decode(raw_txn)            
+
+            receipt, computation = analyzer.apply(txn)
+            deployed_address = computation.msg.storage_address.hex()
+
+            # Now we build the new debug target object to execute the deployed contract     
+            new_debug_target = TransactionDebugTarget(context.w3)
+            new_debug_target.set_defaults(
+                gas=6_000_000, # silly default value
+                gas_price=(10 ** 9) * 1000,
+                value=0,
+                calldata='',
+                to=deployed_address,
+                origin=self.debug_target.source_address,
+                sender=self.debug_target.source_address,
+                nonce=self.w3.eth.get_transaction_count(self.debug_target.source_address),
+            )
+            new_debug_target.new_transaction(to=deployed_address,
+                                             sender=self.debug_target.sender, 
+                                             value=self.debug_target.value,
+                                             calldata=self.debug_target.calldata, 
+                                             block_number=self.debug_target.block_number,
+                                             wallet_conf=self.wallet_conf, 
+                                             full_context=False,
+                                             custom_balance=self.debug_target.custom_balance)
+            # Set the new debug target!
+            self.debug_target = new_debug_target
+            self.debug_target.debug_type = 'shellcode'
+
+            # Hook the EVM!
+            analyzer.hook_vm(self._myhook)
+
+        # If not shellcode, we check if the target address is a contract.
+        elif self.debug_target.target_address is not None:
+            if self.w3.eth.get_code(self.debug_target.target_address, self.debug_target.block_number) == b'':
+                print(f"{RED_COLOR}Target address {self.debug_target.target_address} of transaction is not a contract {RESET_COLOR}")
+                sys.exit(0)
+
         if not self.debug_target.calldata and self.started == False:
             print("No calldata set. Proceeding with empty calldata.")
 
@@ -512,14 +557,13 @@ class EthDbgShell(cmd.Cmd):
                         bar()
 
             analyzer.hook_vm(self._myhook)
-        else:
+        elif self.debug_target.debug_type == "new":
             # get the analyzer
             analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
             vm = analyzer.vm
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 
         if self.debug_target.debug_type == "replay":
-
             def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
                 return bytes(HexBytes(source_address))
             eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, self.debug_target.source_address)
@@ -602,15 +646,19 @@ class EthDbgShell(cmd.Cmd):
         Print the original calldata of the transaction
         Usage: calldata
         '''
-        if arg and not self.started:
-            try:
-                self.debug_target.calldata = arg
-            except Exception:
-                print(f'Invalid calldata: {arg}')
-        elif not arg and not self.started:
+        if self.debug_target.debug_type == 'shellcode':
             print(f'{self.debug_target.calldata}')
-        else:
-            print(f'{self.comp.msg.data.hex()}')
+            print(f'{RED_COLOR}(Cannot change calldata in shellcode mode){RESET_COLOR}')
+        else:    
+            if arg and not self.started:
+                try:
+                    self.debug_target.calldata = arg
+                except Exception:
+                    print(f'Invalid calldata: {arg}')
+            elif not arg and not self.started:
+                print(f'{self.debug_target.calldata}')
+            else:
+                print(f'{self.comp.msg.data.hex()}')
 
     def do_weitoeth(self, arg):
         '''
@@ -1114,7 +1162,7 @@ class EthDbgShell(cmd.Cmd):
             assert insn.mnemonic == self.curr_opcode.mnemonic, "disassembled opcode does not match the opcode we're currently executing??"
 
         _next_opcodes_str = f''
-
+        
         # print 5 instruction after
         for _ in range(0,5):
             pc += insn.size
@@ -1691,6 +1739,8 @@ def main():
     parser.add_argument("--block", help="reference block", default=None)
     parser.add_argument("--calldata", help="calldata to use for the transaction", default=None)
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethpwn/pwn/wallets.json )", default=None)
+    parser.add_argument("--shellcode", help="test on-the-fly shellcode", default=None)
+    
 
     args = parser.parse_args()
 
@@ -1776,6 +1826,30 @@ def main():
                                      calldata=args.calldata, block_number=args.block,
                                      wallet_conf=wallet_conf, full_context=False,
                                      custom_balance=args.balance)
+    
+    elif args.shellcode:
+        # shellcode mode
+
+        # Add a STOP at the end of the shellcode if there is none
+        if args.shellcode[-2:] != "00":
+            args.shellcode += "00"
+
+        if args.value is None:
+            value = 0
+        else:
+            value = int(args.value)
+        
+        debug_target = TransactionDebugTarget(context.w3)
+        debug_target.new_shellcode(to=None,
+                                     sender=args.sender, 
+                                     value=value,
+                                     calldata=bytes.fromhex(create_shellcode_deployer_bin(args.shellcode).hex()[2:]), 
+                                     block_number=args.block,
+                                     wallet_conf=wallet_conf, 
+                                     full_context=False,
+                                     custom_balance=args.balance
+                                    )               
+
     else:
         print(f"{YELLOW_COLOR}No target address or txid provided.{RESET_COLOR}")
         sys.exit()

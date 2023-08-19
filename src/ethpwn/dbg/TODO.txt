@@ -6,9 +6,8 @@ EXTRAS:
 4 - support for multiple transactions
 5 - Modifying storage and memory on demand
 6 - Visualize logs
-7 - cache to avoid burn all the calls for Infura
-8 - merge Yon's snapshots
-9 - undo command
+7 - merge Yon's snapshots
+8 - undo command
 10- ui terminal
 11- Support execution of TX from top of block, end, or specific position (more advanced)
     - Executing always at the top might not work in some cases (balance of tokens for a contract)

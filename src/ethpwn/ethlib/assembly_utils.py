@@ -106,7 +106,7 @@ def create_shellcode_deployer_bin(shellcode):
     assert len(code) == prev_offset
     return HexBytes(code + shellcode)
 
-def disassemble(code, start_pc=0, fork='paris'):
+def disassemble_pro(code, start_pc=0, fork='paris'):
     """
     Disassemble code and return a string containing the disassembly. This disassembly includes the
     pc, bytes, instruction, gas cost, and description of each instruction in addition to the
@@ -127,7 +127,7 @@ def disassemble(code, start_pc=0, fork='paris'):
 
 
 
-def assemble(code, start_pc=0, fork='paris'):
+def assemble_pro(code, start_pc=0, fork='paris'):
     """
     Assemble code and return a string containing the bytecode.
     code is a string such as:
@@ -145,3 +145,11 @@ def assemble(code, start_pc=0, fork='paris'):
         else:
             bytecode += HexBytes(a.bytes)
     return bytecode.hex()
+
+def run_bytecode(code, ethdbg=False):
+    shellcode_deployer = create_shellcode_deployer_bin(code)
+    if ethdbg:
+        # we need to deploy this code in ethdbg
+        pass
+    else:
+        print("TODO")
