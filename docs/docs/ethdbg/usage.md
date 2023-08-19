@@ -150,7 +150,7 @@ tr:nth-child(even) {
 | ['--block']        | False | The original block (if `txid` is specified), otherwise the `latest` block. | Block at which you want to simulate the new transaction (i.e., the transaction will be simulated at the beginning of the block). |
 | ['--calldata']     | False | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
 | ['--wallet']       | False | If no name is specified, `ethdbg` automatically generates an account for you | Name of the account you want to use as specified in the configuration file |
-
+| ['--shellcode']     | False | None | EVM bytecode that we want to execute on-the-fly in ethdbg | 
 
 | ❗️ Note                                                              |
 |----------------------------------------------------------------------|

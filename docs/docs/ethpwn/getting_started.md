@@ -78,3 +78,12 @@ In the future, it will be able to automatically launch `ethdbg` on the transacti
 >>> from ethpwn import *
 >>> disassemble_pro('60405858586000600155').split("\n")
 ```
+
+
+#### Testing EVM bytecode on-the-fly
+
+```python
+>>> from ethpwn import *
+>>> bytecode = assemble_pro("PUSH1 0x40\n PC\nPC\nPC\nPUSH1 0x00\nPUSH1 0x01\n SSTORE\n")
+>>> run_shellcode(bytecode) # this will spawn an ethdbg session.
+```

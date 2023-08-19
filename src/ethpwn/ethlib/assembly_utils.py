@@ -148,7 +148,20 @@ def assemble_pro(code, start_pc=0, fork='paris'):
     return bytecode.hex()
 
 def run_shellcode(code, ethdbg=True):
+    """
+    Run on-the-fly EVM bytecode inside ethdbg. 
+    code is the bytecode as a string such (the deploying bytecode does not need to be included)
+    """
     if ethdbg:
         # create a new terminal and run ethdbg with arg --shelcode
         # TODO: spawn this in a new terminal in a multi-platform way
+        # FIXME: this fails with rich
         subprocess.run(f'ethdbg --shellcode {code}', shell=True, check=True)
+
+def run_contract(code, abi, ethdbg=True):
+    """
+    Run the bytecode of a smart contract inside ethdbg.
+    code is the run-time bytecode, abi is the abi of the contract
+    """
+    if ethdbg:
+        subprocess.run(f'ethdbg --new-contract-bytecode {code} --new-contract-abi {abi}', shell=True, check=True)

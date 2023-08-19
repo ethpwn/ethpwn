@@ -1739,8 +1739,8 @@ def main():
     parser.add_argument("--block", help="reference block", default=None)
     parser.add_argument("--calldata", help="calldata to use for the transaction", default=None)
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethpwn/pwn/wallets.json )", default=None)
-    parser.add_argument("--shellcode", help="test on-the-fly shellcode", default=None)
     
+    parser.add_argument("--shellcode", help="test on-the-fly shellcode", default=None)
 
     args = parser.parse_args()
 
