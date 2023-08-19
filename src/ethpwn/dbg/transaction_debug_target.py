@@ -293,7 +293,6 @@ class TransactionDebugTarget:
         self.calldata = calldata
 
         self.source_address = kwargs.pop('sender', None) or wallet_conf.address
-        print(f'self.source_address: {self.source_address}')
         self.block_number = kwargs.pop('block_number', None) or  self.w3.eth.block_number
         self.custom_balance = kwargs.pop('custom_balance', None) or None
 

@@ -2,6 +2,7 @@
 Module containing utility functions for assembling and disassembling EVM bytecode manually
 and automatically.
 '''
+import subprocess
 
 from hexbytes import HexBytes
 from pyevmasm import assemble, disassemble_all, assemble_all
@@ -146,10 +147,8 @@ def assemble_pro(code, start_pc=0, fork='paris'):
             bytecode += HexBytes(a.bytes)
     return bytecode.hex()
 
-def run_bytecode(code, ethdbg=False):
-    shellcode_deployer = create_shellcode_deployer_bin(code)
+def run_shellcode(code, ethdbg=True):
     if ethdbg:
-        # we need to deploy this code in ethdbg
-        pass
-    else:
-        print("TODO")
+        # create a new terminal and run ethdbg with arg --shelcode
+        # TODO: spawn this in a new terminal in a multi-platform way
+        subprocess.run(f'ethdbg --shellcode {code}', shell=True, check=True)
