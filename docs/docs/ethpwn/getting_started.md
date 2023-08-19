@@ -69,12 +69,12 @@ In the future, it will be able to automatically launch `ethdbg` on the transacti
 
 ```python
 >>> from ethpwn import *
->>> bytecode = assemble("PUSH1 0x40\n PC\nPC\nPC\nPUSH1 0x00\nPUSH1 0x01\n SSTORE\n")
+>>> bytecode = assemble_pro("PUSH1 0x40\n PC\nPC\nPC\nPUSH1 0x00\nPUSH1 0x01\n SSTORE\n")
 >>> print(bytecode) 
 >>>'60405858586000600155'
 ```
 
 ```python
 >>> from ethpwn import *
->>> disassemble('60405858586000600155').split("\n")
+>>> disassemble_pro('60405858586000600155').split("\n")
 ```
