@@ -163,5 +163,7 @@ def run_contract(code, abi, ethdbg=True):
     Run the bytecode of a smart contract inside ethdbg.
     code is the run-time bytecode, abi is the abi of the contract
     """
+    # TODO
+    assert(False)
     if ethdbg:
         subprocess.run(f'ethdbg --new-contract-bytecode {code} --new-contract-abi {abi}', shell=True, check=True)
