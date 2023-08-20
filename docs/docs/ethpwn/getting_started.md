@@ -37,7 +37,7 @@ Additionally to the compiled information accessible via the `ContractMetadata`, 
 
 #### Deploying smart contracts
 
-A contract instance can be retrieved either by deploying a (new) given contract via `ContractMetadata.deploy()`, or by the address of an already deployed contract via `ContractMetadata.get_contract_at()`.
+A contract instance can be retrieved either by deploying a (new) given contract via `ContractMetadata.deploy()`, or by the address of an already deployed contract via `get_contract_at()`.
 
 ```python
 # deploy an instance of ContractA onto the blockchain
@@ -59,10 +59,10 @@ In the future, it will be able to automatically launch `ethdbg` on the transacti
 
 ```python
 # simulate the result of calling the `foo` function on the contract with arguments 0, 1, and 2
->>> result = contract_a_instance.w3.foo(0, 1, 2).call()
+>>> result = contract_a_instance.functions.foo(0, 1, 2).call()
 
 # create a transaction on the real blockchain calling the `foo` function on the contract with arguments 0, 1, and 2
->>> transact(contract_a_instance.w3.foo(0, 1, 2))
+>>> transact(contract_a_instance.functions.foo(0, 1, 2))
 ```
 
 #### Assembling and Disassembling EVM code
@@ -84,6 +84,6 @@ In the future, it will be able to automatically launch `ethdbg` on the transacti
 
 ```python
 >>> from ethpwn import *
->>> bytecode = assemble_pro("PUSH1 0x40\n PC\nPC\nPC\nPUSH1 0x00\nPUSH1 0x01\n SSTORE\n")
+>>> bytecode = assemble_pro("PUSH1 0x40\nPC\nPC\nPC\nPUSH1 0x00\nPUSH1 0x01\n SSTORE\n")
 >>> run_shellcode(bytecode) # this will spawn an ethdbg session.
 ```
