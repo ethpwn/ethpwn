@@ -167,6 +167,7 @@ class ContractRegistry:
 
         If a contract is newly registered, the registry is automatically saved back to disk.
         '''
+        address = normalize_contract_address(address)
         contract = ContractInstance(
             address=address,
             metadata=metadata,
