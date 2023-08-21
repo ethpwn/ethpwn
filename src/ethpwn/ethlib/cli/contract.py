@@ -37,7 +37,6 @@ def address(address_string: str, **kwargs):
 @contract_handler
 def deploy(contract_name,
            constructor_args: List[str] = [],
-           source: str=None, source_filename: str=None, source_files: List[str]=None, import_remappings: Dict[str, str]=None,
            tx_args: Dict[str, str] = {},
            **kwargs):
     '''
@@ -45,47 +44,22 @@ def deploy(contract_name,
     registry. Optionally, you can provide the contract source code, or a list of source files to
     compile the contract on the file.
     '''
-    if import_remappings:
-        CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
-
-    if source is not None:
-        CONTRACT_METADATA.compile_solidity_string(source, source_filename)
-
-    if source_files is not None:
-        CONTRACT_METADATA.compile_solidity_files(source_files)
-
     contract = CONTRACT_METADATA[contract_name]
     return contract.deploy(*constructor_args, **tx_args)
 
 @contract_handler
-def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_default_remappings=False, **kwargs):
+def get_default_import_remappings(sources: List[str], **kwargs):
     '''
-    Compile a contract. Returns the contract object. Optionally, you can provide the contract
-    source code, or a list of source files to compile the contract on the file.
-
-    By default, the compiler will look for the default import remappings in the following places:
-    - It looks for a `solidity-includes` directory in the current directory
-    - It looks for any `solidity-includes` directories which are adjacent to the source files
-
-    If you don't want to use the default import remappings, you can pass the `--no-default-remappings`
-    flag.
-
-    :param source: the source code of the contract
-    :param source_filename: the filename of the source code of the contract
-    :param source_files: a list of source files to compile the contract
-    :param import_remappings: a list of import remappings to use when compiling the contract
-
-    :return: the contract object
+    Print the default import remappings.
     '''
-    # import ipdb; ipdb.set_trace()
-    import_remappings = import_remappings or {}
+    _import_remappings = {}
 
     def add_solidity_includes_remappings(solidity_includes_path):
         for name in os.listdir(solidity_includes_path):
             if os.path.isdir(os.path.join(solidity_includes_path, name, 'contracts')):
-                import_remappings[f'{name}'] = os.path.join(solidity_includes_path, name, 'contracts') + '/'
+                _import_remappings[f'{name}'] = os.path.join(solidity_includes_path, name, 'contracts') + '/'
             else:
-                import_remappings[f'{name}'] = os.path.join(solidity_includes_path, name) + '/'
+                _import_remappings[f'{name}'] = os.path.join(solidity_includes_path, name) + '/'
 
     # check next to the source files for includes
     for source in sources:
@@ -103,20 +77,56 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
         assert os.path.isdir('solidity-includes')
         add_solidity_includes_remappings('solidity-includes')
 
-    if import_remappings:
-        CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
+    return _import_remappings
 
-    CONTRACT_METADATA.compile_solidity_files(sources)
 
-    return CONTRACT_METADATA
+@contract_handler
+def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_default_remappings=False, **kwargs):
+    '''
+    Compile a contract. Returns the contract object. Optionally, you can provide the contract
+    source code, or a list of source files to compile the contract on the file.
+
+    THIS WILL NOT STORE THIS INFORMATION ACROSS RUNS AND IS ONLY FOR TESTING PURPOSES. IF YOU WANT
+    TO STORE THIS INFORMATION, USE `ethpwn contract register` INSTEAD.
+
+    By default, the compiler will look for the default import remappings in the following places:
+    - It looks for a `solidity-includes` directory in the current directory
+    - It looks for any `solidity-includes` directories which are adjacent to the source files
+
+    If you don't want to use the default import remappings, you can pass the `--no-default-remappings`
+    flag.
+
+    :param source: the source code of the contract
+    :param source_filename: the filename of the source code of the contract
+    :param source_files: a list of source files to compile the contract
+    :param import_remappings: a list of import remappings to use when compiling the contract
+
+    :return: the contract object
+    '''
+    # import ipdb; ipdb.set_trace()
+
+    if no_default_remappings:
+        _import_remappings = {}
+    else:
+        _import_remappings = get_default_import_remappings(sources)
+
+    _import_remappings.update(import_remappings or {})
+    import ipdb; ipdb.set_trace()
+    if _import_remappings:
+        CONTRACT_METADATA.solidity_compiler.add_import_remappings(_import_remappings)
+
+    CONTRACT_METADATA.compile_solidity_files(sources, **kwargs)
+    return CONTRACT_METADATA.get_contract_by_source_file(sources[0])
 
 @contract_handler
 def register(contract_name: str, contract_address: HexBytes,
-                source: str=None, source_filename: str=None, source_files: List[str]=None, import_remappings=None,
-                recover_opt_settings: bool=False,
-                solc_version: str=None,
-                **kwargs
-                ):
+             source_files: List[str]=None,
+             no_default_remappings: bool=False,
+             import_remappings: Dict[str, str]=None,
+             recover_opt_settings: bool=False,
+             solc_version: str=None,
+             **kwargs
+            ):
     '''
     Register an instance of the contract `contract_name` at `contract_address` in the contract registry.
     Optionally, you can provide the contract source code, or a list of source files to compile the
@@ -129,39 +139,32 @@ def register(contract_name: str, contract_address: HexBytes,
 
     :param contract_name: the name of the contract
     :param contract_address: the address of the contract
-    :param source: the source code of the contract
-    :param source_filename: the filename of the source code of the contract
     :param source_files: a list of source files to compile the contract
+    :param no_default_remappings: whether to avoid using the default import remappings
     :param import_remappings: a list of import remappings to use when compiling the contract
     :param recover_opt_settings: whether to try to recover the optimizer settings that were used to compile the contract
     '''
-    import ipdb; ipdb.set_trace()
-    if import_remappings:
-        CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
-    assert source_files is None or (source is None and source_filename is None)
+
+    if no_default_remappings:
+        _import_remappings = {}
+    else:
+        _import_remappings = get_default_import_remappings(source_files)
+    _import_remappings.update(import_remappings or {})
+
+    if _import_remappings:
+        CONTRACT_METADATA.solidity_compiler.add_import_remappings(_import_remappings)
 
     best_kwargs = {}
     if recover_opt_settings:
         # from .solidity_utils import try_match_optimizer_settings
-        if source is not None and source_filename is not None:
-            do_compile = functools.partial(
-                CONTRACT_METADATA.solidity_compiler.compile_source,
-                source,
-                source_filename
-            )
-        elif source_filename is not None:
-            do_compile = functools.partial(
-                CONTRACT_METADATA.solidity_compiler.compile_files,
-                [source_filename]
-            )
-        elif source_files is not None:
+        if source_files is not None:
             assert type(source_files) is list
             do_compile = functools.partial(
                 CONTRACT_METADATA.solidity_compiler.compile_files,
                 source_files
             )
         else:
-            raise ValueError(f"Invalid parameters given: {source_files=!r} {source=!r} {source_filename=!r}")
+            raise ValueError(f"Invalid parameters given: {source_files=!r} not given, but requested to recover optimizer settings.")
         bin_runtime = context.w3.eth.get_code(contract_address)
         best_kwargs, meta, final_bytecode = try_match_optimizer_settings(
             do_compile,

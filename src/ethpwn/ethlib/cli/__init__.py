@@ -138,10 +138,12 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
 
     # create the subparser
     p: argparse.ArgumentParser = subparsers.add_parser(fname, help=function_doc)
+
     for i, arg in enumerate(args):
         arg_type = arg_types.get(arg, str)
         arg = arg.replace('_', '-')
         add_parser_arg(p, arg, arg_type, param_docs.get(arg, None))
+
     for kwarg, default in zip(kwargs, defaults):
         arg_type = arg_types.get(kwarg, str)
         kwarg = kwarg.replace('_', '-')
@@ -189,17 +191,19 @@ def rename(new_name):
 
 def main(args=None):
     args = args or sys.argv[1:]
-    ARGS = main_cli_parser.parse_args(args=args)
+    import ipdb; ipdb.set_trace()
+    try:
+        ARGS = main_cli_parser.parse_args(args=args)
+    except Exception as e:
+        main_cli_parser.print_help()
+        return
+
     subcommand_function = main_cli_handlers[ARGS.subcommand]
     kwargs = {k.replace('-', '_'): v for k, v in vars(ARGS).items() if k not in {'subcommand', 'silent'}}
-    
-    try:
-        result = subcommand_function(**kwargs)
-        if result is not None and not ARGS.silent:
-            rprint(result)
-    except Exception as e:
-            # print usage 
-            main_cli_parser.print_help()
+
+    result = subcommand_function(**kwargs)
+    if result is not None and not ARGS.silent:
+        rprint(result)
 
 
 cmdline = parser_callable(main_cli_subparsers, main_cli_handlers)

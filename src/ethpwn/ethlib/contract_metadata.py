@@ -647,6 +647,13 @@ class ContractMetadataRegistry:
         '''
         return self.find(lambda file_name, contract_name, contract_data: contract_name == name)
 
+    def find_by_filename(self, filename: str) -> Optional[Tuple[str, str, ContractMetadata]]:
+        '''
+        Find the first contract with the given filename, returning the file name, contract name,
+        and metadata.
+        '''
+        return self.find(lambda file_name, contract_name, contract_data: file_name == filename)
+
     def all_contracts(self):
         '''
         Iterate over all contracts, yielding the file name, contract name, and metadata for each.
