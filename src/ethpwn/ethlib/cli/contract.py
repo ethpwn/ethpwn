@@ -111,12 +111,12 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
         _import_remappings = get_default_import_remappings(sources)
 
     _import_remappings.update(import_remappings or {})
-    import ipdb; ipdb.set_trace()
+
     if _import_remappings:
         CONTRACT_METADATA.solidity_compiler.add_import_remappings(_import_remappings)
 
     CONTRACT_METADATA.compile_solidity_files(sources, **kwargs)
-    return CONTRACT_METADATA.get_contract_by_source_file(sources[0])
+    return CONTRACT_METADATA
 
 @contract_handler
 def register(contract_name: str, contract_address: HexBytes,

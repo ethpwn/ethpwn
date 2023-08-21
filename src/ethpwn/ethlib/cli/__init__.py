@@ -191,7 +191,6 @@ def rename(new_name):
 
 def main(args=None):
     args = args or sys.argv[1:]
-    import ipdb; ipdb.set_trace()
     try:
         ARGS = main_cli_parser.parse_args(args=args)
     except Exception as e:
