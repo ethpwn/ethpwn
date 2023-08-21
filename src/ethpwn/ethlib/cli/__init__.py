@@ -13,16 +13,39 @@ main_cli_subparsers.required = True
 
 main_cli_handlers = {}
 
+# inspired by https://gist.github.com/vadimkantorov/37518ff88808af840884355c845049ea
+class ParseKVAction(argparse.Action):
+    def __init__(self, key_type, value_type, *args, **kwargs):
+        self.key_type = key_type
+        self.value_type = value_type
+        super().__init__(*args, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if getattr(namespace, self.dest, None) is None:
+            setattr(namespace, self.dest, dict())
+
+        if type(values) is str:
+            values = values.split(';')
+
+        for each in values:
+            try:
+                key, value = each.split("=", 1)
+                key = self.key_type(key)
+                value = self.value_type(value)
+                getattr(namespace, self.dest)[key] = value
+            except ValueError as ex:
+                message = "\nTraceback: {}".format(ex)
+                message += "\nError on '{}' || It should be 'key=value'".format(each)
+                raise argparse.ArgumentError(self, str(message))
+
 def parse_json(string):
     import json
     return json.loads(string)
 
-ARG_TYPE_PARSERS = {
+PRIMITIVE_TYPE_PARSERS = {
     str: str,
     int: lambda s: int(s, base=0),
     bool: lambda s: s.lower() in ['true', '1', 'yes'],
-    List[str]: parse_json,
-    Dict[str, str]: parse_json,
 }
 def parse_doc(doc: str):
     param_docs = {}
@@ -42,6 +65,42 @@ def parse_doc(doc: str):
             real_doc += line + '\n'
 
     return param_docs, return_doc, real_doc.strip()
+
+def add_parser_arg(parser, name, type, default=None, help=None):
+    if type in PRIMITIVE_TYPE_PARSERS:
+        parser.add_argument(name, type=PRIMITIVE_TYPE_PARSERS[type], default=default, help=help)
+
+    # check if it's a typing value and it has a __origin__
+    elif hasattr(type, '__origin__'):
+        # check if it's typing.List
+        if type.__origin__ is list:
+            inner_type = type.__args__[0]
+            assert inner_type in PRIMITIVE_TYPE_PARSERS, f"unsupported type {type} for argument {name}"
+            assert default is None or isinstance(default, list), f"invalid default value {default} for argument {name}"
+            default = default or list()
+            parser.add_argument(name, type=PRIMITIVE_TYPE_PARSERS[inner_type], action='append', help=help, default=default)
+
+        # check if it's typing.Dict
+        elif type.__origin__ is dict:
+            key_type, value_type = type.__args__
+            assert key_type in PRIMITIVE_TYPE_PARSERS, f"unsupported type {type} for argument {name}"
+            assert value_type in PRIMITIVE_TYPE_PARSERS, f"unsupported type {type} for argument {name}"
+            assert default is None or isinstance(default, dict), f"invalid default value {default} for argument {name}"
+            default = default or dict()
+            parser.add_argument(
+                name,
+                action=ParseKVAction,
+                help=help,
+                default=default,
+                key_type=key_type,
+                value_type=value_type
+            )
+
+        else:
+            raise Exception(f"unsupported type {type} for argument {name}")
+
+    else:
+        parser.add_argument(name, type=type, help=help, default=default)
 
 def generate_subparser_for_function(subparsers: argparse._SubParsersAction, handlers: Dict[str, Callable], function: callable):
     if type(function) is functools.partial:
@@ -82,11 +141,11 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
     for i, arg in enumerate(args):
         arg_type = arg_types.get(arg, str)
         arg = arg.replace('_', '-')
-        p.add_argument(arg, type=ARG_TYPE_PARSERS.get(arg_type, str), help=param_docs.get(arg, None))
+        add_parser_arg(p, arg, arg_type, param_docs.get(arg, None))
     for kwarg, default in zip(kwargs, defaults):
         arg_type = arg_types.get(kwarg, str)
         kwarg = kwarg.replace('_', '-')
-        p.add_argument(f'--{kwarg}', type=ARG_TYPE_PARSERS.get(arg_type, str), default=default, help=param_docs.get(kwarg, None))
+        add_parser_arg(p, f"--{kwarg}", arg_type, default, param_docs.get(kwarg, None))
 
     function.__cli_parser__ = p
 

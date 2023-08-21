@@ -4,6 +4,7 @@ Helpful functions available in the CLI.
 
 import argparse
 import functools
+import os
 import ethcx
 from typing import Dict, List
 from hexbytes import HexBytes
@@ -36,7 +37,7 @@ def address(address_string: str, **kwargs):
 @contract_handler
 def deploy(contract_name,
            constructor_args: List[str] = [],
-           source: str=None, source_filename=None, source_files=None, import_remappings=None,
+           source: str=None, source_filename: str=None, source_files: List[str]=None, import_remappings: Dict[str, str]=None,
            tx_args: Dict[str, str] = {},
            **kwargs):
     '''
@@ -56,6 +57,58 @@ def deploy(contract_name,
     contract = CONTRACT_METADATA[contract_name]
     return contract.deploy(*constructor_args, **tx_args)
 
+@contract_handler
+def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_default_remappings=False, **kwargs):
+    '''
+    Compile a contract. Returns the contract object. Optionally, you can provide the contract
+    source code, or a list of source files to compile the contract on the file.
+
+    By default, the compiler will look for the default import remappings in the following places:
+    - It looks for a `solidity-includes` directory in the current directory
+    - It looks for any `solidity-includes` directories which are adjacent to the source files
+
+    If you don't want to use the default import remappings, you can pass the `--no-default-remappings`
+    flag.
+
+    :param source: the source code of the contract
+    :param source_filename: the filename of the source code of the contract
+    :param source_files: a list of source files to compile the contract
+    :param import_remappings: a list of import remappings to use when compiling the contract
+
+    :return: the contract object
+    '''
+    # import ipdb; ipdb.set_trace()
+    import_remappings = import_remappings or {}
+
+    def add_solidity_includes_remappings(solidity_includes_path):
+        for name in os.listdir(solidity_includes_path):
+            if os.path.isdir(os.path.join(solidity_includes_path, name, 'contracts')):
+                import_remappings[f'{name}'] = os.path.join(solidity_includes_path, name, 'contracts') + '/'
+            else:
+                import_remappings[f'{name}'] = os.path.join(solidity_includes_path, name) + '/'
+
+    # check next to the source files for includes
+    for source in sources:
+        dirname = os.path.dirname(os.path.abspath(source))
+        solidity_includes_path = os.path.join(dirname, 'solidity-includes')
+        if not os.path.exists(solidity_includes_path):
+            continue
+
+        assert os.path.isdir(solidity_includes_path)
+        add_solidity_includes_remappings(solidity_includes_path, )
+
+
+    # check the current directory for includes
+    if os.path.exists('solidity-includes'):
+        assert os.path.isdir('solidity-includes')
+        add_solidity_includes_remappings('solidity-includes')
+
+    if import_remappings:
+        CONTRACT_METADATA.solidity_compiler.add_import_remappings(import_remappings)
+
+    CONTRACT_METADATA.compile_solidity_files(sources)
+
+    return CONTRACT_METADATA
 
 @contract_handler
 def register(contract_name: str, contract_address: HexBytes,
