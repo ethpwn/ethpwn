@@ -182,6 +182,8 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
 def fetch_verified_contract_source(contract_address, network=None, api_key=None) -> 'ContractInstance':
     # fastpath: just check if the file exists instead of loading the entire registry
 
+    contract_address = normalize_contract_address(contract_address)
+
     if os.path.exists(get_contract_registry_dir() / f'{contract_address.lower()}.json'):
         return
     if contract_registry().get(contract_address):

@@ -136,8 +136,15 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
 
     param_docs, return_doc, function_doc = parse_doc(func_doc)
 
+    if fname == 'compile':
+        import ipdb; ipdb.set_trace()
+
     # create the subparser
-    p: argparse.ArgumentParser = subparsers.add_parser(fname, help=function_doc)
+    try:
+        short_help, _ = function_doc.split('\n\n', maxsplit=1)
+    except ValueError:
+        short_help = function_doc
+    p: argparse.ArgumentParser = subparsers.add_parser(fname, description=function_doc, help=short_help)
 
     for i, arg in enumerate(args):
         arg_type = arg_types.get(arg, str)
@@ -192,6 +199,7 @@ def rename(new_name):
 def main(args=None):
     args = args or sys.argv[1:]
     try:
+        import ipdb; ipdb.set_trace()
         ARGS = main_cli_parser.parse_args(args=args)
     except Exception as e:
         main_cli_parser.print_help()

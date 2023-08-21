@@ -18,7 +18,7 @@ from ..contract_registry import decode_function_input
 from ..global_context import context
 from ..utils import normalize_contract_address
 from ..transactions import transact, transfer_funds
-from ..compilation.verified_source_code import fetch_verified_contract_source
+from ..compilation.verified_source_code import fetch_verified_contract_source as _fetch_verified_contract_source
 
 from . import cmdline, rename, subcommand_callable
 
@@ -40,8 +40,9 @@ def deploy(contract_name,
            tx_args: Dict[str, str] = {},
            **kwargs):
     '''
-    Deploy a contract. Returns the address of the deployed contract. Registers it in the contract
-    registry. Optionally, you can provide the contract source code, or a list of source files to
+    Deploy a contract and return the deployed contract instance.
+
+    Registers it in the contract registry. Optionally, you can provide the contract source code, or a list of source files to
     compile the contract on the file.
     '''
     contract = CONTRACT_METADATA[contract_name]
@@ -180,13 +181,13 @@ def register(contract_name: str, contract_address: HexBytes,
     return contract.get_contract_at(contract_address)
 
 @contract_handler
-def fetch_verified_source(address, api_key=None, **kwargs):
+def fetch_verified_contract_source(address, api_key: str = None, network: str = None, **kwargs):
     '''
     Fetch the verified source code for the contract at `address` from Etherscan and register it in
     the code-registry. If the contract is not verified, an error is raised. If the contract is
     already registered, it is returned.
     '''
-    fetch_verified_contract_source(normalize_contract_address(address), api_key=api_key)
+    return _fetch_verified_contract_source(normalize_contract_address(address), api_key=api_key, network=network, **kwargs)
 
 
 @contract_handler
