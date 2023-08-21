@@ -173,11 +173,6 @@ def register(contract_name: str, contract_address: HexBytes,
             solc_versions=ethcx.get_installable_solc_versions() if solc_version is None else [solc_version],
         )
 
-    if source is not None:
-        CONTRACT_METADATA.compile_solidity_string(source, source_filename)
-    elif source_filename is not None:
-        CONTRACT_METADATA.compile_solidity_files([source_filename])
-
     if source_files is not None:
         CONTRACT_METADATA.compile_solidity_files(source_files, **best_kwargs)
 
