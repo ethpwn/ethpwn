@@ -91,16 +91,16 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
     TO STORE THIS INFORMATION, USE `ethpwn contract register` INSTEAD.
 
     By default, the compiler will look for the default import remappings in the following places:
-    - It looks for a `solidity-includes` directory in the current directory
-    - It looks for any `solidity-includes` directories which are adjacent to the source files
+    1) It looks for a `solidity-includes` directory in the current directory.
+    2) It looks for any `solidity-includes` directories which are adjacent to the source files.
 
     If you don't want to use the default import remappings, you can pass the `--no-default-remappings`
     flag.
 
-    :param source: the source code of the contract
-    :param source_filename: the filename of the source code of the contract
-    :param source_files: a list of source files to compile the contract
+    :param sources: a list of source files to compile the contract
     :param import_remappings: a list of import remappings to use when compiling the contract
+    :param no_default_remappings: whether to avoid using the default import remappings
+    :param kwargs: additional arguments to pass to the compiler
 
     :return: the contract object
     '''
