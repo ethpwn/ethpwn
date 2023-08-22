@@ -47,8 +47,37 @@ class Web3Context:
             self.logger.warning('Could not autoconnect to node: %s', e)
             return False
 
+    @property
+    def terminal(self):
+        '''
+        Get the terminal
+        '''
+        from .config.misc import get_terminal
+        return get_terminal()
 
+    @terminal.setter
+    def terminal(self, value):
+        '''
+        Set the terminal
+        '''
+        from .config.misc import set_terminal
+        set_terminal(value)
 
+    @property
+    def network(self):
+        '''
+        Get the default network
+        '''
+        from .config.misc import get_default_network
+        return get_default_network()
+
+    @network.setter
+    def network(self, value):
+        '''
+        Set the default network
+        '''
+        from .config.misc import set_default_network
+        set_default_network(value)
 
     @property
     def default_from_addr(self):

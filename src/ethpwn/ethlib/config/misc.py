@@ -2,6 +2,20 @@
 import os
 
 
+def get_terminal():
+    '''
+    Get the command to use to spawn processes in a new terminal
+    '''
+    from . import GLOBAL_CONFIG
+    return GLOBAL_CONFIG.get('terminal', None)
+
+def set_terminal(terminal):
+    '''
+    Set the command to use to spawn processes in a new terminal
+    '''
+    from . import GLOBAL_CONFIG
+    GLOBAL_CONFIG['terminal'] = terminal
+
 def get_disable_autoconnect():
     '''
     Get whether autoconnect is disabled
