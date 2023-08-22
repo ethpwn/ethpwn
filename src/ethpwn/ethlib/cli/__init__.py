@@ -136,9 +136,6 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
 
     param_docs, return_doc, function_doc = parse_doc(func_doc)
 
-    if fname == 'compile':
-        import ipdb; ipdb.set_trace()
-
     # create the subparser
     try:
         short_help, _ = function_doc.split('\n\n', maxsplit=1)
@@ -149,7 +146,7 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
     for i, arg in enumerate(args):
         arg_type = arg_types.get(arg, str)
         arg = arg.replace('_', '-')
-        add_parser_arg(p, arg, arg_type, param_docs.get(arg, None))
+        add_parser_arg(p, arg, arg_type, None, param_docs.get(arg, None))
 
     for kwarg, default in zip(kwargs, defaults):
         arg_type = arg_types.get(kwarg, str)
@@ -199,7 +196,6 @@ def rename(new_name):
 def main(args=None):
     args = args or sys.argv[1:]
     try:
-        import ipdb; ipdb.set_trace()
         ARGS = main_cli_parser.parse_args(args=args)
     except Exception as e:
         main_cli_parser.print_help()

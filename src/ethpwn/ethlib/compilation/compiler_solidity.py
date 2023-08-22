@@ -484,7 +484,6 @@ def try_match_optimizer_settings(
 
             if len(solc_versions) > 1 and random.randint(0, 1000) == 0:
                 # .01% chance to try all solc versions with the current best settings
-                # import ipdb; ipdb.set_trace()
                 states_to_test = [
                     deepcopy(self.state) for _ in range(len(solc_versions))
                 ]

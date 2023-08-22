@@ -104,7 +104,6 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
 
     :return: the contract object
     '''
-    # import ipdb; ipdb.set_trace()
 
     if no_default_remappings:
         _import_remappings = {}

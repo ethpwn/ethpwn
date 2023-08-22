@@ -409,8 +409,8 @@ class EthDbgShell(cmd.Cmd):
 
     def do_guessfuncid(self, arg):
         '''
-        Given a function signature, try to fetch the function name 
-        from 4bytes.directory 
+        Given a function signature, try to fetch the function name
+        from 4bytes.directory
         Usage: guessfuncid <function_signature>
         '''
         try:
@@ -472,7 +472,7 @@ class EthDbgShell(cmd.Cmd):
             print("No target set. Use 'target' command to set it.")
             return
 
-        # Is this a shellcode emulation? 
+        # Is this a shellcode emulation?
         if self.debug_target.debug_type == 'shellcode':
 
             # We need to deploy the shellcode as a contract before starting the debugger
@@ -484,12 +484,12 @@ class EthDbgShell(cmd.Cmd):
 
             txn = self.debug_target.get_transaction_dict()
             raw_txn = bytes(self.account.sign_transaction(txn).rawTransaction)
-            txn = vm.get_transaction_builder().decode(raw_txn)            
+            txn = vm.get_transaction_builder().decode(raw_txn)
 
             receipt, computation = analyzer.apply(txn)
             deployed_address = computation.msg.storage_address.hex()
 
-            # Now we build the new debug target object to execute the deployed contract     
+            # Now we build the new debug target object to execute the deployed contract
             new_debug_target = TransactionDebugTarget(context.w3)
             new_debug_target.set_defaults(
                 gas=6_000_000, # silly default value
@@ -502,11 +502,11 @@ class EthDbgShell(cmd.Cmd):
                 nonce=self.w3.eth.get_transaction_count(self.debug_target.source_address),
             )
             new_debug_target.new_transaction(to=deployed_address,
-                                             sender=self.debug_target.sender, 
+                                             sender=self.debug_target.sender,
                                              value=self.debug_target.value,
-                                             calldata=self.debug_target.calldata, 
+                                             calldata=self.debug_target.calldata,
                                              block_number=self.debug_target.block_number,
-                                             wallet_conf=self.wallet_conf, 
+                                             wallet_conf=self.wallet_conf,
                                              full_context=False,
                                              custom_balance=self.debug_target.custom_balance)
             # Set the new debug target!
@@ -649,7 +649,7 @@ class EthDbgShell(cmd.Cmd):
         if self.debug_target.debug_type == 'shellcode':
             print(f'{self.debug_target.calldata}')
             print(f'{RED_COLOR}(Cannot change calldata in shellcode mode){RESET_COLOR}')
-        else:    
+        else:
             if arg and not self.started:
                 try:
                     self.debug_target.calldata = arg
@@ -751,7 +751,7 @@ class EthDbgShell(cmd.Cmd):
     @only_when_started
     def do_sstores(self, arg):
         '''
-        Print all the SSTOREs that have been executed so far targeting the current storage address or 
+        Print all the SSTOREs that have been executed so far targeting the current storage address or
         a given contract.
         Usage: sstores [<address>]
         '''
@@ -776,7 +776,7 @@ class EthDbgShell(cmd.Cmd):
     @only_when_started
     def do_sloads(self, arg):
         '''
-        Print all the SLOADs that have been executed so far targeting the current storage address or 
+        Print all the SLOADs that have been executed so far targeting the current storage address or
         a given contract.
         Usage: sstores [<address>]
         '''
@@ -1162,7 +1162,7 @@ class EthDbgShell(cmd.Cmd):
             assert insn.mnemonic == self.curr_opcode.mnemonic, "disassembled opcode does not match the opcode we're currently executing??"
 
         _next_opcodes_str = f''
-        
+
         # print 5 instruction after
         for _ in range(0,5):
             pc += insn.size
@@ -1739,7 +1739,7 @@ def main():
     parser.add_argument("--block", help="reference block", default=None)
     parser.add_argument("--calldata", help="calldata to use for the transaction", default=None)
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethpwn/pwn/wallets.json )", default=None)
-    
+
     parser.add_argument("--shellcode", help="test on-the-fly shellcode", default=None)
 
     args = parser.parse_args()
@@ -1826,7 +1826,7 @@ def main():
                                      calldata=args.calldata, block_number=args.block,
                                      wallet_conf=wallet_conf, full_context=False,
                                      custom_balance=args.balance)
-    
+
     elif args.shellcode:
         # shellcode mode
 
@@ -1838,17 +1838,17 @@ def main():
             value = 0
         else:
             value = int(args.value)
-        
+
         debug_target = TransactionDebugTarget(context.w3)
         debug_target.new_shellcode(to=None,
-                                     sender=args.sender, 
+                                     sender=args.sender,
                                      value=value,
-                                     calldata=bytes.fromhex(create_shellcode_deployer_bin(args.shellcode).hex()[2:]), 
+                                     calldata=bytes.fromhex(create_shellcode_deployer_bin(args.shellcode).hex()[2:]),
                                      block_number=args.block,
-                                     wallet_conf=wallet_conf, 
+                                     wallet_conf=wallet_conf,
                                      full_context=False,
                                      custom_balance=args.balance
-                                    )               
+                                    )
 
     else:
         print(f"{YELLOW_COLOR}No target address or txid provided.{RESET_COLOR}")

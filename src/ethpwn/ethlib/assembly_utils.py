@@ -7,6 +7,8 @@ import subprocess
 from hexbytes import HexBytes
 from pyevmasm import assemble, disassemble_all, assemble_all
 
+from ethpwn.ethlib.utils import run_in_new_terminal
+
 def value_to_smallest_hexbytes(value):
     """Convert an integer to the smallest possible hexbytes"""
 
@@ -138,7 +140,7 @@ def assemble_pro(code, start_pc=0, fork='paris'):
         '''
     """
     aaa = assemble_all(code, pc=start_pc, fork=fork)
-    
+
     bytecode = None
     for a in aaa:
         if bytecode is None:
@@ -149,14 +151,15 @@ def assemble_pro(code, start_pc=0, fork='paris'):
 
 def run_shellcode(code, ethdbg=True):
     """
-    Run on-the-fly EVM bytecode inside ethdbg. 
+    Run on-the-fly EVM bytecode inside ethdbg.
     code is the bytecode as a string such (the deploying bytecode does not need to be included)
     """
     if ethdbg:
         # create a new terminal and run ethdbg with arg --shelcode
         # TODO: spawn this in a new terminal in a multi-platform way
         # FIXME: this fails with rich
-        subprocess.run(f'ethdbg --shellcode {code}', shell=True, check=True)
+        # subprocess.run(f'ethdbg --shellcode {code}', shell=True, check=True)
+        run_in_new_terminal(['ethdbg', '--shellcode', code])
 
 def run_contract(code, abi, ethdbg=True):
     """
