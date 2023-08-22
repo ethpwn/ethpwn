@@ -169,6 +169,10 @@ def subcommand_callable(super_callable, __subcommand_name, __subcommand_doc=''):
 
     def __handler(__subcommand_name, __subcommand_handlers, **kwargs):
         subcommand = kwargs.pop('subcommand_' + __subcommand_name)
+        if subcommand is None:
+            # print the usage for this subcommand
+            __handler.__cli_parser__.print_help()
+            return
         return __subcommand_handlers[subcommand](**kwargs)
 
     __handler.__name__ = __subcommand_name
