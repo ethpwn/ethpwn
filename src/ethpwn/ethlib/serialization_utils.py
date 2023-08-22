@@ -77,6 +77,8 @@ def deserialize_from_file(path=None, encoding=None):
         suffix = path.rsplit('.', 1)[-1]
         if suffix in ['json', 'msgpack']:
             encoding = suffix
+        else:
+            suffix = None
 
     if encoding is None:
         encoding = 'msgpack'
@@ -118,6 +120,8 @@ def serialize_to_file(obj, path, encoding=None):
         suffix = path.rsplit('.', 1)[-1]
         if suffix in ['json', 'msgpack']:
             encoding = suffix
+        else:
+            suffix = None
 
     if encoding is None:
         encoding = 'msgpack' # default to the fast implementation
