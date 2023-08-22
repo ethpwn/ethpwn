@@ -80,6 +80,22 @@ class Web3Context:
         set_default_network(value)
 
     @property
+    def debug_transaction_errors(self):
+        '''
+        Get whether to debug on revert
+        '''
+        from .config.misc import get_debug_transaction_errors
+        return get_debug_transaction_errors()
+
+    @debug_transaction_errors.setter
+    def debug_transaction_errors(self, value):
+        '''
+        Set whether to debug on revert
+        '''
+        from .config.misc import set_debug_transaction_errors
+        set_debug_transaction_errors(value)
+
+    @property
     def default_from_addr(self):
         '''
         Get the default from address as set or via the default wallet

@@ -45,6 +45,20 @@ def set_default_network(network):
     assert network in ['mainnet', 'ropsten', 'rinkeby', 'goerli', 'kovan', 'sepolia']
     GLOBAL_CONFIG['default_network'] = network
 
+def get_debug_transaction_errors():
+    '''
+    Get whether to debug on revert
+    '''
+    from . import GLOBAL_CONFIG
+    return GLOBAL_CONFIG.get('debug_transaction_errors', False)
+
+def set_debug_transaction_errors(value):
+    '''
+    Set whether to debug on revert
+    '''
+    from . import GLOBAL_CONFIG
+    GLOBAL_CONFIG['debug_transaction_errors'] = value
+
 def get_default_node_url(network=None):
     '''
     Get the default node URL for the given network.

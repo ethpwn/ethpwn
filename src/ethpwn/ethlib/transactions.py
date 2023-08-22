@@ -1,3 +1,4 @@
+from .utils import normalize_contract_address, run_in_new_terminal
 from .assembly_utils import create_shellcode_deployer_bin
 from .currency_utils import ether, wei
 from .global_context import context
@@ -77,20 +78,36 @@ def transfer_funds(from_addr, to_addr, value=None, **kwargs):
 
     return transact(to=to_addr, value=value, from_addr=from_addr, **kwargs)
 
-def debug_transaction(tx_hash, txdata):
+def debug_simulated_transaction(tx):
+    '''
+    Simulate a transaction and attempt to debug the state using `ipdb` if it fails.
+    '''
+    import ipdb; ipdb.set_trace()
+    to_addr = normalize_contract_address(tx['to'])
+    from_addr = normalize_contract_address(tx['from'])
+    data = HexBytes(tx['data']).hex()
+    run_in_new_terminal([
+        '/bin/bash',
+        '-c',
+        f'ethdbg --target {to_addr} --calldata {data} --sender {from_addr} --value {tx["value"]}; sleep 10'
+    ])
+    input("Continue? ")
+
+def debug_onchain_transaction(tx_hash):
     '''
     Simulate a transaction and attempt to debug the state using `ipdb` if it fails.
 
     TODO: we would like this to automatically set up `ethdbg` to debug the transaction failure if requested.
     '''
-    try:
-        context.w3.eth.call(txdata)
-    except Exception as e:
-        print(e)
-        import ipdb; ipdb.set_trace()
-        raise e
+    import ipdb; ipdb.set_trace()
+    run_in_new_terminal([
+        '/bin/bash',
+        '-c',
+        f'ethdbg --txid {HexBytes(tx_hash).hex()}; sleep 10'
+    ])
+    input("Continue? ")
 
-def transact(contract_function=None, private_key=None, force=False, wait_for_receipt=True, from_addr=None, **tx) -> (HexBytes, TxReceipt):
+def transact(contract_function=None, private_key=None, force=False, wait_for_receipt=True, from_addr=None, debug_transaction_errors=None, **tx) -> (HexBytes, TxReceipt):
     '''
     Send a transaction to the blockchain. If `contract_function` is not None, call the contract function.
 
@@ -102,6 +119,9 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
     if private_key is None:
         private_key = context.default_signing_key
     assert private_key is not None
+
+    if debug_transaction_errors is None:
+        debug_transaction_errors = context.debug_transaction_errors
 
     tx = encode_transaction(contract_function, from_addr=from_addr, **tx)
     from_addr = tx['from']
@@ -115,6 +135,8 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
                 context.logger.warn(f"Failed to estimate gas, using 2 million instead (forced, continuing anyway)")
                 tx['gas'] = 2000000
             else:
+                if debug_transaction_errors:
+                    debug_simulated_transaction(tx)
                 raise
 
 
@@ -139,8 +161,8 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
     if wait_for_receipt:
         tx_receipt = context.w3.eth.wait_for_transaction_receipt(context.w3.to_hex(tx_signed.hash), timeout=120)
         context.logger.info(f"Received receipt (block_number={tx_receipt['blockNumber']})")
-        if tx_receipt['status'] != 1:
-            debug_transaction(transaction_hash, tx)
+        if tx_receipt['status'] != 1 and debug_transaction_errors:
+            debug_onchain_transaction(transaction_hash)
             raise TransactionFailedError(context.w3.to_hex(tx_signed.hash), tx_receipt)
         return transaction_hash, tx_receipt
     else:
