@@ -12,4 +12,4 @@ from .assembly_utils import asm_push_value, asm_codecopy, asm_return, create_she
 from .utils import normalize_contract_address, show_diff, to_snake_case, ChainName, get_chainid, get_chain_name
 from .compilation.verified_source_code import fetch_verified_contract_source
 
-from .cli.contract import register as register_contract, compile as compile_contract
+from .cli.contract import register as register_contract, compile as compile_contracts

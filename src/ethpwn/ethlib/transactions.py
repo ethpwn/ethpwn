@@ -173,12 +173,9 @@ def deploy_bare_contract(bin, metadata=None, **tx_kwargs):
     contract object.
     '''
     if metadata is None:
-        abi = {}
+        abi = []
     else:
         abi = metadata.abi
-
-    if 'gasPrice' not in tx_kwargs:
-        tx_kwargs['gasPrice'] = context.pessimistic_gas_price_estimate()
 
     tx_hash, tx_receipt = transact(to='', data=HexBytes(bin).hex(), **tx_kwargs)
     print(tx_receipt)
