@@ -7,7 +7,7 @@ import subprocess
 from hexbytes import HexBytes
 from pyevmasm import assemble, disassemble_all, assemble_all
 
-from ethpwn.ethlib.utils import run_in_new_terminal
+from .utils import run_in_new_terminal
 
 def value_to_smallest_hexbytes(value):
     """Convert an integer to the smallest possible hexbytes"""
