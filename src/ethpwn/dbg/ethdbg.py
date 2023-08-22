@@ -111,9 +111,12 @@ def read_storage_typed_value(read_storage, storage_layout, storage_value):
             assert len(value) == 1
             assert storage_type['numberOfBytes'] == '1'
             return int.from_bytes(value, byteorder='big') != 0
-        elif storage_type['label'] == 'bytes32':
-            assert len(value) == 32
-            assert storage_type['numberOfBytes'] == '32'
+        elif re.match('bytes[0-9]+', storage_type['label']):
+            if int(storage_type['label'][5:]) > 32:
+                import ipdb; ipdb.set_trace()
+                assert False, "Don't know how to handle this yet"
+            assert len(value) <= 32
+            assert int(storage_type['numberOfBytes']) <= 32
             return value
         else:
             import ipdb; ipdb.set_trace()
