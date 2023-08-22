@@ -14,7 +14,7 @@ from rich.table import Table
 from ..compilation.compiler_solidity import try_match_optimizer_settings
 from ..contract_names import contract_names, name_for_contract, register_contract_name, names_for_contract, contract_by_name
 from ..contract_metadata import CONTRACT_METADATA
-from ..contract_registry import decode_function_input
+from ..contract_registry import convert_contract_registry_to_encoding, decode_function_input
 from ..global_context import context
 from ..utils import normalize_contract_address
 from ..transactions import transact, transfer_funds
@@ -118,6 +118,26 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
 
     CONTRACT_METADATA.compile_solidity_files(sources, **kwargs)
     return CONTRACT_METADATA
+
+@contract_handler
+def convert_registry(from_encoding: str, to_encoding: str, **kwargs):
+    '''
+    Convert the contract registry from one encoding to another. Valid encodings: 'json', 'msgpack'
+
+    :param from_encoding: the encoding to convert from
+    :param to_encoding: the encoding to convert to
+
+    '''
+    if from_encoding is None:
+        from_encoding = 'json'
+    if to_encoding is None:
+        to_encoding = 'msgpack'
+
+    assert to_encoding in ['json', 'msgpack']
+    assert from_encoding in ['json', 'msgpack']
+    assert from_encoding != to_encoding
+
+    convert_contract_registry_to_encoding(from_encoding, to_encoding)
 
 @contract_handler
 def register(contract_name: str, contract_address: HexBytes,

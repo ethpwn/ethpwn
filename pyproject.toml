@@ -29,6 +29,7 @@ dependencies = [
     "cachetools",
     "alive-progress",
     "coolname",
+    "msgpack",
 
     "ethcx",
     "ethpwn-py-evm",

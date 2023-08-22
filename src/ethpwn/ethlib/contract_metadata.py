@@ -102,8 +102,8 @@ class ContractMetadata(Serializable):
         self.generated_sources_constructor = generated_sources_by_id_constructor
         self.generated_sources_runtime = generated_sources_by_id_runtime
         self.abi = abi
-        self.bin = bin
-        self.bin_runtime = bin_runtime
+        self.bin = HexBytes(bin)
+        self.bin_runtime = HexBytes(bin_runtime)
         self.srcmap = srcmap
         self.srcmap_runtime = srcmap_runtime
         self.storage_layout = storage_layout

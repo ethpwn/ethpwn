@@ -228,7 +228,7 @@ class ContractRegistry:
         assert os.path.isdir(contract_registry_dir)
 
         for address, contract in self.registered_contracts.items():
-            serialize_to_file(contract, path=os.path.join(contract_registry_dir, HexBytes(address).hex() + ".json"))
+            serialize_to_file(contract, path=os.path.join(contract_registry_dir, HexBytes(address).hex()))
 
     @staticmethod
     def load(contract_registry_dir) -> 'ContractRegistry':
@@ -242,7 +242,10 @@ class ContractRegistry:
 
         for contract_file_name in os.listdir(contract_registry_dir):
             contract = deserialize_from_file(path=os.path.join(contract_registry_dir, contract_file_name))
-            assert contract.address is not None and contract_file_name == f"{HexBytes(contract.address).hex()}.json"
+            assert contract.address is not None
+            assert contract_file_name.rsplit('.', 1)[0] == f"{HexBytes(contract.address).hex()}"
+            assert contract_file_name.rsplit('.', 1)[-1] in ['json', 'msgpack']
+            assert contract.address not in self.registered_contracts, f"Duplicate contract address {contract.address}"
             self.registered_contracts[contract.address] = contract
 
         return self
@@ -285,6 +288,27 @@ def load_or_create_contract_registry() -> ContractRegistry:
         return ContractRegistry.load(contract_registry_dir)
     else:
         return ContractRegistry()
+
+def convert_contract_registry_to_encoding(from_encoding, to_encoding):
+    contract_registry_dir = get_contract_registry_dir()
+    assert from_encoding in ['json', 'msgpack'] and to_encoding in ['json', 'msgpack']
+    assert os.path.isdir(contract_registry_dir)
+
+    for contract_file_name in os.listdir(contract_registry_dir):
+        if contract_file_name.rsplit('.', 1)[-1] != from_encoding:
+            continue
+
+        contract = deserialize_from_file(path=os.path.join(contract_registry_dir, contract_file_name))
+        assert contract.address is not None and contract_file_name == f"{HexBytes(contract.address).hex()}.{from_encoding}"
+
+        serialize_to_file(
+            contract,
+            path=os.path.join(contract_registry_dir, f"{HexBytes(contract.address).hex()}"),
+            encoding=to_encoding
+        )
+
+        # remove the old file
+        os.remove(os.path.join(contract_registry_dir, contract_file_name))
 
 def register_deployed_contract(metadata, address=None, deploy_tx_hash=None, deploy_tx_receipt: TxReceipt = None):
     '''
