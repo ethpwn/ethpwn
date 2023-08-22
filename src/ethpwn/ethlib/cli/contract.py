@@ -74,9 +74,10 @@ def get_default_import_remappings(sources: List[str], **kwargs):
 
 
     # check the current directory for includes
-    if os.path.exists('solidity-includes'):
-        assert os.path.isdir('solidity-includes')
-        add_solidity_includes_remappings('solidity-includes')
+    cur_dir_solidity_includes_path = os.path.abspath(os.path.join(os.getcwd(), 'solidity-includes'))
+    if os.path.exists(cur_dir_solidity_includes_path):
+        assert os.path.isdir(cur_dir_solidity_includes_path)
+        add_solidity_includes_remappings(cur_dir_solidity_includes_path)
 
     return _import_remappings
 
@@ -213,7 +214,7 @@ def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_
 contracts_name_handler = subcommand_callable(contract_handler, 'name', __subcommand_doc='Manage contract names')
 
 @contracts_name_handler
-def add(address: HexBytes, name: str, **kwargs):
+def add(name: str, address: HexBytes, **kwargs):
     '''
     Add a contract name for a contract address.
     '''

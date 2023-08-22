@@ -217,10 +217,11 @@ class SolidityCompiler:
 
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
 
+        allow_paths = self.get_allow_paths()
+        allow_paths += [os.path.dirname(os.path.abspath(file)) for file in files]
         output_json = ethcx.compile_solidity_standard(
             input_json,
-            allow_paths=self.get_allow_paths()
-            + [os.path.dirname(file) for file in files],
+            allow_paths=allow_paths,
             **kwargs,
         )
         return input_json, output_json

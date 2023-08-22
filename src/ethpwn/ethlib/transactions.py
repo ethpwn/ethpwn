@@ -64,8 +64,6 @@ def transfer_funds(from_addr, to_addr, value=None, **kwargs):
     '''
     Transfer funds from `from_addr` to `to_addr`. If `value` is None, transfer all available funds minus the transaction cost.
     '''
-    if 'gasPrice' not in kwargs:
-        kwargs['gasPrice'] = context.pessimistic_gas_price_estimate()
 
     if value is None:
         balance = int(context.w3.eth.get_balance(from_addr) * 0.98)

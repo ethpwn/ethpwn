@@ -8,7 +8,7 @@ from .contract_names import register_contract_name, contract_names, contract_by_
 from .contract_metadata import CONTRACT_METADATA, ContractMetadata, ContractMetadataRegistry
 from .contract_registry import register_deployed_contract, register_contract_at_address, decode_function_input, ContractInstance, ContractRegistry, contract_registry
 from .transactions import transact, transfer_funds, TransactionFailedError, InsufficientFundsError, encode_transaction, deploy_bare_contract, deploy_shellcode_contract, debug_onchain_transaction, debug_simulated_transaction
-from .assembly_utils import asm_push_value, asm_codecopy, asm_return, create_shellcode_deployer_bin, asm_mload, asm_mstore, assemble_pro, value_to_smallest_hexbytes, disassemble_pro, run_shellcode
+from .assembly_utils import asm_push_value, asm_codecopy, asm_return, create_shellcode_deployer_bin, asm_mload, asm_mstore, assemble_pro, value_to_smallest_hexbytes, disassemble_pro, debug_shellcode
 from .utils import normalize_contract_address, show_diff, to_snake_case, ChainName, get_chainid, get_chain_name
 from .compilation.verified_source_code import fetch_verified_contract_source
 

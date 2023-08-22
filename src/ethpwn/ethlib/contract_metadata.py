@@ -413,8 +413,13 @@ class ContractMetadata(Serializable):
             sleep(2)
             if exception:
                 context.logger.exception("Encountered exception: %s", exception)
-            context.logger.info("Destroying contract %s to get funds back!", contract.address)
-            transact(contract.functions.destroy(), from_addr=tx_extras.get('from_addr', None))
+
+            # destroy the contract to get funds back if we have any
+            if contract.address is not None and context.w3.eth.get_balance(contract.address) > 0:
+                context.logger.info("Destroying contract %s to get funds back!", contract.address)
+                transact(contract.functions.destroy(), from_addr=tx_extras.get('from_addr', None))
+            else:
+                context.logger.info("No funds to retrieve from contract %s", contract.address)
 
     def get_contract_at(self, addr) -> Contract:
         '''
