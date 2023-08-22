@@ -138,6 +138,10 @@ def all_wallets() -> Dict[str, Wallet]:
 
 def get_wallet(address_or_name, network=None) -> Wallet:
     from . import GLOBAL_CONFIG
+
+    if os.environ.get('ETHPWN_WALLET', None) is not None:
+        address_or_name = os.environ['ETHPWN_WALLET']
+
     if address_or_name is None:
         if len(GLOBAL_CONFIG['wallets'].values()) == 0:
             return create_new_default_wallet(get_default_wallet_path())

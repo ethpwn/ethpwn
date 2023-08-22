@@ -1,3 +1,4 @@
+import time
 from .utils import normalize_contract_address, run_in_new_terminal
 from .assembly_utils import create_shellcode_deployer_bin
 from .currency_utils import ether, wei
@@ -106,7 +107,11 @@ def debug_onchain_transaction(tx_hash):
     ])
     input("Continue? ")
 
-def transact(contract_function=None, private_key=None, force=False, wait_for_receipt=True, from_addr=None, debug_transaction_errors=None, **tx) -> (HexBytes, TxReceipt):
+ERRORS_TO_RETRY = ("nonce too low", "replacement transaction underpriced")
+
+def transact(contract_function=None, private_key=None, force=False, wait_for_receipt=True,
+             from_addr=None, retry=3, debug_transaction_errors=None, **tx
+            ) -> (HexBytes, TxReceipt):
     '''
     Send a transaction to the blockchain. If `contract_function` is not None, call the contract function.
 
@@ -154,7 +159,18 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
             raise InsufficientFundsError(funds_required, balance, err_msg)
 
     tx_signed = context.w3.eth.account.sign_transaction(tx, private_key=private_key)
-    transaction_hash = context.w3.eth.send_raw_transaction(tx_signed.rawTransaction)
+    for i in range(retry):
+        try:
+            transaction_hash = context.w3.eth.send_raw_transaction(tx_signed.rawTransaction)
+            break
+        except ValueError as e:
+            if e.args[0]['message'] in ERRORS_TO_RETRY:
+                context.logger.warn(f"Spurious error {e.args[0]['message']}, blockchain sucks, retrying after 1 second ({i+1}/{retry})")
+                time.sleep(1)
+                if i != retry - 1:
+                    continue
+            raise
+
     context.logger.info(f"Sent transaction {contract_function}: {context.w3.to_hex(transaction_hash)}: {from_addr} -> {tx['to']} ({ether(tx['value'])} ether)")
 
     if wait_for_receipt:
