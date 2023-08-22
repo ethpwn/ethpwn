@@ -3,7 +3,7 @@ from .config.wallets import get_wallet, add_wallet, delete_wallet, get_wallet_by
 from .currency_utils import ether, gwei, wei, parse_wei
 from .global_context import context
 from .serialization_utils import deserialize_from_file, serialize_to_file
-from .hashes import lookup_signature_hash, register_signature_hash, signature_hash
+from .hashes import lookup_signature_hash, register_signature_hash, signature_hash, keccak256
 from .contract_names import register_contract_name, contract_names, contract_by_name, names_for_contract, name_for_contract
 from .contract_metadata import CONTRACT_METADATA, ContractMetadata, ContractMetadataRegistry
 from .contract_registry import register_deployed_contract, register_contract_at_address, decode_function_input, ContractInstance, ContractRegistry, contract_registry

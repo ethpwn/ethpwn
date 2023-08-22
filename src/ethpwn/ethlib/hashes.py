@@ -2,6 +2,11 @@ from hexbytes import HexBytes
 import requests
 from sha3 import keccak_256
 
+def keccak256(plaintext):
+    """Computes the keccak256 hash of a plaintext string."""
+    if type(plaintext) is str:
+        plaintext = plaintext.encode('utf-8')
+    return HexBytes(keccak_256(plaintext).hexdigest())
 
 def signature_hash(plaintext):
     """Computes the signature hash of a plaintext string."""
