@@ -47,6 +47,7 @@ def encode_transaction(contract_function=None, from_addr=None, **kwargs):
         from_addr = context.default_from_addr
     assert from_addr is not None
     extra = kwargs.copy()
+    extra['chainId'] = kwargs.get('chainId', context.w3.eth.chain_id)
     extra['nonce'] = kwargs.get('nonce', context.w3.eth.get_transaction_count(from_addr))
     extra['from'] = from_addr
     extra['maxPriorityFeePerGas'] = kwargs.get('maxPriorityFeePerGas', wei(gwei=10)) # 10 gwei -- a lot (tip the miner for priority)
@@ -133,7 +134,7 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
         except:
             if force:
                 context.logger.warn(f"Failed to estimate gas, using 2 million instead (forced, continuing anyway)")
-                tx['gas'] = 2000000
+                tx['gas'] = 200000
             else:
                 if debug_transaction_errors:
                     debug_simulated_transaction(tx)
