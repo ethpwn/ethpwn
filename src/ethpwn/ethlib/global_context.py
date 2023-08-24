@@ -125,6 +125,17 @@ class Web3Context:
     def default_signing_key(self, value):
         self._default_signing_key = value
 
+    @property
+    def etherscan_api_key(self):
+        '''
+        Get the etherscan API key
+        '''
+        from .config.credentials import get_etherscan_api_key
+        if (api_key := get_etherscan_api_key()) is not None:
+            return api_key
+        else:
+            return "<No API Key>"
+    
     # if the log_level is changed, update the logger
     @property
     def log_level(self):

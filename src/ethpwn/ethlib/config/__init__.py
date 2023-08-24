@@ -85,7 +85,7 @@ GLOBAL_CONFIG = None
 GLOBAL_CONFIG = load_default_config()
 
 from . import wallets
-from . import credentials
+from .credentials import get_etherscan_api_key
 from .misc import get_default_node_url, get_default_network
 
 
