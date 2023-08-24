@@ -9,6 +9,7 @@ import tempfile
 from hexbytes import HexBytes
 from web3 import Web3
 
+
 @functools.lru_cache(maxsize=1024)
 def normalize_contract_address(address) -> str:
     """Normalize a contract address. This ensures all addresses are checksummed and have the 0x prefix."""
@@ -105,8 +106,6 @@ def get_chain_name(id):
         return "avalanche"
     else:
         raise Exception("Unknown chain id")
-
-
 
 # thanks gallopsled/pwntools for pwnlib.util.misc, no need to reinvent the wheel
 def which(name, all = False, path=None):
@@ -210,7 +209,8 @@ def run_in_new_terminal(command, terminal=None, args=None, kill_at_exit=True, pr
         elif 'STY' in os.environ and which('screen'):
             terminal = 'screen'
             args     = ['-t','ethpwn','bash','-c']
-        elif 'TERM_PROGRAM' in os.environ:
+        # vscode sets TERM_PROGRAM, but it doesn't exist, ignore
+        elif 'TERM_PROGRAM' in os.environ and os.environ['TERM_PROGRAM'] != 'vscode':
             terminal = os.environ['TERM_PROGRAM']
             args     = []
         elif 'DISPLAY' in os.environ and which('x-terminal-emulator'):
