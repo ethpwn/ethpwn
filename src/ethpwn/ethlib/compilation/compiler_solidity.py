@@ -234,6 +234,10 @@ class SolidityCompiler:
         assert kwargs.get('solc_version', None) is not None, "solc_version must be provided"
         kwargs = _add_cached_solc_binary_to_kwargs(kwargs)
 
+        # override the output selection to include everything
+        input_json = deepcopy(input_json)
+        input_json["settings"]["outputSelection"] = {"*": {"*": ["*"], "": ["*"]}}
+
         output_json = ethcx.compile_solidity_standard(
             input_json, allow_paths=self.get_allow_paths(), **kwargs
         )
