@@ -287,7 +287,7 @@ class EthDbgShell(cmd.Cmd):
             self.root_tree_node =  Tree(self.debug_target._target_address)
         else:
             self.root_tree_node =  Tree("0x0")
-    
+
         self.curr_tree_node = self.root_tree_node
         self.list_tree_nodes = [self.curr_tree_node]
 
@@ -526,7 +526,8 @@ class EthDbgShell(cmd.Cmd):
         # If not shellcode, we check if the target address is a contract.
         elif self.debug_target.target_address is not None:
             if self.w3.eth.get_code(self.debug_target.target_address, self.debug_target.block_number) == b'':
-                print(f"{RED_COLOR}Target address {self.debug_target.target_address} of transaction is not a contract {RESET_COLOR}")
+                print(f"{RED_COLOR}Target address {self.debug_target.target_address} is not a contract {RESET_COLOR}.")
+                print(f"  {RED_COLOR}(network used: {get_chain_name(self.debug_target.chain_id)}) | (block: {self.debug_target.block_number}){RESET_COLOR}")
                 sys.exit(0)
 
         if not self.debug_target.calldata and self.started == False:
@@ -570,12 +571,12 @@ class EthDbgShell(cmd.Cmd):
             vm = analyzer.vm
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 
-        if self.debug_target.debug_type == "replay":
-            def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
-                return bytes(HexBytes(source_address))
-            eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, self.debug_target.source_address)
-        else:
-            eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
+        #if self.debug_target.debug_type == "replay":
+        def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
+            return bytes(HexBytes(source_address))
+        eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, self.debug_target.source_address)
+        #else:
+        #    eth._utils.transactions.extract_transaction_sender = ORIGINAL_extract_transaction_sender
 
         if self.debug_target.custom_balance:
             vm.state.set_balance(to_canonical_address(self.debug_target.source_address), int(self.debug_target.custom_balance))
@@ -1860,8 +1861,8 @@ def main():
                                      custom_balance=args.balance
                                     )
 
-    
-    
+
+
     elif args.deploy:
         # deploy mode
 
