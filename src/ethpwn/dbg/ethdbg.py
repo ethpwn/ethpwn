@@ -587,8 +587,9 @@ class EthDbgShell(cmd.Cmd):
 
         self.started = True
 
+        addr = '0x0' if self.debug_target.target_address is None else self.debug_target.target_address
         origin_callframe = CallFrame(
-            '0x'+self.debug_target.target_address.replace('0x','').zfill(40),
+            '0x'+addr.replace('0x','').zfill(40),
             self.debug_target.source_address,
             self.debug_target.source_address,
             self.debug_target.value,

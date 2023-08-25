@@ -82,7 +82,6 @@ def debug_simulated_transaction(tx):
     '''
     Simulate a transaction and attempt to debug the state using `ipdb` if it fails.
     '''
-    import ipdb; ipdb.set_trace()
     to_addr = normalize_contract_address(tx['to'])
     from_addr = normalize_contract_address(tx['from'])
     data = HexBytes(tx['data']).hex()
@@ -99,7 +98,6 @@ def debug_onchain_transaction(tx_hash):
 
     TODO: we would like this to automatically set up `ethdbg` to debug the transaction failure if requested.
     '''
-    import ipdb; ipdb.set_trace()
     run_in_new_terminal([
         '/bin/bash',
         '-c',
