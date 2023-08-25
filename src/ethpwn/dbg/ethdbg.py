@@ -283,7 +283,11 @@ class EthDbgShell(cmd.Cmd):
         # The *CALL trace between contracts
         self.callstack = []
 
-        self.root_tree_node = Tree(self.debug_target._target_address)
+        if self.debug_target._target_address is not None:
+            self.root_tree_node =  Tree(self.debug_target._target_address)
+        else:
+            self.root_tree_node =  Tree("0x0")
+    
         self.curr_tree_node = self.root_tree_node
         self.list_tree_nodes = [self.curr_tree_node]
 
@@ -1538,7 +1542,7 @@ class EthDbgShell(cmd.Cmd):
 
         if self.log_op:
             gas_used = self.debug_target.gas - self.comp.get_gas_remaining() - self.comp.get_gas_refund()
-            print(f'{_opcode_str} ⛽️ gas_used: {gas_used}')
+            print(f'{_opcode_str}  ⛽️ gas_used: {gas_used}')
 
         self.history.append(_opcode_str)
 
