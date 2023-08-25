@@ -22,6 +22,7 @@ EXTRAS:
 19- add break when opcode is X and its arguments are X,Y,Z.
 20- add memory watchpoints
 
+
 PRIORITY:
 1- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
 2- Polishing!

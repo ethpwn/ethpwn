@@ -8,6 +8,7 @@ from typing import Any, Dict
 from hexbytes import HexBytes
 
 from ..utils import get_chain_name, normalize_contract_address
+from .misc import get_default_network
 
 class Wallet:
     def __init__(self, address=None, private_key=None, name=None, description=None, network=None):
@@ -137,6 +138,11 @@ def all_wallets() -> Dict[str, Wallet]:
 
 def get_wallet(address_or_name, network=None) -> Wallet:
     from . import GLOBAL_CONFIG
+
+    if network is None:
+        network = os.environ.get('ETHPWN_NETWORK', None)
+    if network is None:
+        network = get_default_network()
 
     if os.environ.get('ETHPWN_WALLET', None) is not None:
         address_or_name = os.environ['ETHPWN_WALLET']

@@ -52,7 +52,7 @@ def encode_transaction(contract_function=None, from_addr=None, **kwargs):
     extra['nonce'] = kwargs.get('nonce', context.w3.eth.get_transaction_count(from_addr))
     extra['from'] = from_addr
     extra['maxPriorityFeePerGas'] = kwargs.get('maxPriorityFeePerGas', wei(gwei=10)) # 10 gwei -- a lot (tip the miner for priority)
-    extra['maxFeePerGas'] = kwargs.get('maxFeePerGas', wei(gwei=1000)) # 1000 gwei -- a lot
+    extra['maxFeePerGas'] = extra['maxPriorityFeePerGas'] + context.w3.eth.get_block("pending")['baseFeePerGas']
     extra['value'] = kwargs.get('value', 0)
     extra['gas'] = kwargs.get('gas', 0)
     if contract_function is not None and type(contract_function):
