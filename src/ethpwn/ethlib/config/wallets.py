@@ -43,6 +43,7 @@ class Wallet:
             'network': self.network,
         }
 
+    @staticmethod
     def from_string_repr(repr, default_name=None, default_description=None):
         if default_name is None:
             default_name = lambda address, priv_key: f"Account {address}"
@@ -85,13 +86,11 @@ def load_default_wallets():
     wallets_config_path = get_default_wallet_path()
     os.makedirs(os.path.dirname(wallets_config_path), exist_ok=True)
     if not os.path.exists(wallets_config_path):
-        with open(wallets_config_path, 'w') as f:
-            f.write('[]')
+        return {}
 
     # Check if the file is empty
     if os.stat(wallets_config_path).st_size == 0:
-        with open(wallets_config_path, 'w') as f:
-            f.write('[]')
+        return {}
 
     with open(wallets_config_path, 'r') as f:
         result = json.load(f)

@@ -34,21 +34,9 @@ def get_contract_names_path() -> Path:
     d = ethpwn_config_root_dir() / 'contract_names.json'
     return d
 
-def save_config(out_path):
-    with open(out_path, 'w') as f:
-        json.dump(GLOBAL_CONFIG, f)
-
-def load_config(in_path, clear=True):
-    with open(in_path, 'r') as f:
-        loaded = json.load(f)
-        if clear:
-            GLOBAL_CONFIG.clear()
-        GLOBAL_CONFIG.update(loaded)
-
 def reload_default_config():
     GLOBAL_CONFIG.clear()
     GLOBAL_CONFIG.update(load_default_config())
-
 
 def load_default_config():
     from .wallets import load_default_wallets
@@ -87,5 +75,3 @@ GLOBAL_CONFIG = load_default_config()
 from . import wallets
 from .credentials import get_etherscan_api_key
 from .misc import get_default_node_url, get_default_network
-
-
