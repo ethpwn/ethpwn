@@ -1537,7 +1537,8 @@ class EthDbgShell(cmd.Cmd):
             _opcode_str = f'{pc:#06x}  {"":18} {opcode.mnemonic:15} [WARNING: no code]'
 
         if self.log_op:
-            print(f'{_opcode_str}')
+            gas_used = self.debug_target.gas - self.comp.get_gas_remaining() - self.comp.get_gas_refund()
+            print(f'{_opcode_str} ⛽️ gas_used: {gas_used}')
 
         self.history.append(_opcode_str)
 
@@ -1745,6 +1746,7 @@ def main():
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethpwn/pwn/wallets.json )", default=None)
 
     parser.add_argument("--shellcode", help="test on-the-fly shellcode", default=None)
+    parser.add_argument("--deploy", help="contract deployment emulation", action='store_true')
 
     args = parser.parse_args()
 
@@ -1854,6 +1856,26 @@ def main():
                                      custom_balance=args.balance
                                     )
 
+    
+    
+    elif args.deploy:
+        # deploy mode
+
+        if args.value is None:
+            value = 0
+        else:
+            value = int(args.value)
+
+        debug_target = TransactionDebugTarget(context.w3)
+        debug_target.new_transaction(to=None,
+                                     sender=args.sender,
+                                     value=value,
+                                     calldata=bytes.fromhex(args.calldata),
+                                     block_number=args.block,
+                                     wallet_conf=wallet_conf,
+                                     full_context=False,
+                                     custom_balance=args.balance
+                                    )
     else:
         print(f"{YELLOW_COLOR}No target address or txid provided.{RESET_COLOR}")
         sys.exit()
