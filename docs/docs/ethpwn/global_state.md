@@ -7,7 +7,11 @@ Specifically, `ethpwn` maintains the following concepts in a global state: globa
 ## 📝 Configuration
 The configuration for `ethpwn` is located at `~/.config/ethpwn/config.json`. This file allows you to configure a variety of settings globally, which are then used by the various modules to simplify the interaction process.
 
-This includes the following settings:
+You can use the `ethpwn config` and `ethpwn wallet` commands to modify the most important configuration settings, or edit the file directly.
+
+To start out, you should run `ethpwn config create` to create your initial configuration file. It will interactively prompt you for the most important settings, including the Ethereum node URL to use and the setup/import of your wallets.
+
+The main `ethpwn` settings are the following:
 
 1. `default_network`: the default network to use for all interactions
 2. `default_node_urls`: default Ethereum node URLs for each network which can be used to retrieve blockchain information state
@@ -15,13 +19,13 @@ This includes the following settings:
 4. `etherscan_api_key`: API key for etherscan, which can be used to retrieve verified source code for contracts
 5. `debugger configuration`: customizations for `ethdbg`. See [ethdbg](/ethpwn/ethdbg/usage/).
 
-The most basic configuration is the following:
+The configuration is structured as follows:
 
 ```json
 {
   "default_network": "mainnet",
   "default_node_urls": {
-    "mainnet": "<YOUR_INFURA_RPC_URL>",
+    "mainnet": "<YOUR_ETHEREUM_NODE_URL>",
   },
   "credentials": {
     "etherscan": "<OPTIONAL_ETHERSCAN_API>"
@@ -30,13 +34,6 @@ The most basic configuration is the following:
   }
 }
 ```
-
-Which will simply set an RPC url for the debugging environment.
-
-| ❗️ Note                                                              |
-|----------------------------------------------------------------------|
-| This file will be dropped on your filesystem in order to provide a template config for a new user. This config is shared by `ethpwn` and `ethdbg`|
-
 
 ## 🌱 ContractRegistry
 Whenever you interact with a deployed contract either by a) deploying a new contract, or b) interacting with an existing contract,

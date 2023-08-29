@@ -23,7 +23,14 @@ def create(**kwargs):
         if not input_bool(f'Config file {config_path} or wallet file {wallet_path} already exists. Are you sure you want to continue? '):
             return False
 
-    print("First, we need to know the ethereum nodes you'd like to use.")
+    print("""
+          First, we need to know the ethereum nodes you'd like to use.
+          If you don't have one yet, you can sign up for an account from Infura or Alchemy.
+          Both services provide free-tier API keys that should be sufficient for most use cases.
+
+          See https://infura.io/ or https://www.alchemy.com/
+          Keep in mind that you will need separate API keys for each network you want to use, e.g. mainnet, sepolia, etc.
+    """)
 
     node_urls = {}
     while node_url := input_node_url(f'Ethereum node URL #{len(node_urls)}: '):
@@ -72,15 +79,32 @@ def create(**kwargs):
     return True
 
 @config_handler
-def default_network(name: str = None, **kwargs):
+def default_network(set_to: str = None, **kwargs):
     '''
-    Set the default network to use
+    Set or get the default network to use
+
+    :param set_to: The network to set as default
     '''
-    if name is None:
+    if set_to is None:
         print(f"Current default network is {context.network}")
     else:
-        context.network = name
+        context.network = set_to
         update_config()
+
+
+@config_handler
+def debug_transaction_errors(set_to: bool = None, **kwargs):
+    '''
+    Set or get whether to automatically spawn an ethdbg shell if a transaction fails.
+
+    :param set_to: Whether to automatically spawn an ethdbg shell if a transaction fails.
+    '''
+    if set_to is None:
+        print(f"Current debug_transaction_errors is {context.debug_transaction_errors}")
+    else:
+        context.debug_transaction_errors = set_to
+        update_config()
+
 
 @config_handler
 def set_default_node_url(node_url: str, network: str=None, force: bool=False, **kwargs):
