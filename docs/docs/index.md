@@ -43,7 +43,7 @@ pip install ethpwn
 ```
 
 #### Developer Installation
-If you want to install `ethpwn` in developing mode (i.e., editable in the current folder), first: Make sure you have the latest version of `pip`:
+If you want to install `ethpwn` in development mode (i.e., editable in the current folder), first: Make sure you have the latest version of `pip`:
 
 ```bash
 hacker@eth:~$ pip --version
@@ -53,11 +53,11 @@ pip 23.1.2
 Then, just:
 
 ```bash
-git clone git@github.com:ethpwn/ethpwn.git && pip install -e .
+git clone git@github.com:ethpwn/ethpwn.git && pip install -e ./ethpwn/
 ```
 
 #### RPC Node
-Assuming that you want to work with Ethereum mainnet, you will need access to an Ethereum RPC node:
+You will need access to an Ethereum RPC node to retrieve information about the blockchain, and to interact with smart contracts.
 
 ##### Custom RPC node
 If you have your own node, just grab the RPC endpoint address and you are good to go.
@@ -73,7 +73,7 @@ The link you will get should look something like: `https://mainnet.infura.io/v3/
 
 | ⚠️ Warning                               |
 |------------------------------------------|
-| While these providers offer public nodes access, the RPC URL is generated per-user. DO NOT spread the obtained URL on the internet or people will start to make requests using your account and you will quickly run out of queries (i.e., the free tier is rate-limited, but it's totally enough for using `ethpwn` in a normal work-day). |
+| While these providers offer public nodes access, the RPC URL is generated per-user. DO NOT publish the obtained URL on the internet or people will start to make requests using your account and you will quickly run out of queries. The free tier is rate-limited, but it should be more than enough for using `ethpwn` in a normal work-day.
 
 
 ## 🚀 Run
