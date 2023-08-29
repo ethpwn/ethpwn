@@ -5,7 +5,7 @@ from ..user_input import input_bool, input_node_url, input_pick_choice_with_defa
 from ..config import get_default_global_config_path, get_default_wallet_path, reload_default_config, save_config_as_default_config, update_config
 from ..utils import get_chain_name
 from ..global_context import context
-from ..config.misc import set_default_node_url as _set_default_node_url
+from ..config.misc import set_default_node_url as _set_default_node_url, set_default_network as _set_default_network
 
 from . import cmdline, subcommand_callable
 
@@ -70,6 +70,17 @@ def create(**kwargs):
     reload_default_config()
 
     return True
+
+@config_handler
+def default_network(name: str = None, **kwargs):
+    '''
+    Set the default network to use
+    '''
+    if name is None:
+        print(f"Current default network is {context.network}")
+    else:
+        context.network = name
+        update_config()
 
 @config_handler
 def set_default_node_url(node_url: str, network: str=None, force: bool=False, **kwargs):

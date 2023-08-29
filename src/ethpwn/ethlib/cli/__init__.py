@@ -145,13 +145,15 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
 
     for i, arg in enumerate(args):
         arg_type = arg_types.get(arg, str)
+        arg_doc = param_docs.get(arg, None)
         arg = arg.replace('_', '-')
-        add_parser_arg(p, arg, arg_type, None, param_docs.get(arg, None))
+        add_parser_arg(p, arg, arg_type, None, arg_doc)
 
     for kwarg, default in zip(kwargs, defaults):
         arg_type = arg_types.get(kwarg, str)
+        arg_doc = param_docs.get(kwarg, None)
         kwarg = kwarg.replace('_', '-')
-        add_parser_arg(p, f"--{kwarg}", arg_type, default, param_docs.get(kwarg, None))
+        add_parser_arg(p, f"--{kwarg}", arg_type, default, arg_doc)
 
     function.__cli_parser__ = p
 

@@ -24,8 +24,29 @@ def normalize_contract_address(address) -> str:
 
     if type(address) == int:
         address = HexBytes(address.to_bytes(20, 'big'))
+    address = HexBytes(address)
 
-    return Web3.to_checksum_address(address)
+    assert len(address) >= 20, f"Invalid address length {len(HexBytes(address))}"
+    assert int.from_bytes(address[:-20], 'big') == 0, "Invalid address"
+    address = Web3.to_checksum_address(address[-20:])
+    return address
+
+def normalize_block_number(block_number):
+    if block_number is None:
+        return 'pending'
+
+    if type(block_number) is str:
+        block_number = block_number.lower()
+        if block_number in ['earliest', 'latest', 'pending']:
+            return block_number
+
+        return int(block_number, 0)
+
+    if type(block_number) is not int:
+        import ipdb; ipdb.set_trace()
+
+    assert type(block_number) is int
+    return block_number
 
 
 def get_shared_prefix_len(a, b):

@@ -18,7 +18,7 @@ from ansi.color.fg import red
 from rich.tree import Tree
 from rich.table import Table
 
-from ethpwn.ethlib.compilation.compiler_vyper import VyperCompiler
+from alive_progress import alive_bar
 
 from .serialization_utils import Serializable
 from .transactions import transact
@@ -366,14 +366,14 @@ class ContractMetadata(Serializable):
 
     def source_info_for_pc(self, pc, fork='paris') -> InstructionSourceInfo:
         '''
-        Returns the source info for the instruction at the given pc in the constructor bytecode.
+        Returns the source info for the instruction at the given program counter in the deployed bytecode.
         '''
-        insn_idx = self.closest_instruction_index_for_constructor_pc(pc, fork=fork)
-        return self.source_info_for_constructor_instruction_idx(insn_idx)
+        insn_idx = self.closest_instruction_index_for_runtime_pc(pc, fork=fork)
+        return self.source_info_for_runtime_instruction_idx(insn_idx)
 
     def deploy(self, *constructor_args, **tx_extras) -> Tuple[HexBytes, Contract]:
         '''
-        Deploys a contract and registers it with the contract registry.
+        Deploys an instance of this contract to the blockchain and registers it with the contract registry.
         '''
         # pylint: disable=import-outside-toplevel
         from .contract_registry import register_deployed_contract
@@ -424,7 +424,7 @@ class ContractMetadata(Serializable):
     def get_contract_at(self, addr) -> Contract:
         '''
         Returns a web3 contract instance for the contract at the given address. This will
-        automatically register the contract at the given address with the contract registry.
+        automatically register this contract instance with the contract registry.
         '''
         # pylint: disable=import-outside-toplevel
         from .contract_registry import register_contract_at_address

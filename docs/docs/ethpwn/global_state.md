@@ -37,18 +37,88 @@ Which will simply set an RPC url for the debugging environment.
 |----------------------------------------------------------------------|
 | This file will be dropped on your filesystem in order to provide a template config for a new user. This config is shared by `ethpwn` and `ethdbg`|
 
+
+## 🌱 ContractRegistry
+Whenever you interact with a deployed contract either by a) deploying a new contract, or b) interacting with an existing contract,
+`ethpwn` will store the address of the contract and its corresponding metadata from the compilation in the global `ContractRegistry` object, which can be accessed via `contract_registry()`.
+The contract registry is stored locally on your machine in `~/.config/ethpwn/contract_registry/` by default and will be loaded
+every time you use `ethpwn`.
+
+This allows you to, e.g., register a contract address with a name and its source code via the commandline, and then use this information in your interaction scripts without having to recompile and/or re-register the contract addresses.
+Furthermore, whenever you deploy a contract using `ethpwn`, it will similarly remember everything about the contract, including its address, source code, and storage layout, and store it in the contract registry.
+
+This architecture allows most interaction scripts to focus fully on the logic of the interaction, and not on the boilerplate of compiling/retrieving the ABI, storage_layout, source code, etc. for each contract.
+
+The example in the [tutorial](#tutorial) below illustrates this by retrieving the `ContractInstance` for the uniswap router contract from the contract registry, and then using it to interact with the contract without having to specify the address, ABI, storage layout, or source code of the contract.
+
+# Etherscan Verified Source Code
+To make the code registry feature even more useful, `ethpwn` can fetch available verified source code for contracts from Etherscan's source-code verification API if you have an API key. This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself. The target contract is automatically compiled and added to the contract registry for you.
+
+To use this feature, set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
+
+Then you can, e.g. use the following command to fetch the verified source code for the uniswap router contract:
+```bash
+ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+```
+
+Or, in a script, you can use the following:
+```python
+from ethpwn import *
+
+# either specify the API key in the environment
+instance = fetch_verified_contract_source(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)
+
+# or specify it explicitly
+instance = fetch_verified_contract_source(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, api_key='<YOUR_API_KEY>')
+```
+
 ## 🪪 ContractMetadata
-`ethpwn` stores the compiled contract metadata in a global `ContractMetadata` object, which can be accessed via `CONTRACT_METADATA`.
-This holds the information about every contract that was ever compiled on your machine using `ethpwn`, and can be used to retrieve the `ContractMetadata` for all of these contracts.
-This allows you to simply refer to a contract by name, and `ethpwn` will automatically retrieve the correct `ContractMetadata` for you.
+`ethpwn` manages the compiled contract metadata in a global `ContractMetadata` object, which can be accessed via `CONTRACT_METADATA`.
+This holds the information about contracts that were compiled using `ethpwn` in the current session, and can be used to retrieve the `ContractMetadata` for those contracts.
 
-E.g. if you have previously compiled the code of the uniswap router contract, you can simply do `CONTRACT_METADATA['UniswapV2Router02']` to retrieve the `ContractMetadata` for this contract.
+This information is not stored globally to avoid having to deal with naming conflicts, version management, etc.
+Instead, we store the corresponding `ContractMetadata` whenever you record a contract in the `contract_registry`, where
+the contract being deployed is unambiguous, since the contracts on the blockchain are, in principle, immutable.
 
-To improve this even further, `ethpwn` is also able to fetch any available verified source code for contracts from etherscan's source-code verification API if you have an API key. This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself.
-To use this feature, simply set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
+In the current session you can retrieve contracts by name, e.g., if you have previously compiled the code of the uniswap router contract, you can use `CONTRACT_METADATA['UniswapV2Router02']` to retrieve the `ContractMetadata` for this contract.
 
-## 🌱 ContractInstances
-`ethpwn` also stores the addresses of all contracts that were ever deployed or interacted with using `ethpwn` in a global `ContractInstances` object, which can be accessed via `CONTRACT_INSTANCES`. Specifically, this associates the address of an instance of a contract with the `ContractMetadata` of the contract, allowing you to retrieve any metadata about it in the future via its address.
+You can also retrieve the `ContractMetadata` for a contract that is stored in the `contract_registry` by using `contract_registry().get(<contract_address>).metadata`.
+
+The contract metadata contains, among other things, the following information:
+
+- `metadata.compiler` - the compiler used to compile the contract
+- `metadata.sources` - the sources used to compile the contract
+- `metadata.source_file` - the source file the current contract is found in
+- `metadata.contract_name` - the name of the contract
+- `metadata.bin_runtime` - the bytecode of the contract deployed on the blockchain
+- `metadata.srcmap_runtime` - the source map of the deployed contract
+- `metadata.abi` - the ABI of the contract, used to interact with the contract
+- `metadata.storage_layout` - the storage layout of the contract, used to display and retrieve storage variables in `ethdbg`
+
+It also provides various helper functions to manipulate or analyze instances of this contract, e.g.
+```
+  def source_info_for_pc(self, pc, fork='paris') -> InstructionSourceInfo:
+    '''
+    Returns the source info for the instruction at the given program counter in the deployed bytecode.
+    '''
+
+  def deploy(self, *constructor_args, **tx_extras) -> Tuple[HexBytes, Contract]:
+    '''
+    Deploys an instance of this contract to the blockchain and registers it with the contract registry.
+    '''
+
+  def get_contract_at(self, addr) -> Contract:
+    '''
+    Returns a web3 contract instance for the contract at the given address. This will
+    automatically register this contract instance with the contract registry.
+    '''
+
+  def decode_function_input(self, data):
+    '''
+    Decodes the function input data for a contract of this class. Returns a tuple of the
+    function name and a dictionary of the arguments.
+    '''
+```
 
 ## 🐥 Tutorial
 
@@ -57,7 +127,7 @@ The global state allows you to write interaction scripts that only concern thems
 As an example, we will use the following setup to illustrate the benefits of this design:
 
 ```bash
-########## 
+##########
 # install ethpwn
 pip install ethpwn
 
@@ -153,5 +223,9 @@ txid, *_ = transact(contract_instance.w3.getDAI(100), value=1 * ETHER)
 print(f"Transaction ID: {txid.hex()}")
 ```
 
-## Transparent integration with `ethdbg`
-Since we compiled the contract using `ethpwn`, `ethdbg` will automatically have the source-code available during a debug session.
+Additionally, we can use the `ethdbg` debugger to debug any transactions interacting with the contract instance we just deployed.
+Thanks to the contract registry, `ethdbg` will automatically have the contract metadata available during the debug sessions
+and display both the source code information and the storage layout for the contract.
+```bash
+ethdbg --txid <id of the transaction we just attempted>
+```
