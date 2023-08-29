@@ -73,13 +73,13 @@ Lastly, (and, maybe, most importantly) it automatically launches `ethdbg` to deb
 ```python
 >>> from ethpwn import *
 >>> bytecode = assemble_pro("""
-... PUSH1 0x40
-... PC
-... PC
-... PC
-... PUSH1 0x00
-... PUSH1 0x01
-... SSTORE
+...   PUSH1 0x40
+...   PC
+...   PC
+...   PC
+...   PUSH1 0x00
+...   PUSH1 0x01
+...   SSTORE
 ... """)
 >>> print(bytecode)
 60405858586000600155
