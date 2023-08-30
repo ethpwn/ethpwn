@@ -87,7 +87,7 @@ instance = fetch_verified_contract_source(0x7a250d5630B4cF539739dF2C5dAcb4c659F2
 ```
 
 ## 🪪 ContractMetadata
-Whenever you compile contracts within a Python script, `ethpwn` manages the compiled contract metadata in a *temporay* global `ContractMetadata` object that can be accessed via the `CONTRACT_METADATA` object.
+Whenever you compile contracts within a Python script, `ethpwn` manages the compiled contract metadata in a *temporay*  `ContractMetadata` object that can be accessed via the `CONTRACT_METADATA` variable.
 
 Note that, this object does NOT persists after the termination of your script.
 Instead, we store the corresponding `ContractMetadata` object only you record a contract in the `contract_registry` (in this case the contract being deployed is unambiguous).
@@ -104,7 +104,8 @@ The contract metadata contains, among other things, the following information:
 - `metadata.storage_layout` - the storage layout of the contract, used to display and retrieve storage variables in `ethdbg`
 
 It also provides various helper functions to manipulate or analyze instances of this contract, e.g.
-```
+
+```python
   def source_info_for_pc(self, pc, fork='paris') -> InstructionSourceInfo:
     '''
     Returns the source info for the instruction at the given program counter in the deployed bytecode.
@@ -132,32 +133,17 @@ In the current session you can retrieve contracts by name, e.g., if you have pre
 
 You can also retrieve the `ContractMetadata` for a contract that is stored in the `contract_registry` by using `contract_registry().get(<contract_address>).metadata`.
 
-## 🐥 Tutorial
+## 🐥 Tutorials
 
-The global state allows you to write interaction scripts that only concern themselves with the logic of an interaction, without having to worry about the boilerplate of setting up the environment, compiling contracts, and associating each contract with its address.
-
-As an example, we will use the following setup to illustrate the benefits of this design:
+Here a few ways in which you can leverage the global states used and exported by `ethpwn` in your scripts:
 
 ```bash
 ##########
-# install ethpwn
-pip install ethpwn
-
-# configure your ethereum node url
-ethpwn config set_default_node_url --network mainnet https://mainnet.infura.io/v3/<API_KEY>
-
-# configure your etherscan api key
-ethpwn credentials add etherscan <API_KEY>
-
-# configure your wallet in ~/.config/ethpwn/wallets.json or via the CLI
-ethpwn wallets add --name my-wallet --description="My wallet" --network mainnet <ADDRESS> 0x<PRIVKEY>
 
 # set up names for the contracts we want to use for easy access
 ethpwn contract name add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D UniswapV2Router02
 ethpwn contract name add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH
 ethpwn contract name add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
-
-########## FOR EACH CONTRACT
 
 # fetch the verified source code for the uniswap router contract from etherscan to access its metadata and ABI
 ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D

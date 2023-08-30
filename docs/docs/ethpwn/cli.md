@@ -1,6 +1,5 @@
 # Command Line Tools
-
-`ethpwn` comes with a CLI that can be used to manage, query, and interact with the global state, as well as having shortcuts to create, decode and manipulate transactions. Most components of `ethpwn` can be accessed via the CLI.
+`ethpwn` comes with a CLI that can be used to manage, query, and interact with the [global state](/ethpwn/ethpwn/global_state/), as well as having shortcuts to create, decode and manipulate transactions. Most components of `ethpwn` can be accessed via the CLI.
 
 Most commands have a help page that should explain what a command will do, see for example
 ```bash
@@ -10,6 +9,7 @@ ethpwn wallets add -h
 ```
 This should include descriptions of the behavior of the command as well as any arguments it takes.
 
+## 🐥 Tutorials
 
 ### Contract Metadata Management (`ethpwn contract`)
 
