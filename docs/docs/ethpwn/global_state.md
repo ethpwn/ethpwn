@@ -158,7 +158,7 @@ ethpwn contract label add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI-token
 ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 ```
 
-## Direct Interaction in `ethpwn` Scripts
+### Direct Interaction in `ethpwn` Scripts
 
 Then, we can use the uniswap router contract in our scripts to interact with it.
 ```python
@@ -192,7 +192,7 @@ transact(
 )
 ```
 
-## Integration in contract deployment
+### Integration in contract deployment
 
 Instead of performing this action manually, we can also deploy a solidity contract to perform this action for us.
 
@@ -237,6 +237,8 @@ contract_instance = contract_metadata.deploy()
 txid, *_ = transact(contract_instance.w3.getDAI(100), value=1 * ETHER)
 print(f"Transaction ID: {txid.hex()}")
 ```
+
+### Integration with `ethdbg`
 
 Additionally, we can use `ethdbg` to debug any transactions interacting with the contract instance we just deployed.
 Thanks to the contract registry, `ethdbg` will automatically have the contract metadata available during the debug sessions
