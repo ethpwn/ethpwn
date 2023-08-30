@@ -142,7 +142,7 @@ In the current session you can retrieve contract metadata by contract name, e.g.
 
 You can also retrieve the `ContractMetadata` for a contract that is stored in the `contract_registry` by using `contract_registry().get(<contract_address>).metadata`.
 
-## 🐥 Tutorials
+## 🐥 Tutorial
 
 Here is an example of how you can leverage the global states used and exported by `ethpwn` in your scripts.
 
