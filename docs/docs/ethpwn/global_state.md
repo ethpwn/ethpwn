@@ -56,21 +56,21 @@ An example of such a configuration is the following:
 |------------------------------------------|
 | ***!!!!! DO NOT use accounts and private keys that hold valuable assets in this config file! This file is NOT protected in any way. Putting sensitive private keys here might lead to exposing them in the clear and can cause the loss of funds on the related account if someone can steal them. ALWAYS use test accounts!***|
 
-## 🌱 ContractRegistry
-The contract registry is your personal library of contracts you have interacted with when using `ethpwn`.
-Specifically, wheneaver you compile and deploy a smart contract yourself, or, you interact with a verified contract on-chain (if you have a valid Etherscan API configured), `ethpwn` will store the address of the contract and its corresponding metadata in a global `ContractRegistry` object, which can be accessed via `contract_registry()`.
+## 📚 ContractRegistry
+The contract registry is your personal library of smart contracts.
+Specifically, whenever you compile and deploy a smart contract yourself, or, you interact with a verified contract on-chain (if you have a valid Etherscan API configured), `ethpwn` will store the address of the contract and its corresponding metadata in a global `ContractRegistry` object, which can be accessed via `contract_registry()`.
 
 The contract registry is stored locally on your machine in `~/.config/ethpwn/contract_registry/` by default and will be loaded every time you use `ethpwn`.
 
 The example in the [tutorial](#tutorial) below illustrates this by retrieving a contract instance for the UniswapRouter contract from the contract registry, and then using it to interact with the contract without having to specify the address, ABI, storage layout, or source code of the contract.
 
-### Etherscan Verified Source Code
+### ✅ Etherscan Verified Source Code
 As mentioned earlier, `ethpwn` can fetch available verified source code for contracts from Etherscan if you have a working API key. 
 This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself. The target contract is automatically compiled and added to the contract registry for you.
 
 To use this feature, set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
 
-Then you can, e.g. use the following command to fetch the verified source code for the uniswap router contract:
+Then you can use the following command to fetch the verified source code for the Uniswap Router contract:
 ```bash
 ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 ```
@@ -87,16 +87,10 @@ instance = fetch_verified_contract_source(0x7a250d5630B4cF539739dF2C5dAcb4c659F2
 ```
 
 ## 🪪 ContractMetadata
-`ethpwn` manages the compiled contract metadata in a global `ContractMetadata` object, which can be accessed via `CONTRACT_METADATA`.
-This holds the information about contracts that were compiled using `ethpwn` in the current session, and can be used to retrieve the `ContractMetadata` for those contracts.
+Whenever you compile contracts within a Python script, `ethpwn` manages the compiled contract metadata in a *temporay* global `ContractMetadata` object that can be accessed via the `CONTRACT_METADATA` object.
 
-This information is not stored globally to avoid having to deal with naming conflicts, version management, etc.
-Instead, we store the corresponding `ContractMetadata` whenever you record a contract in the `contract_registry`, where
-the contract being deployed is unambiguous, since the contracts on the blockchain are, in principle, immutable.
-
-In the current session you can retrieve contracts by name, e.g., if you have previously compiled the code of the uniswap router contract, you can use `CONTRACT_METADATA['UniswapV2Router02']` to retrieve the `ContractMetadata` for this contract.
-
-You can also retrieve the `ContractMetadata` for a contract that is stored in the `contract_registry` by using `contract_registry().get(<contract_address>).metadata`.
+Note that, this object does NOT persists after the termination of your script.
+Instead, we store the corresponding `ContractMetadata` object only you record a contract in the `contract_registry` (in this case the contract being deployed is unambiguous).
 
 The contract metadata contains, among other things, the following information:
 
@@ -133,6 +127,10 @@ It also provides various helper functions to manipulate or analyze instances of 
     function name and a dictionary of the arguments.
     '''
 ```
+
+In the current session you can retrieve contracts by name, e.g., if you have previously compiled the code of the uniswap router contract, you can use `CONTRACT_METADATA['UniswapV2Router02']` to retrieve the `ContractMetadata` for this contract.
+
+You can also retrieve the `ContractMetadata` for a contract that is stored in the `contract_registry` by using `contract_registry().get(<contract_address>).metadata`.
 
 ## 🐥 Tutorial
 
