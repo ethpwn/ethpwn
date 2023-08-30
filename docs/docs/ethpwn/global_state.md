@@ -59,9 +59,16 @@ An example of such a configuration is the following:
 | ***!!!!! DO NOT use accounts and private keys that hold valuable assets in this config file! This file is NOT protected in any way. Putting sensitive private keys here might lead to exposing them in the clear and can cause the loss of funds on the related account if someone can steal them. ALWAYS use test accounts!***|
 
 ## 📚 ContractRegistry
-The contract registry is your personal library of smart contracts.
-Specifically, whenever you compile and deploy a smart contract yourself, or, you interact with a verified contract on-chain (if you have a valid Etherscan API configured), `ethpwn` will store the address of the contract and its corresponding metadata in a global `ContractRegistry` object, which can be accessed via `contract_registry()`.
+The contract registry is your personal library of smart contract metadata.
+At a high-level, the contract-registry is simply a mapping from contract addresses to their corresponding metadata.
 
+Contracts are automatically added to the contract registry by `ethpwn` in the following cases:
+
+1. You deploy a smart contract via `ContractMetadata.deploy()`
+2. You interact with a verified contract on-chain (if you have a valid Etherscan API configured)
+3. You manually register contract metadata with a contract instance via `ContractMetadata.get_contract_at(<address>)`
+
+`ethpwn` then stores this association in its global `ContractRegistry` object, which can be accessed via `contract_registry()`.
 The contract registry is stored locally on your machine in `~/.config/ethpwn/contract_registry/` by default and will be loaded every time you use `ethpwn`.
 
 The example in the [tutorial](#tutorial) below illustrates this by retrieving a contract instance for the UniswapRouter contract from the contract registry, and then using it to interact with the contract without having to specify the address, ABI, storage layout, or source code of the contract.
