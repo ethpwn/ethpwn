@@ -973,6 +973,26 @@ class EthDbgShell(cmd.Cmd):
         self.hide_sstores = not self.hide_sstores
         print(f'Hiding sstores: {self.hide_sstores}')
 
+    def do_source_view_cutoff(self, arg):
+        '''
+        Set the cutoff for the source code view. -1 means no cutoff.
+        Usage: source_view_cutoff <cutoff>
+        '''
+        if not arg:
+            print(f'Source view cutoff: {self.source_view_cutoff}')
+            return
+        try:
+            source_view_cutoff = int(arg, 10)
+            if source_view_cutoff < -1:
+                print(f'Invalid cutoff value: {self.source_view_cutoff}')
+                return
+            if source_view_cutoff == -1:
+                source_view_cutoff = None
+            self.source_view_cutoff = source_view_cutoff
+            print(f'Source view cutoff: {self.source_view_cutoff}')
+        except Exception:
+            print(f'Invalid cutoff value: {self.source_view_cutoff}')
+
     def do_stop_on_returns(self, arg):
         '''
         Whether to stop on RETURN/STOP operations (toggleable)
@@ -1440,7 +1460,7 @@ class EthDbgShell(cmd.Cmd):
             if cutoff is None or len(lines) <= self.source_view_cutoff:
                 return title + '\n' + source
             else:
-                return title + '\n' + '\n'.join(lines[:cutoff]) + '\n' + f'{ORANGE_COLOR}... [source too big, use "source" command to see it all or change the "source_view_cutoff" in the config] ...{RESET_COLOR}'
+                return title + '\n' + '\n'.join(lines[:cutoff]) + '\n' + f'{ORANGE_COLOR}... [source too big, use "source" command to see it all or change the "source_view_cutoff"] ...{RESET_COLOR}'
 
     def _get_storage_layout_view(self):
         message = f"{GREEN_COLOR}Storage Layout{RESET_COLOR}"
@@ -1465,7 +1485,6 @@ class EthDbgShell(cmd.Cmd):
             return None
 
     def _display_context(self, cmdloop=True, with_message=''):
-
         for val in self.context_layout.split(","):
             if val == 'status':
                 if with_message:
