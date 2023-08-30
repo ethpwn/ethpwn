@@ -141,9 +141,9 @@ Here a few ways in which you can leverage the global states used and exported by
 ##########
 
 # set up names for the contracts we want to use for easy access
-ethpwn contract name add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D UniswapV2Router02
-ethpwn contract name add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH
-ethpwn contract name add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
+ethpwn contract name add UniswapV2Router02 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D 
+ethpwn contract name add WETH 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 
+ethpwn contract name add DAI 0x6B175474E89094C44Da98b954EedeAC495271d0F 
 
 # fetch the verified source code for the uniswap router contract from etherscan to access its metadata and ABI
 ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
