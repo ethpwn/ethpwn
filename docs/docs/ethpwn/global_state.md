@@ -48,7 +48,7 @@ every time you use `ethpwn`.
 This allows you to, e.g., register a contract address with a name and its source code via the commandline, and then use this information in your interaction scripts without having to recompile and/or re-register the contract addresses.
 Furthermore, whenever you deploy a contract using `ethpwn`, it will similarly remember everything about the contract, including its address, source code, and storage layout, and store it in the contract registry.
 
-This architecture allows most interaction scripts to focus fully on the logic of the interaction, and not on the boilerplate of compiling/retrieving the ABI, storage_layout, source code, etc. for each contract.
+This architecture allows most interaction scripts to focus fully on the logic of the interaction, and not on the boilerplate of compiling the contract, retrieving the ABI, storage_layout, source code, etc.
 
 The example in the [tutorial](#tutorial) below illustrates this by retrieving the `ContractInstance` for the uniswap router contract from the contract registry, and then using it to interact with the contract without having to specify the address, ABI, storage layout, or source code of the contract.
 
@@ -149,7 +149,7 @@ ethpwn contract name add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
 ########## FOR EACH CONTRACT
 
 # fetch the verified source code for the uniswap router contract from etherscan to access its metadata and ABI
-ethpwn contract fetc_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 ```
 
 ## Direct Interaction in `ethpwn` Scripts
@@ -169,7 +169,7 @@ uniswap_router = contract_registry().get(contract_by_name('UniswapV2Router02'))
 
 transact(
     # this uses the automatic abi to encode the function call
-    uniswap_router.w3.swapExactETHForTokens(
+    uniswap_router.w3().swapExactETHForTokens(
         100,                    # amountOutMin
         [contract_by_name('WETH'), contract_by_name('DAI')],  # path
         my_addr,                # to
@@ -181,7 +181,8 @@ transact(
 
 ## Integration in contract deployment
 
-Instead of performing this action manually, we can instead deploy a solidity contract to perform this action for us.
+Instead of performing this action manually, we can also deploy a solidity contract to perform this action for us.
+
 ```python
 from ethpwn import *
 
@@ -224,9 +225,16 @@ txid, *_ = transact(contract_instance.w3.getDAI(100), value=1 * ETHER)
 print(f"Transaction ID: {txid.hex()}")
 ```
 
-Additionally, we can use the `ethdbg` debugger to debug any transactions interacting with the contract instance we just deployed.
+Additionally, we can use `ethdbg` to debug any transactions interacting with the contract instance we just deployed.
 Thanks to the contract registry, `ethdbg` will automatically have the contract metadata available during the debug sessions
 and display both the source code information and the storage layout for the contract.
+
+If we registered the UniswapV2Router02 contract with the registry as the previous example did, `ethdbg` will display
+the source code and storage information for that contract as well.
 ```bash
+# ensure the debug information for UniswapV2Router02 is available
+ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+
+# launch ethdbg to debug the transaction, this should display the source code and storage layout for both contracts
 ethdbg --txid <id of the transaction we just attempted>
 ```
