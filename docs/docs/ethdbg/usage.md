@@ -127,18 +127,18 @@ tr:nth-child(even) {
 }
 </style>
 
-| Option String      | Required | Default| Option Summary |
-|--------------------|----------|--------|----------------|
-| ['--txid']         | False    | None   | Instantiate ethdbg to replay an existing transaction. |
-| ['--full-context'] | False    | False  | Given a transaction `T` that you want to replay, whether or not you want to apply the transactions preceeding `T` in the block (i.e., the execution of some transactions might depend on the execution of the previous ones!). |
-| ['--sender']       | False    | The original sender in the transaction (if `txid` is specified), otherwise, the sender in your wallet.json | whether you want to overwrite the address of the sender when replaying a transaction, or, creating a fresh one. |
-| ['--balance']      | False    | balance of the original sender in the transaction (if `txid` is specified), otherwise, a placeholder value of 100000000 ETH. | Overwriting the balance of the sender you are using to debug the target transaction. |
-| ['--node-url']     | False    | value in the ethdbg_config file, or, `127.0.0.1:8546`. | URL of the RPC node you want to use. |
+| Option String      | Required | Default | Option Summary |
+|--------------------|----------|---------|----------------|
+| ['--txid']         | False    | None    | Instantiate ethdbg to replay an existing transaction. |
+| ['--full-context'] | False    | False   | Given a transaction `T` that you want to replay, whether or not you want to apply the transactions preceding `T` in the block (i.e., if the execution depends on the execution of the previous ones!). |
+| ['--sender']       | False    | The original sender in the transaction (if `txid` is specified), otherwise, the sender in your wallet.json | Allows you to set or overwrite the address of the sender in the debugged transaction. |
+| ['--balance']      | False    | Balance of the original sender in the transaction (if `txid` is specified), otherwise, a placeholder value of 100000000 ETH. | Overwrite or set the balance of the sender wallet of the target transaction. |
+| ['--node-url']     | False    | Value in the ethdbg_config file, or, `127.0.0.1:8546`. | URL of the RPC node you want to use. |
 | ['--target']       | False    | The original contract address (if `txid` is specified) | Target smart contract address when trying to send a new transaction. |
-| ['--block']        | False | The original block (if `txid` is specified), otherwise the `latest` block. | Block at which you want to simulate the new transaction (i.e., the transaction will be simulated at the beginning of the block). |
-| ['--calldata']     | False | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
-| ['--wallet']       | False | If no name is specified, `ethdbg` automatically generates an account for you | Name of the account you want to use as specified in the configuration file |
-| ['--shellcode']     | False | None | EVM bytecode that we want to execute on-the-fly in ethdbg |
+| ['--block']        | False    | The original block (if `txid` is specified), otherwise the `latest` block. | Block at which you want to simulate the new transaction (the transaction will be simulated as executing at the beginning of the block). |
+| ['--calldata']     | False    | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
+| ['--wallet']       | False    | The default wallet in the `ethpwn` config | Name or address of the wallet in the configuration you want to use |
+| ['--shellcode']    | False    | None | EVM bytecode that we want to execute on-the-fly in ethdbg |
 
 | ❗️ Note                                                              |
 |----------------------------------------------------------------------|
