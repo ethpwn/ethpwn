@@ -2,17 +2,17 @@
 
 `ethpwn` maintains a variety of global state across runs to allow the interaction scripts to focus only on the logic of the interaction, and not on the boilerplate of setting up the environment.
 
-Specifically, `ethpwn` maintains the following concepts in a global state: global configuration, including wallets and api keys, compiled contract metadata, and deployed contract instances.
+Specifically, `ethpwn` maintains the following concepts in a global state: global configuration (e.g., wallets info), compiled contract metadata, and deployed contract instances.
 
 ## 📝 Configuration
 
 | ❗️ Note                                                              |
 |----------------------------------------------------------------------|
-| To start out, if you haven't created your global config before, you can run `ethpwn config create` to create your initial configuration file. It will interactively prompt you for the most important settings, including the Ethereum node URL to use and the setup/import of your wallets. |
+| To start out, if you haven't created your global config before, you can run `ethpwn config create` to generate your initial configuration file. This command will interactively prompt you for the most important settings, including the Ethereum node URL to use, and the setup/import your wallets. |
 
 The configuration for `ethpwn` is located at `~/.config/ethpwn/config.json`. This file allows you to configure a variety of settings globally, which are then used by the various modules to simplify the interaction process.
 
-You can use the `ethpwn config` and `ethpwn wallet` commands to modify the most common configuration settings, or edit the file directly.
+You can use the `ethpwn config` and `ethpwn wallet` commands to modify the most common configuration settings, or you can edit the file directly.
 
 The most important settings are the following:
 
@@ -57,20 +57,16 @@ An example of such a configuration is the following:
 | ***!!!!! DO NOT use accounts and private keys that hold valuable assets in this config file! This file is NOT protected in any way. Putting sensitive private keys here might lead to exposing them in the clear and can cause the loss of funds on the related account if someone can steal them. ALWAYS use test accounts!***|
 
 ## 🌱 ContractRegistry
-Whenever you interact with a deployed contract either by a) deploying a new contract, or b) interacting with an existing contract,
-`ethpwn` will store the address of the contract and its corresponding metadata from the compilation in the global `ContractRegistry` object, which can be accessed via `contract_registry()`.
-The contract registry is stored locally on your machine in `~/.config/ethpwn/contract_registry/` by default and will be loaded
-every time you use `ethpwn`.
+The contract registry is your personal library of contracts you have interacted with when using `ethpwn`.
+Specifically, wheneaver you compile and deploy a smart contract yourself, or, you interact with a verified contract on-chain (if you have a valid Etherscan API configured), `ethpwn` will store the address of the contract and its corresponding metadata in a global `ContractRegistry` object, which can be accessed via `contract_registry()`.
 
-This allows you to, e.g., register a contract address with a name and its source code via the commandline, and then use this information in your interaction scripts without having to recompile and/or re-register the contract addresses.
-Furthermore, whenever you deploy a contract using `ethpwn`, it will similarly remember everything about the contract, including its address, source code, and storage layout, and store it in the contract registry.
+The contract registry is stored locally on your machine in `~/.config/ethpwn/contract_registry/` by default and will be loaded every time you use `ethpwn`.
 
-This architecture allows most interaction scripts to focus fully on the logic of the interaction, and not on the boilerplate of compiling the contract, retrieving the ABI, storage_layout, source code, etc.
-
-The example in the [tutorial](#tutorial) below illustrates this by retrieving the `ContractInstance` for the uniswap router contract from the contract registry, and then using it to interact with the contract without having to specify the address, ABI, storage layout, or source code of the contract.
+The example in the [tutorial](#tutorial) below illustrates this by retrieving a contract instance for the UniswapRouter contract from the contract registry, and then using it to interact with the contract without having to specify the address, ABI, storage layout, or source code of the contract.
 
 ### Etherscan Verified Source Code
-To make the code registry feature even more useful, `ethpwn` can fetch available verified source code for contracts from Etherscan's source-code verification API if you have an API key. This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself. The target contract is automatically compiled and added to the contract registry for you.
+As mentioned earlier, `ethpwn` can fetch available verified source code for contracts from Etherscan if you have a working API key. 
+This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself. The target contract is automatically compiled and added to the contract registry for you.
 
 To use this feature, set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
 
@@ -79,7 +75,7 @@ Then you can, e.g. use the following command to fetch the verified source code f
 ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 ```
 
-Or, in a script, you can use the following:
+Or, in a Python script, you can do the following:
 ```python
 from ethpwn import *
 

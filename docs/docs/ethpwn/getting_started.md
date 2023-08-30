@@ -33,7 +33,7 @@ Smart contracts are usually written in high-level programming languages, most co
 >>> print (f"ContractA: calldata calls function {func_name} with args {args}")
 ```
 
-In addition to the compiled information accessible via the `ContractMetadata`, `ethpwn` also provides a `ContractInstance` class which can be used to interact with deployed instances of a contract on the blockchain.
+In addition to the compiled information accessible via the `ContractMetadata`, `ethpwn` also provides way to interact with deployed instances of a contract on the blockchain.
 
 #### Deploying smart contracts
 
