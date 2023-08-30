@@ -88,18 +88,18 @@ Or, in a Python script, you can do the following:
 ```python
 from ethpwn import *
 
-# either specify the API key in the environment
-instance = fetch_verified_contract_source(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)
+# either specify the API key in the environment or the configuration file
+instance = fetch_verified_contract(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)
 
 # or specify it explicitly
-instance = fetch_verified_contract_source(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, api_key='<YOUR_API_KEY>')
+instance = fetch_verified_contract(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, api_key='<YOUR_API_KEY>')
 ```
 
 ## 🪪 ContractMetadata
-Whenever you compile contracts within a Python script, `ethpwn` manages the compiled contract metadata in a *temporay*  `ContractMetadata` object that can be accessed via the `CONTRACT_METADATA` variable.
+Whenever you compile contracts within a Python script, `ethpwn` manages the compiled contract metadata in a *temporary*  `ContractMetadata` object that can be accessed via the `CONTRACT_METADATA` variable.
 
-Note that, this object does NOT persists after the termination of your script.
-Instead, we store the corresponding `ContractMetadata` object only you record a contract in the `contract_registry` (in this case the contract being deployed is unambiguous).
+Note that, this object does NOT persist after the termination of your script.
+Instead, we store the corresponding `ContractMetadata` object only when you record a deployed contract in the `contract_registry` (in this case the contract being deployed is unambiguous).
 
 The contract metadata contains, among other things, the following information:
 
@@ -138,7 +138,7 @@ It also provides various helper functions to manipulate or analyze instances of 
     '''
 ```
 
-In the current session you can retrieve contracts by name, e.g., if you have previously compiled the code of the uniswap router contract, you can use `CONTRACT_METADATA['UniswapV2Router02']` to retrieve the `ContractMetadata` for this contract.
+In the current session you can retrieve contract metadata by contract name, e.g., if you have previously compiled the code of the uniswap router contract, you can use `CONTRACT_METADATA['UniswapV2Router02']` to retrieve the `ContractMetadata` for this contract.
 
 You can also retrieve the `ContractMetadata` for a contract that is stored in the `contract_registry` by using `contract_registry().get(<contract_address>).metadata`.
 
@@ -150,9 +150,9 @@ Here a few ways in which you can leverage the global states used and exported by
 ##########
 
 # set up labels for the contracts we want to use for easy access
-ethpwn contract label add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D UniswapV2Router02
-ethpwn contract label add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH
-ethpwn contract label add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
+ethpwn contract label add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D uniswap-router
+ethpwn contract label add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH-token
+ethpwn contract label add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI-token
 
 # fetch the verified source code for the uniswap router contract from etherscan to access its metadata and ABI
 ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
@@ -164,22 +164,28 @@ Then, we can use the uniswap router contract in our scripts to interact with it.
 ```python
 from ethpwn import *
 
-# get the contract instance for the uniswap router contract at address 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+# output the tokens to our default wallet (we could also specify a wallet name or address here)
+OUT_ADDR = get_wallet(None).address
 
-MY_addr = 0x1234567890123456789012345678901234567890
-deadline = int(time.time()) + 30 * 60 # 30 minutes at most
+# deadline: at most 30 minutes
+deadline = int(time.time()) + 30 * 60
+
+swap_path = [
+    contract_by_label('WETH-token'), # swap first to WETH
+    contract_by_label('DAI-token')   # then to DAI
+]
 
 # fetch the Contract instance for the uniswap router contract
 # this automatically retrieves the ABI, source code, and storage layout for the contract
-uniswap_router = contract_registry().get(contract_by_label('UniswapV2Router02'))
+uniswap_router = contract_registry().get(contract_by_label('uniswap-router'))
 
 transact(
     # this uses the automatic abi to encode the function call
     uniswap_router.w3().swapExactETHForTokens(
-        100,                    # amountOutMin
-        [contract_by_label('WETH'), contract_by_label('DAI')],  # path
-        my_addr,                # to
-        deadline                # deadline
+        100,        # amountOutMin: we want at least 100 DAI
+        swap_path,  # path
+        OUT_ADDR,   # to
+        deadline,   # deadline
     ),
     value=1 * ETHER
 )
