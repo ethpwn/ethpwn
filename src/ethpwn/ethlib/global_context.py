@@ -135,7 +135,7 @@ class Web3Context:
             return api_key
         else:
             return "<No API Key>"
-    
+
     # if the log_level is changed, update the logger
     @property
     def log_level(self):

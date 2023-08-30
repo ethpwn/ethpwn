@@ -25,7 +25,7 @@ from rich.tree import Tree
 
 from functools import wraps
 
-from ethpwn.ethlib.config.misc import get_default_node_url
+from ethpwn.ethlib.config.misc import get_default_node_url, get_default_network
 
 
 from ..ethlib.prelude import *
@@ -1759,16 +1759,7 @@ def main():
     config_file_path = get_default_global_config_path()
     if not os.path.exists(config_file_path):
         print(f"{YELLOW_COLOR} No config file found at {config_file_path} {RESET_COLOR}")
-        print(f"{YELLOW_COLOR} Dropping a template file there for you, but please edit it. Check https://ethpwn.github.io/ethpwn/ethdbg/usage/{RESET_COLOR}.")
-        # Let's drop a default config file
-        with open(config_file_path, "w") as f:
-            f.write(DEFAULT_CONFIG_FILE)
-        sys.exit(0)
-
-    # Are you still using the template?
-    if "<CHANGE_ME>" in open(config_file_path).read():
-        print(f"{YELLOW_COLOR} Looks like you are still using the template config file at {config_file_path} :) {RESET_COLOR}")
-        print(f"{YELLOW_COLOR} Please edit the config file. Check https://ethpwn.github.io/ethpwn/ethdbg/usage/ {RESET_COLOR}")
+        print(f"{YELLOW_COLOR} Please use `ethpwn config create` to configure your `ethpwn` installation. {RESET_COLOR}")
         sys.exit(0)
 
     # CHECK 1: do we have a valid chain RPC?
@@ -1780,14 +1771,16 @@ def main():
             print(f"{RED_COLOR} ❌ Could not connect to node: {args.node_url}{RESET_COLOR}")
             sys.exit()
     elif get_default_node_url() is None:
-        print(f"{RED_COLOR} ❌ No RPC node url specified and no default one avaialable in config.{RESET_COLOR}")
-        print(f"{RED_COLOR} To fix this error, create a config.json in ~/.config/ethpwn/config.json'{RESET_COLOR}")
+        network = get_default_network()
+        print(f"""{RED_COLOR} ❌ No RPC node url specified and no default one available in config.
+It appears you did not specify a default node url for the {network} network in your configuration.
+Please do so by running `ethpwn config set_default_node_url --network {network} <url>`{RESET_COLOR}""")
         sys.exit()
     else:
         try:
             context.try_auto_connect()
         except Exception as e:
-            print(f"{RED_COLOR} ❌ Invalid node url in ethdg_config: {get_default_node_url()}{RESET_COLOR}")
+            print(f"{RED_COLOR} ❌ Invalid node url in ethpwn config: {get_default_node_url()}{RESET_COLOR}")
             sys.exit()
 
     # Get the wallet

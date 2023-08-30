@@ -8,30 +8,18 @@ Before starting to play with `ethdbg` you need to make a few steps.
 There are two main configuration files that can be used to customize the behavior of `ethdbg`.
 
 #### ♦️ config.json
-This file is located at `~/.config/ethpwn/config.json` and configures the behavior of `ethdbg` while debugging.
-The most basic configuration is the following:
 
-```json
-{
-  "default_network": "mainnet",
-  "default_node_urls": {
-    "mainnet": "<YOUR_INFURA_RPC_URL>",
-  },
-  "credentials": {
-    "etherscan": "<OPTIONAL_ETHERSCAN_API>"
-  },
-  "dbg": {
-  }
-}
+The `ethpwn` config file is located at `~/.config/ethpwn/config.json` and includes configuration for  the behavior of `ethdbg` while debugging.
+
+Refer to the [ethpwn configuration docs](/ethpwn/ethpwn/global_state/#configuration) for the general structure of the configuration file.
+
+If you did not do so already, you can create a configuration file by running:
+
+```bash
+ethpwn config create
 ```
 
-Which will simply set an RPC url for the debugging environment.
-
-| ❗️ Note                                                              |
-|----------------------------------------------------------------------|
-| This file will be dropped on your filesystem in order to provide a template config for a new user. This config is shared by `ethpwn` and `ethdbg`|
-
-Additionally, under the key `dbg` the following options are available:
+Under the key `dbg` in the main configuration, the following options are available:
 
 | Option String | Option Summary | Default |
 |-------------------|----------|----------|
@@ -40,10 +28,10 @@ Additionally, under the key `dbg` the following options are available:
 |`stop_on_reverts` | whether you want `ethdbg` to always stop at REVERT opcodes | True |
 |`hide_sstores` | whether you want to hide the sstores issued for the current account in the context view | False |
 |`hide_sloads` | whether you want to hide the sloads issued for the current account in the context view | False |
-|`hide_source_view` | whether you want to display the Source View | False |
-|`source_view_cutoff` | the amount of source code lines that are displayed | None |
+|`hide_source_view` | whether you want to hide the Source View | False |
+|`source_view_cutoff` | the maximum amount of source code lines that are displayed | None |
 
-Here two possible configuration files:
+Here are two possible configuration files:
 
 ```json
 {
@@ -150,7 +138,7 @@ tr:nth-child(even) {
 | ['--block']        | False | The original block (if `txid` is specified), otherwise the `latest` block. | Block at which you want to simulate the new transaction (i.e., the transaction will be simulated at the beginning of the block). |
 | ['--calldata']     | False | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
 | ['--wallet']       | False | If no name is specified, `ethdbg` automatically generates an account for you | Name of the account you want to use as specified in the configuration file |
-| ['--shellcode']     | False | None | EVM bytecode that we want to execute on-the-fly in ethdbg | 
+| ['--shellcode']     | False | None | EVM bytecode that we want to execute on-the-fly in ethdbg |
 
 | ❗️ Note                                                              |
 |----------------------------------------------------------------------|

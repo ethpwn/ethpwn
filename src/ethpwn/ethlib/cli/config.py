@@ -5,7 +5,7 @@ from ..user_input import input_bool, input_node_url, input_pick_choice_with_defa
 from ..config import get_default_global_config_path, get_default_wallet_path, reload_default_config, save_config_as_default_config, update_config
 from ..utils import get_chain_name
 from ..global_context import context
-from ..config.misc import set_default_node_url as _set_default_node_url, set_default_network as _set_default_network
+from ..config.misc import get_default_node_url, set_default_node_url as _set_default_node_url, set_default_network as _set_default_network
 
 from . import cmdline, subcommand_callable
 
@@ -109,14 +109,17 @@ def debug_transaction_errors(set_to: bool = None, **kwargs):
 @config_handler
 def set_default_node_url(node_url: str, network: str=None, force: bool=False, **kwargs):
     '''
-    Adds a default node URL to the context. If the node is not available, a warning is printed.
-    All default node URLs are tried in order until one is available.
+    Sets the default node URL for `network`.
+
+    If the node is not available, a warning is printed.
+    If `force` is True, the node URL is set anyway.
+    In case a node URL is already set for `network`, a warning is printed and the user is prompted to confirm the change.
     '''
     success = context.connect_http(node_url, can_fail=True)
     if not success:
         if not force:
             context.logger.warning(
-                'Refusing to set default node to %s because we were unable to connect to it.',
+                'Refusing to set default node to %r because we were unable to connect to it. Specify --force to override this.',
                 node_url
             )
             return False
@@ -130,6 +133,17 @@ def set_default_node_url(node_url: str, network: str=None, force: bool=False, **
         node_network = get_chain_name(int(context.w3.net.version))
         assert network is None or network == node_network, f"Node reports network {node_network}, but you specified {network}"
         network = node_network
+
+    if prev_default := get_default_node_url(network):
+        if prev_default == node_url:
+            context.logger.info('Node URL %s is already the default for network %s', node_url, network)
+            return False
+        replace = input_bool(
+            f'{prev_default!r} is currently the default node for network {network}. Are you sure you want to replace it with {node_url}? ')
+        if not replace:
+            return False
+        else:
+            context.logger.warning('Replacing default node URL %s for network %s with %s', prev_default, network, node_url)
 
     _set_default_node_url(node_url, network=network)
     update_config()
