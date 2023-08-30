@@ -42,20 +42,21 @@ A contract instance can be retrieved either by deploying a (new) given contract 
 ```python
 # deploy an instance of ContractA onto the blockchain
 # calls the contract's constructor with arguments 0, 1, and 2
->>> _, new_contract_address = contract_a.deploy(0, 1, 2)
-
-# get an instance of ContractA on the blockchain at address 0x1234
->>> contract_a_instance = contract_a.get_contract_at(0x1234)
+>>> _, deployed_contract_a = contract_a.deploy(0, 1, 2)
+>>> deployed_contract_a_address = deployed_contract_a.address
+# get an instance of ContractA on the blockchain at the address obtained at the step before
+>>> contract_a_instance = deployed_contract_a.get_contract_at(deployed_contract_a_address)
 ```
 
-In both cases, `ethpwn` associates the address of the contract with the contract metadata, and provides a `Contract` instance which can be used to interact with the contract using the [Web3py](https://web3py.readthedocs.io/en/stable/) API.
+In both cases, `ethpwn` associates the address of the contract with the contract metadata. 
+The provides `Contract` instance can be used to interact with it using the [Web3py](https://web3py.readthedocs.io/en/stable/) API.
 
 #### Interacting with smart contracts
 
 `ethpwn`'s `transact()` is your one-stop shop for creating new transactions.
 It estimates the gas costs of a transaction, checks that the funds necessary are available before launching it,
 handles transactions reverting by simulating them first, etc.
-Lastly, (and, maybe, most importantly) it automatically launches `ethdbg` to debug the transaction in case it fails or reverts. This feature can be enabled either A) by passing `debug_transaction_errors=True` to `transact()`, or B) by setting the `debug_transaction_errors` flag in your `ethpwn` configuration (`ethpwn config debug_transaction_errors --set-to True`)
+Lastly, it automatically launches `ethdbg` to debug the transaction in case it fails or reverts. This feature can be enabled either by passing `debug_transaction_errors=True` to `transact()`, or, by setting the `debug_transaction_errors` flag in your `ethpwn` configuration (`ethpwn config debug_transaction_errors --set-to True`)
 
 ```python
 # simulate the result of calling the `foo` function on the contract with arguments 0, 1, and 2
