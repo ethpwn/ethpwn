@@ -154,12 +154,12 @@ ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 
 #### ♦️ Replay an existing transaction on-chain as-is, with full context.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --full-context
+ethdbg --full-context --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 #### ♦️ Replay an existing transaction on-chain and change the sender.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C
+ethdbg --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 | ❗️ Note                               |
@@ -167,21 +167,21 @@ ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 | The chosen sender must have enough funds to execute the transaction. You can use `--balance` to edit this value. |
 
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --balance 1000000000000000
+ethdbg --balance 1000000000000000 --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 #### ♦️ Replay an existing transaction at a different block.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --block 17700180
+ethdbg --block 17700180 --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 #### ♦️ Send a new transaction to target contract with custom calldata.
 ```bash
-ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000
+ethdbg --calldata cbd8c06a00000000000000 --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4
 ```
 
 #### ♦️ Send a new transaction to target contract with custom calldata at custom block.
 ```bash
-ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --block 11469711
+ethdbg --block 11469711 --calldata cbd8c06a00000000000000 --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4
 ```
 
