@@ -65,7 +65,7 @@ The contract registry is stored locally on your machine in `~/.config/ethpwn/con
 The example in the [tutorial](#tutorial) below illustrates this by retrieving a contract instance for the UniswapRouter contract from the contract registry, and then using it to interact with the contract without having to specify the address, ABI, storage layout, or source code of the contract.
 
 ### ✅ Etherscan Verified Source Code
-As mentioned earlier, `ethpwn` can fetch available verified source code for contracts from Etherscan if you have a working API key. 
+As mentioned earlier, `ethpwn` can fetch available verified source code for contracts from Etherscan if you have a working API key.
 This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself. The target contract is automatically compiled and added to the contract registry for you.
 
 To use this feature, set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
@@ -140,10 +140,10 @@ Here a few ways in which you can leverage the global states used and exported by
 ```bash
 ##########
 
-# set up names for the contracts we want to use for easy access
-ethpwn contract name add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D UniswapV2Router02
-ethpwn contract name add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH
-ethpwn contract name add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
+# set up labels for the contracts we want to use for easy access
+ethpwn contract label add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D UniswapV2Router02
+ethpwn contract label add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH
+ethpwn contract label add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI
 
 # fetch the verified source code for the uniswap router contract from etherscan to access its metadata and ABI
 ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
@@ -162,13 +162,13 @@ deadline = int(time.time()) + 30 * 60 # 30 minutes at most
 
 # fetch the Contract instance for the uniswap router contract
 # this automatically retrieves the ABI, source code, and storage layout for the contract
-uniswap_router = contract_registry().get(contract_by_name('UniswapV2Router02'))
+uniswap_router = contract_registry().get(contract_by_label('UniswapV2Router02'))
 
 transact(
     # this uses the automatic abi to encode the function call
     uniswap_router.w3().swapExactETHForTokens(
         100,                    # amountOutMin
-        [contract_by_name('WETH'), contract_by_name('DAI')],  # path
+        [contract_by_label('WETH'), contract_by_label('DAI')],  # path
         my_addr,                # to
         deadline                # deadline
     ),

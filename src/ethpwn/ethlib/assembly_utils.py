@@ -160,7 +160,7 @@ def debug_shellcode(code, ethdbg=True):
         # FIXME: this fails with rich
         # subprocess.run(f'ethdbg --shellcode {code}', shell=True, check=True)
         run_in_new_terminal(['ethdbg', '--shellcode', HexBytes(code).hex()])
-        input('Press enter to continue...')
+        input('Debugger launched, press enter to continue...')
 
 def debug_contract(code, abi, ethdbg=True):
     """

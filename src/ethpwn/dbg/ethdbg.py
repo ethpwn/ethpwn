@@ -356,14 +356,14 @@ class EthDbgShell(cmd.Cmd):
         Print the current chain context
         Usage: chain
         '''
-        print(f'{self.debug_target.chain}@{self.debug_target.block_number}:{self.w3.provider.endpoint_uri}')
+        print(f'{self.debug_target.chain}@{self.debug_target.block_number!r}:{self.w3.provider.endpoint_uri}')
 
     def do_options(self, arg):
         '''
         Print the options of the debugger
         Usage: options
         '''
-        print(f'chain: {self.debug_target.chain}@{self.debug_target.block_number}')
+        print(f'chain: {self.debug_target.chain}@{self.debug_target.block_number!r}')
         print(f'w3-endpoint: {self.w3.provider.endpoint_uri}')
         print(f'full-context: {self.debug_target.full_context}')
         print(f'log_ops: {self.log_op}')
@@ -1114,7 +1114,7 @@ class EthDbgShell(cmd.Cmd):
         max_pc_length = max(len('CallSite'), max((len(call.callsite) for call in self.callstack), default=0))
         calltype_string_legend = 'CallType'.ljust(max_call_opcode_length)
         callsite_string_legend = 'CallSite'.rjust(max_pc_length)
-        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Name ]\n'
+        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Contract Name ]\n'
         for call in self.callstack[::-1]:
             calltype_string = f'{call.calltype}'
             if call.calltype == "CALL":
@@ -1211,7 +1211,7 @@ class EthDbgShell(cmd.Cmd):
         gas_used = self.debug_target.gas - self.comp.get_gas_remaining() - self.comp.get_gas_refund()
         gas_limit = self.comp.state.gas_limit
 
-        _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number} | Origin: {curr_origin}\n'
+        _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number!r} | Origin: {curr_origin}\n'
         _metadata += f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
         _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Used: {gas_used} | ⛽ Gas Remaining: {gas_remaining} '
 
@@ -1414,7 +1414,7 @@ class EthDbgShell(cmd.Cmd):
             print(title)
 
         print(f'Account: {YELLOW_COLOR}{self.debug_target.source_address}{RESET_COLOR} | Target Contract: {YELLOW_COLOR}{self.debug_target.target_address}{RESET_COLOR}')
-        print(f'Chain: {self.debug_target.chain} | Node: {self.w3.provider.endpoint_uri} | Block Number: {self.debug_target.block_number}')
+        print(f'Chain: {self.debug_target.chain} | Node: {self.w3.provider.endpoint_uri} | Block Number: {self.debug_target.block_number!r}')
         print(f'Value: {self.debug_target.value} | Gas: {self.debug_target.gas}')
 
     def _get_source_view(self, cutoff=None):

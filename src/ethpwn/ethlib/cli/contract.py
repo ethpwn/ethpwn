@@ -12,7 +12,7 @@ from hexbytes import HexBytes
 from rich.table import Table
 
 from ..compilation.compiler_solidity import try_match_optimizer_settings
-from ..contract_names import contract_names, name_for_contract, register_contract_name, names_for_contract, contract_by_name
+from ..contract_labels import contract_labels, label_for_contract, register_contract_label, labels_for_contract, contract_by_label
 from ..contract_metadata import CONTRACT_METADATA
 from ..contract_registry import convert_contract_registry_to_encoding, decode_function_input
 from ..global_context import context
@@ -231,34 +231,34 @@ def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_
     return metadata, decoded
 
 
-contracts_name_handler = subcommand_callable(contract_handler, 'name', __subcommand_doc='Manage contract names')
+contracts_label_handler = subcommand_callable(contract_handler, 'label', __subcommand_doc='Manage contract labels')
 
-@contracts_name_handler
-def add(name: str, address: HexBytes, **kwargs):
+@contracts_label_handler
+def add(label: str, address: HexBytes, **kwargs):
     '''
-    Add a contract name for a contract address.
+    Add a label for a contract address.
     '''
-    register_contract_name(address, name)
+    register_contract_label(address, label)
 
-@contracts_name_handler
+@contracts_label_handler
 def get(address: HexBytes, **kwargs):
     '''
-    Get the names of a contract address.
+    Get the labels of a contract address.
     '''
-    return names_for_contract(contract_address)
+    return labels_for_contract(address)
 
-@contracts_name_handler
+@contracts_label_handler
 @rename('list')
 def _list(**kwargs):
     '''
-    Show all contract names.
+    Show all contract labels.
     '''
     table = Table()
     table.add_column("Contract Address")
-    table.add_column("Contract Name")
-    for name, address in contract_names().name_to_address.items():
+    table.add_column("Label")
+    for label, address in contract_labels().label_to_address.items():
         table.add_row(
             normalize_contract_address(address),
-            name
+            label
         )
     return table
