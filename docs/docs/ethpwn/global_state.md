@@ -144,7 +144,9 @@ You can also retrieve the `ContractMetadata` for a contract that is stored in th
 
 ## 🐥 Tutorials
 
-Here a few ways in which you can leverage the global states used and exported by `ethpwn` in your scripts:
+Here is an example of how you can leverage the global states used and exported by `ethpwn` in your scripts.
+
+The following example relies on the following setup using the `ethpwn` CLI:
 
 ```bash
 ##########
