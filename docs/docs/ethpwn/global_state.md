@@ -164,7 +164,7 @@ Then, we can use the uniswap router contract in our scripts to interact with it.
 ```python
 from ethpwn import *
 
-# output the tokens to our default wallet (we could also specify a wallet name or address here)
+# output to default wallet (can also specify wallet name or address here)
 OUT_ADDR = get_wallet(None).address
 
 # deadline: at most 30 minutes
@@ -176,7 +176,8 @@ swap_path = [
 ]
 
 # fetch the Contract instance for the uniswap router contract
-# this automatically retrieves the ABI, source code, and storage layout for the contract
+# this automatically retrieves the ABI, source code,
+# and storage layout for the contract
 uniswap_router = contract_registry().get(contract_by_label('uniswap-router'))
 
 transact(
