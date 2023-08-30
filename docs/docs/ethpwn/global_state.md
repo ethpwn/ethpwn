@@ -74,14 +74,14 @@ The contract registry is stored locally on your machine in `~/.config/ethpwn/con
 The example in the [tutorial](#tutorial) below illustrates this by retrieving a contract instance for the UniswapRouter contract from the contract registry, and then using it to interact with the contract without having to specify the address, ABI, storage layout, or source code of the contract.
 
 ### ✅ Etherscan Verified Source Code
-As mentioned earlier, `ethpwn` can fetch available verified source code for contracts from Etherscan if you have a working API key.
+If you have configured `ethpwn` with an Etherscan API key, `ethpwn` can fetch source code for contracts from Etherscan's verified contracts library.
 This allows you to transparently retrieve the metadata for these contracts without needing to explicitly compile them yourself. The target contract is automatically compiled and added to the contract registry for you.
 
 To use this feature, set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
 
 Then you can use the following command to fetch the verified source code for the Uniswap Router contract:
 ```bash
-ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+ethpwn contract fetch_verified_contract 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 ```
 
 Or, in a Python script, you can do the following:

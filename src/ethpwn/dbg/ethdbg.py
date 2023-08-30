@@ -55,7 +55,7 @@ def get_contract_for(contract_address: HexBytes):
     if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
         # try to fetch the verified contract
         try:
-            fetch_verified_contract_source(contract_address, None) # auto-detect etherscan api key and fetch the code
+            fetch_verified_contract(contract_address, None) # auto-detect etherscan api key and fetch the code
         except Exception as ex:
             # print traceback
             #traceback.print_exc()

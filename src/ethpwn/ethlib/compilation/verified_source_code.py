@@ -179,7 +179,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         CONTRACT_METADATA.compile_string(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, libraries=libraries, **compiler_kwargs)
 
 
-def fetch_verified_contract_source(contract_address, network=None, api_key=None) -> 'ContractInstance':
+def fetch_verified_contract(contract_address, network=None, api_key=None) -> 'ContractInstance':
     # fastpath: just check if the file exists instead of loading the entire registry
 
     contract_address = normalize_contract_address(contract_address)
