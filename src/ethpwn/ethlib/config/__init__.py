@@ -30,8 +30,8 @@ def get_contract_registry_dir() -> Path:
     d.mkdir(parents=True, exist_ok=True)
     return d
 
-def get_contract_names_path() -> Path:
-    d = ethpwn_config_root_dir() / 'contract_names.json'
+def get_contract_labels_path() -> Path:
+    d = ethpwn_config_root_dir() / 'contract_labels.json'
     return d
 
 def reload_default_config():

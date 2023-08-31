@@ -1,5 +1,5 @@
-Just resumes the execution after a breakpoint.
+Resumes the execution after a breakpoint.
 
-Syntax: `continue` 
+Syntax: `continue`
 
 ![](../../imgs/continue.png)

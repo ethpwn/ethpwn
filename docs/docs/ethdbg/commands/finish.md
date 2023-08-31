@@ -1,4 +1,4 @@
-Execute the code of the last contract pushed in the callstack until its return/stop.
+Continue execution until the current function returns (or reverts). Effectively executes until the current callstack entry is removed for any reason.
 
 Syntax: `finish`
 

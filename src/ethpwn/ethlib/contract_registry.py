@@ -89,7 +89,6 @@ class ContractInstance(Serializable):
         # now yield the metadata
         yield from self.metadata.__rich_console__(console, options)
 
-
     def w3(self):
         '''
         Get a web3 contract object for this contract. Automatically has the correct ABI based on the metadata.

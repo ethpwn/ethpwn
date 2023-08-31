@@ -48,8 +48,8 @@ A contract instance can be retrieved either by deploying a (new) given contract 
 >>> contract_a_instance = deployed_contract_a.get_contract_at(deployed_contract_a_address)
 ```
 
-In both cases, `ethpwn` associates the address of the contract with the contract metadata. 
-The provides `Contract` instance can be used to interact with it using the [Web3py](https://web3py.readthedocs.io/en/stable/) API.
+In both cases, `ethpwn` associates the address of the contract with the contract metadata by registering it in the [ContractRegistry](/ethpwn/ethpwn/global_state/#contractregistry) for future use.
+The provided `Contract` instance can be used to interact with it using the [Web3py](https://web3py.readthedocs.io/en/stable/) API.
 
 #### Interacting with smart contracts
 

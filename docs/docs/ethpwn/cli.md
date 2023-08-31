@@ -18,7 +18,7 @@ The most used command is probably `ethpwn contract`, which can be used to manage
 ```bash
 $ ethpwn contract -h
 usage: ethpwn contract [-h]
-                       {address,deploy,get_default_import_remappings,compile,convert_registry,register,fetch_verified_contract_source,decode_calldata,name} ...
+                       {address,deploy,get_default_import_remappings,compile,convert_registry,register,fetch_verified_contract,decode_calldata,name} ...
 ```
 
 ### Wallet management (`ethpwn wallet`)

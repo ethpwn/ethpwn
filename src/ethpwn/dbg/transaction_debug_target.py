@@ -311,7 +311,7 @@ class TransactionDebugTarget:
         self.debug_type = "shellcode"
 
         return self
-    
+
 
     def get_transaction_dict(self, **defaults):
         if self.chain_id is None:

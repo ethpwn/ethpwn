@@ -118,12 +118,12 @@ def names_for_contract(address)
 
 Helper function to easily get the names of a contract by address.
 
-<a id="ethpwn.ethlib.contract_names.name_for_contract"></a>
+<a id="ethpwn.ethlib.contract_names.label_for_contract"></a>
 
 #### name\_for\_contract
 
 ```python
-def name_for_contract(address)
+def label_for_contract(address)
 ```
 
 Helper function to easily get a name of a contract by address.

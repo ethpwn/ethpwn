@@ -25,7 +25,7 @@ from rich.tree import Tree
 
 from functools import wraps
 
-from ethpwn.ethlib.config.misc import get_default_node_url
+from ethpwn.ethlib.config.misc import get_default_node_url, get_default_network
 
 
 from ..ethlib.prelude import *
@@ -55,7 +55,7 @@ def get_contract_for(contract_address: HexBytes):
     if contract_address not in FETCHED_VERIFIED_CONTRACTS and registry.get(contract_address) is None:
         # try to fetch the verified contract
         try:
-            fetch_verified_contract_source(contract_address, None) # auto-detect etherscan api key and fetch the code
+            fetch_verified_contract(contract_address, None) # auto-detect etherscan api key and fetch the code
         except Exception as ex:
             # print traceback
             #traceback.print_exc()
@@ -356,14 +356,14 @@ class EthDbgShell(cmd.Cmd):
         Print the current chain context
         Usage: chain
         '''
-        print(f'{self.debug_target.chain}@{self.debug_target.block_number}:{self.w3.provider.endpoint_uri}')
+        print(f'{self.debug_target.chain}@{self.debug_target.block_number!r}:{self.w3.provider.endpoint_uri}')
 
     def do_options(self, arg):
         '''
         Print the options of the debugger
         Usage: options
         '''
-        print(f'chain: {self.debug_target.chain}@{self.debug_target.block_number}')
+        print(f'chain: {self.debug_target.chain}@{self.debug_target.block_number!r}')
         print(f'w3-endpoint: {self.w3.provider.endpoint_uri}')
         print(f'full-context: {self.debug_target.full_context}')
         print(f'log_ops: {self.log_op}')
@@ -973,6 +973,26 @@ class EthDbgShell(cmd.Cmd):
         self.hide_sstores = not self.hide_sstores
         print(f'Hiding sstores: {self.hide_sstores}')
 
+    def do_source_view_cutoff(self, arg):
+        '''
+        Set the cutoff for the source code view. -1 means no cutoff.
+        Usage: source_view_cutoff <cutoff>
+        '''
+        if not arg:
+            print(f'Source view cutoff: {self.source_view_cutoff}')
+            return
+        try:
+            source_view_cutoff = int(arg, 10)
+            if source_view_cutoff < -1:
+                print(f'Invalid cutoff value: {self.source_view_cutoff}')
+                return
+            if source_view_cutoff == -1:
+                source_view_cutoff = None
+            self.source_view_cutoff = source_view_cutoff
+            print(f'Source view cutoff: {self.source_view_cutoff}')
+        except Exception:
+            print(f'Invalid cutoff value: {self.source_view_cutoff}')
+
     def do_stop_on_returns(self, arg):
         '''
         Whether to stop on RETURN/STOP operations (toggleable)
@@ -1114,7 +1134,7 @@ class EthDbgShell(cmd.Cmd):
         max_pc_length = max(len('CallSite'), max((len(call.callsite) for call in self.callstack), default=0))
         calltype_string_legend = 'CallType'.ljust(max_call_opcode_length)
         callsite_string_legend = 'CallSite'.rjust(max_pc_length)
-        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Name ]\n'
+        legend = f'{"[ Legend: Address":44} | {calltype_string_legend} | {callsite_string_legend} | {"msg.sender":44} | {"msg.value":12} | Contract Name ]\n'
         for call in self.callstack[::-1]:
             calltype_string = f'{call.calltype}'
             if call.calltype == "CALL":
@@ -1211,7 +1231,7 @@ class EthDbgShell(cmd.Cmd):
         gas_used = self.debug_target.gas - self.comp.get_gas_remaining() - self.comp.get_gas_refund()
         gas_limit = self.comp.state.gas_limit
 
-        _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number} | Origin: {curr_origin}\n'
+        _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number!r} | Origin: {curr_origin}\n'
         _metadata += f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
         _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Used: {gas_used} | ⛽ Gas Remaining: {gas_remaining} '
 
@@ -1414,7 +1434,7 @@ class EthDbgShell(cmd.Cmd):
             print(title)
 
         print(f'Account: {YELLOW_COLOR}{self.debug_target.source_address}{RESET_COLOR} | Target Contract: {YELLOW_COLOR}{self.debug_target.target_address}{RESET_COLOR}')
-        print(f'Chain: {self.debug_target.chain} | Node: {self.w3.provider.endpoint_uri} | Block Number: {self.debug_target.block_number}')
+        print(f'Chain: {self.debug_target.chain} | Node: {self.w3.provider.endpoint_uri} | Block Number: {self.debug_target.block_number!r}')
         print(f'Value: {self.debug_target.value} | Gas: {self.debug_target.gas}')
 
     def _get_source_view(self, cutoff=None):
@@ -1440,7 +1460,7 @@ class EthDbgShell(cmd.Cmd):
             if cutoff is None or len(lines) <= self.source_view_cutoff:
                 return title + '\n' + source
             else:
-                return title + '\n' + '\n'.join(lines[:cutoff]) + '\n' + f'{ORANGE_COLOR}... [source too big, use "source" command to see it all or change the "source_view_cutoff" in the config] ...{RESET_COLOR}'
+                return title + '\n' + '\n'.join(lines[:cutoff]) + '\n' + f'{ORANGE_COLOR}... [source too big, use "source" command to see it all or change the "source_view_cutoff"] ...{RESET_COLOR}'
 
     def _get_storage_layout_view(self):
         message = f"{GREEN_COLOR}Storage Layout{RESET_COLOR}"
@@ -1465,7 +1485,6 @@ class EthDbgShell(cmd.Cmd):
             return None
 
     def _display_context(self, cmdloop=True, with_message=''):
-
         for val in self.context_layout.split(","):
             if val == 'status':
                 if with_message:
@@ -1759,16 +1778,7 @@ def main():
     config_file_path = get_default_global_config_path()
     if not os.path.exists(config_file_path):
         print(f"{YELLOW_COLOR} No config file found at {config_file_path} {RESET_COLOR}")
-        print(f"{YELLOW_COLOR} Dropping a template file there for you, but please edit it. Check https://ethpwn.github.io/ethpwn/ethdbg/usage/{RESET_COLOR}.")
-        # Let's drop a default config file
-        with open(config_file_path, "w") as f:
-            f.write(DEFAULT_CONFIG_FILE)
-        sys.exit(0)
-
-    # Are you still using the template?
-    if "<CHANGE_ME>" in open(config_file_path).read():
-        print(f"{YELLOW_COLOR} Looks like you are still using the template config file at {config_file_path} :) {RESET_COLOR}")
-        print(f"{YELLOW_COLOR} Please edit the config file. Check https://ethpwn.github.io/ethpwn/ethdbg/usage/ {RESET_COLOR}")
+        print(f"{YELLOW_COLOR} Please use `ethpwn config create` to configure your `ethpwn` installation. {RESET_COLOR}")
         sys.exit(0)
 
     # CHECK 1: do we have a valid chain RPC?
@@ -1780,14 +1790,16 @@ def main():
             print(f"{RED_COLOR} ❌ Could not connect to node: {args.node_url}{RESET_COLOR}")
             sys.exit()
     elif get_default_node_url() is None:
-        print(f"{RED_COLOR} ❌ No RPC node url specified and no default one avaialable in config.{RESET_COLOR}")
-        print(f"{RED_COLOR} To fix this error, create a config.json in ~/.config/ethpwn/config.json'{RESET_COLOR}")
+        network = get_default_network()
+        print(f"""{RED_COLOR} ❌ No RPC node url specified and no default one available in config.
+It appears you did not specify a default node url for the {network} network in your configuration.
+Please do so by running `ethpwn config set_default_node_url --network {network} <url>`{RESET_COLOR}""")
         sys.exit()
     else:
         try:
             context.try_auto_connect()
         except Exception as e:
-            print(f"{RED_COLOR} ❌ Invalid node url in ethdg_config: {get_default_node_url()}{RESET_COLOR}")
+            print(f"{RED_COLOR} ❌ Invalid node url in ethpwn config: {get_default_node_url()}{RESET_COLOR}")
             sys.exit()
 
     # Get the wallet

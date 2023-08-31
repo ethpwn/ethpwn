@@ -4,29 +4,64 @@ Syntax: `context`
 
 ![](../../imgs/context.png)
 
-The context is divided in different views that provide different kind of information during debugging.
+The context is divided into different views that provide different kinds of information during debugging.
+
+The layout of the context view is fully configurable via the `context_layout` configuration option.
+The default layout is `'source,metadata,status,disass,stack,callstack'`.
+
+It can either be set globally in the ethpwn configuration file in `~/.config/ethpwn/config.json` or on a per-debugging session basis via the `ethdbg` CLI.
+
+```python
+# set a minimal context layout for the current debugging session
+ethdbg➤ context_layout 'disass,stack,callstack'
+```
+
+```json
+// set a minimal context layout for all debugging sessions in the config.json
+{
+    ...
+    "dbg": {
+        "context_layout": "disass,stack,callstack"
+        ...
+    }
+}
+```
 
 ### 👀 Source View
-This view is displayed when the account currently executing has source code available.
-To provide source code an user can drop a `.json` file in the registry (`~/.config/ethpwn/pwn/registry`) as explained in NEED_LINK_HERE, or, one can add an ETHERSCAN API KEY, set it in the config file at `~/.config/ethpwn/config.json` and `ethdbg` will automatically try to fetch the contract code.
+This view is displayed when the account currently executing has source code available in the `contract_registry()` or the executing contract
+has verified source code available on Etherscan.
 
-This view hihlights the currently executing source code line corresponding to the EVM opcodes displayed in the Disassembly view.
+To provide source code, a user can either verify their contract source on Etherscan and provide the Etherscan API key in the configuration, or register it in `ethpwn`'s [contract registry](/ethpwn/ethpwn/global_state/#contractregistry).
 
-This view can be disabled by using the option ` "hide_source_view": true` in the config file (`~/.config/ethpwn/config.json`).
+```bash
+# register a contract in the registry using the ethpwn CLI
+$ ethpwn contract register MyContractName 0x1234... MyContract.sol
+
+# register a contract in the registry using the ethpwn python API
+>>> from ethpwn import *
+>>> CONTRACT_METADATA.compile_solidity_files(['MyContract.sol'])
+>>> CONTRACT_METADATA['MyContractName'].get_contract_at('0x1234...')
+```
+
+This view highlights the currently executing source code line corresponding to the EVM opcodes displayed in the Disassembly view.
+
+Due to the debug information produced by the Solidity and Vyper compilers, this view can become quite large for large contracts.
+To avoid this, a user can either specify a maximum number of lines to display via the `source_view_cutoff` option, or by disabling the view entirely by removing it from the `context_layout`.
+These settings can be set globally in the ethpwn configuration file in `~/.config/ethpwn/config.json` or on a per-debugging session basis via the `ethdbg` CLI.
 
 ### 👀 Metadata View
-The Metadata view is showing different kind of useful information regarding the currently executing transaction.
+The Metadata view displays useful information regarding the currently executing transaction.
 
-| Field                 | What |
-|-------------------|----------|
-| `Fork`   | Version of the EVM currently executing |
-| `Block`  | Block number at which the current transaction is executing
-| `Origin` | The account that started the transaction|
-| `Current code account` | The address of the smart contract currently executing code
-| `Current storage account` | The address of the smart contract whose storage will be referenced during an SSTORE/SLOAD
-| `Balance`           | The balance of the Current code account
-| `Gas Used`          | The amount of gas used up until the current opcode
-| `Gas Remaining`    | How much gas is remaining for this transaction execution
+| Field                     | What |
+|---------------------------|----------|
+| `Fork`                    | Version of the EVM currently executing |
+| `Block`                   | Block number at which the current transaction is executing |
+| `Origin`                  | The account that started the transaction  |
+| `Current code account`    | The address of the smart contract currently executing code |
+| `Current storage account` | The address of the smart contract whose storage will be referenced during an SSTORE/SLOAD |
+| `Balance`                 | The balance of the Current code account |
+| `Gas Used`                | The amount of gas used up until the current opcode |
+| `Gas Remaining`           | How much gas is remaining for this transaction execution |
 
 
 ### 👀 Disassembly View

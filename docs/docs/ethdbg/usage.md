@@ -8,30 +8,18 @@ Before starting to play with `ethdbg` you need to make a few steps.
 There are two main configuration files that can be used to customize the behavior of `ethdbg`.
 
 #### ♦️ config.json
-This file is located at `~/.config/ethpwn/config.json` and configures the behavior of `ethdbg` while debugging.
-The most basic configuration is the following:
 
-```json
-{
-  "default_network": "mainnet",
-  "default_node_urls": {
-    "mainnet": "<YOUR_INFURA_RPC_URL>",
-  },
-  "credentials": {
-    "etherscan": "<OPTIONAL_ETHERSCAN_API>"
-  },
-  "dbg": {
-  }
-}
+The `ethpwn` config file is located at `~/.config/ethpwn/config.json` and includes configuration for  the behavior of `ethdbg` while debugging.
+
+Refer to the [ethpwn configuration docs](/ethpwn/ethpwn/global_state/#configuration) for the general structure of the configuration file.
+
+If you did not do so already, you can create a configuration file by running:
+
+```bash
+ethpwn config create
 ```
 
-Which will simply set an RPC url for the debugging environment.
-
-| ❗️ Note                                                              |
-|----------------------------------------------------------------------|
-| This file will be dropped on your filesystem in order to provide a template config for a new user. This config is shared by `ethpwn` and `ethdbg`|
-
-Additionally, under the key `dbg` the following options are available:
+Under the key `dbg` in the main configuration, the following options are available:
 
 | Option String | Option Summary | Default |
 |-------------------|----------|----------|
@@ -40,10 +28,10 @@ Additionally, under the key `dbg` the following options are available:
 |`stop_on_reverts` | whether you want `ethdbg` to always stop at REVERT opcodes | True |
 |`hide_sstores` | whether you want to hide the sstores issued for the current account in the context view | False |
 |`hide_sloads` | whether you want to hide the sloads issued for the current account in the context view | False |
-|`hide_source_view` | whether you want to display the Source View | False |
-|`source_view_cutoff` | the amount of source code lines that are displayed | None |
+|`hide_source_view` | whether you want to hide the Source View | False |
+|`source_view_cutoff` | the maximum amount of source code lines that are displayed | None |
 
-Here two possible configuration files:
+Here are two possible configuration files:
 
 ```json
 {
@@ -139,18 +127,18 @@ tr:nth-child(even) {
 }
 </style>
 
-| Option String      | Required | Default| Option Summary |
-|--------------------|----------|--------|----------------|
-| ['--txid']         | False    | None   | Instantiate ethdbg to replay an existing transaction. |
-| ['--full-context'] | False    | False  | Given a transaction `T` that you want to replay, whether or not you want to apply the transactions preceeding `T` in the block (i.e., the execution of some transactions might depend on the execution of the previous ones!). |
-| ['--sender']       | False    | The original sender in the transaction (if `txid` is specified), otherwise, the sender in your wallet.json | whether you want to overwrite the address of the sender when replaying a transaction, or, creating a fresh one. |
-| ['--balance']      | False    | balance of the original sender in the transaction (if `txid` is specified), otherwise, a placeholder value of 100000000 ETH. | Overwriting the balance of the sender you are using to debug the target transaction. |
-| ['--node-url']     | False    | value in the ethdbg_config file, or, `127.0.0.1:8546`. | URL of the RPC node you want to use. |
+| Option String      | Required | Default | Option Summary |
+|--------------------|----------|---------|----------------|
+| ['--txid']         | False    | None    | Instantiate ethdbg to replay an existing transaction. |
+| ['--full-context'] | False    | False   | Given a transaction `T` that you want to replay, whether or not you want to apply the transactions preceding `T` in the block (i.e., if the execution depends on the execution of the previous ones!). |
+| ['--sender']       | False    | The original sender in the transaction (if `txid` is specified), otherwise, the sender in your wallet.json | Allows you to set or overwrite the address of the sender in the debugged transaction. |
+| ['--balance']      | False    | Balance of the original sender in the transaction (if `txid` is specified), otherwise, a placeholder value of 100000000 ETH. | Overwrite or set the balance of the sender wallet of the target transaction. |
+| ['--node-url']     | False    | Value in the ethdbg_config file, or, `127.0.0.1:8546`. | URL of the RPC node you want to use. |
 | ['--target']       | False    | The original contract address (if `txid` is specified) | Target smart contract address when trying to send a new transaction. |
-| ['--block']        | False | The original block (if `txid` is specified), otherwise the `latest` block. | Block at which you want to simulate the new transaction (i.e., the transaction will be simulated at the beginning of the block). |
-| ['--calldata']     | False | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
-| ['--wallet']       | False | If no name is specified, `ethdbg` automatically generates an account for you | Name of the account you want to use as specified in the configuration file |
-| ['--shellcode']     | False | None | EVM bytecode that we want to execute on-the-fly in ethdbg | 
+| ['--block']        | False    | The original block (if `txid` is specified), otherwise the `latest` block. | Block at which you want to simulate the new transaction (the transaction will be simulated as executing at the beginning of the block). |
+| ['--calldata']     | False    | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
+| ['--wallet']       | False    | The default wallet in the `ethpwn` config | Name or address of the wallet in the configuration you want to use |
+| ['--shellcode']    | False    | None | EVM bytecode that we want to execute on-the-fly in ethdbg |
 
 | ❗️ Note                                                              |
 |----------------------------------------------------------------------|
@@ -166,12 +154,12 @@ ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 
 #### ♦️ Replay an existing transaction on-chain as-is, with full context.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --full-context
+ethdbg --full-context --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 #### ♦️ Replay an existing transaction on-chain and change the sender.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C
+ethdbg --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 | ❗️ Note                               |
@@ -179,21 +167,21 @@ ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 | The chosen sender must have enough funds to execute the transaction. You can use `--balance` to edit this value. |
 
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --balance 1000000000000000
+ethdbg --balance 1000000000000000 --sender 0x1a5984F43dAD95a5121b1b30B9190d619d84d21C --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 #### ♦️ Replay an existing transaction at a different block.
 ```bash
-ethdbg --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e --block 17700180
+ethdbg --block 17700180 --txid 0x168f7f3acd40e0632e11b208c40ecc3c790bcb46c131f0207892859871ec3d3e
 ```
 
 #### ♦️ Send a new transaction to target contract with custom calldata.
 ```bash
-ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000
+ethdbg --calldata cbd8c06a00000000000000 --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4
 ```
 
 #### ♦️ Send a new transaction to target contract with custom calldata at custom block.
 ```bash
-ethdbg --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4 --calldata cbd8c06a00000000000000 --block 11469711
+ethdbg --block 11469711 --calldata cbd8c06a00000000000000 --target 0xeC55Bf7E10b6594874554BAd1B461214Cab413d4
 ```
 
