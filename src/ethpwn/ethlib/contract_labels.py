@@ -71,7 +71,7 @@ class ContractLabels:
 
         self = ContractLabels()
         with open(contract_labels_path, "r") as f:
-            self.address_to_labels = {normalize_contract_address(addr): labels for addr, labels in json.load(f).items()}
+            self.address_to_labels = {normalize_contract_address(addr, resolve_labels=False): labels for addr, labels in json.load(f).items()}
             self.label_to_address = {label: HexBytes(addr) for addr, labels in self.address_to_labels.items() for label in labels}
         return self
 
