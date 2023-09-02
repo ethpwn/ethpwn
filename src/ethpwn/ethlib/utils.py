@@ -9,27 +9,32 @@ import tempfile
 from hexbytes import HexBytes
 from web3 import Web3
 
+from .contract_labels import contract_by_label
 
 @functools.lru_cache(maxsize=1024)
-def normalize_contract_address(address) -> str:
+def normalize_contract_address(address_or_label) -> str:
     """Normalize a contract address. This ensures all addresses are checksummed and have the 0x prefix."""
-    if not address:
+    if not address_or_label:
         return None
 
-    if type(address) == str:
-        address = "0x" + address.replace("0x", '').zfill(40)
+    if address := contract_by_label(address_or_label):
+        # found label by this name, continue with the address
+        address_or_label = address
 
-    if Web3.is_checksum_address(address):
-        return address
+    if type(address_or_label) == str:
+        address_or_label = "0x" + address_or_label.replace("0x", '').zfill(40)
 
-    if type(address) == int:
-        address = HexBytes(address.to_bytes(20, 'big'))
-    address = HexBytes(address)
+    if Web3.is_checksum_address(address_or_label):
+        return address_or_label
 
-    assert len(address) >= 20, f"Invalid address length {len(HexBytes(address))}"
-    assert int.from_bytes(address[:-20], 'big') == 0, "Invalid address"
-    address = Web3.to_checksum_address(address[-20:])
-    return address
+    if type(address_or_label) == int:
+        address_or_label = HexBytes(address_or_label.to_bytes(20, 'big'))
+    address_or_label = HexBytes(address_or_label)
+
+    assert len(address_or_label) >= 20, f"Invalid address length {len(HexBytes(address_or_label))}"
+    assert int.from_bytes(address_or_label[:-20], 'big') == 0, "Invalid address"
+    address_or_label = Web3.to_checksum_address(address_or_label[-20:])
+    return address_or_label
 
 def normalize_block_number(block_number):
     if block_number is None:

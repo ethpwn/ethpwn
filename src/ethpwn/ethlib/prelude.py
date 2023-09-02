@@ -2,7 +2,7 @@ from .config import GLOBAL_CONFIG
 from .config.wallets import get_wallet, add_wallet, delete_wallet, get_wallet_by_address, get_wallet_by_name, all_wallets
 from .currency_utils import ether, gwei, wei, parse_wei
 from .global_context import context
-from .serialization_utils import deserialize_from_file, serialize_to_file
+from .serialization_utils import deserialize_from_file, serialize_to_file, serialize_extensions
 from .hashes import lookup_signature_hash, register_signature_hash, signature_hash, keccak256
 from .contract_labels import register_contract_label, contract_labels, contract_by_label, labels_for_contract, label_for_contract
 from .contract_metadata import CONTRACT_METADATA, ContractMetadata, ContractMetadataRegistry

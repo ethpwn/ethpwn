@@ -16,7 +16,7 @@ from .hashes import lookup_signature_hash
 from .config import get_contract_registry_dir, get_logged_deployed_contracts_dir
 from .config.wallets import Wallet, get_wallet_by_address
 from .global_context import context
-from .serialization_utils import deserialize_from_file, register_serializable, serialize_to_file, Serializable
+from .serialization_utils import deserialize_from_file, register_serializable, serialize_extensions, serialize_to_file, Serializable
 
 def best_effort_get_contract_address_and_tx_hash_and_receipt(contract_address=None, tx_hash=None, tx_receipt: TxReceipt=None):
     '''
@@ -30,6 +30,8 @@ def best_effort_get_contract_address_and_tx_hash_and_receipt(contract_address=No
     :return:                 A tuple of (contract_address, tx_hash, tx_receipt)
     '''
     assert contract_address is not None or tx_hash is not None or tx_receipt is not None
+    if contract_address is not None:
+        contract_address = normalize_contract_address(contract_address)
     if tx_receipt is None:
         if tx_hash is None:
             # get the transaction that deployed the contract
@@ -45,7 +47,7 @@ def best_effort_get_contract_address_and_tx_hash_and_receipt(contract_address=No
     else:
         assert tx_hash is None or HexBytes(tx_hash) == HexBytes(tx_receipt['transactionHash'])
         assert contract_address is None or HexBytes(contract_address) == HexBytes(tx_receipt['contractAddress'])
-        return HexBytes(tx_receipt['contractAddress']), HexBytes(tx_receipt['transactionHash']), tx_receipt
+        return normalize_contract_address(tx_receipt['contractAddress']), HexBytes(tx_receipt['transactionHash']), tx_receipt
 
 
 class ContractInstance(Serializable):
@@ -208,8 +210,10 @@ class ContractRegistry:
         Get the registered metadata for the given contract address (if any). Throws an exception if no metadata is
         registered for the given contract address.
         '''
-        address = normalize_contract_address(contract_address)
-        return self.registered_contracts[address]
+        result = self.get(contract_address)
+        if result is None:
+            raise KeyError(f"No contract metadata registered for address {contract_address}")
+        return result
 
     def get(self, contract_address, default=None) -> ContractInstance:
         '''

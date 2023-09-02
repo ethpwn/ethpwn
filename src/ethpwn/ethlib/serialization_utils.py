@@ -68,6 +68,9 @@ def decoder_object_hook(obj):
                     return cls.from_serializable(value)
     return obj
 
+def serialize_extensions():
+    return ['json', 'msgpack']
+
 def deserialize_from_file(path=None, encoding=None):
     '''
     Deserialize a file to a Python object using the custom decoder.
@@ -124,7 +127,7 @@ def serialize_to_file(obj, path, encoding=None):
             suffix = None
 
     if encoding is None:
-        encoding = 'msgpack' # default to the fast implementation
+        encoding = 'json' # default to the human readable implementation
 
     if not suffix:
         path = path + '.' + encoding
@@ -143,7 +146,7 @@ def serialize_to_bytes(obj, encoding=None):
     Serialize a Python object to a JSON string using the custom encoder.
     '''
     if encoding is None:
-        encoding = 'msgpack' # default to the fast implementation
+        encoding = 'json' # default to the human readable implementation
 
     if encoding == 'json':
         return json.dumps(obj, default=encoder_default, indent=2).encode()
