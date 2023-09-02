@@ -66,7 +66,7 @@ Contracts are automatically added to the contract registry by `ethpwn` in the fo
 
 1. You deploy a smart contract via `ContractMetadata.deploy()`
 2. You interact with a verified contract on-chain (if you have a valid Etherscan API configured)
-3. You manually register contract metadata with a contract instance via `ContractMetadata.get_contract_at(<address>)` (or using the [CLI](/ethpwn/ethpwn/cli/))
+3. You manually register contract metadata with a contract instance via `ContractMetadata.get_contract_at(<address>)` (or with the [CLI](/ethpwn/ethpwn/cli/))
 
 `ethpwn` then stores this association in its global `ContractRegistry` object, which can be accessed via `contract_registry()`.
 The contract registry is stored locally on your machine in `~/.config/ethpwn/contract_registry/` by default and will be loaded every time you use `ethpwn`.

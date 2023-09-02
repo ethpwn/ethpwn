@@ -71,7 +71,7 @@ Lastly, it automatically launches `ethdbg` to debug the transaction in case it f
 
 #### Assembling and Disassembling EVM code
 
-Easily API to assemble and disassemble EVM bytecode!
+Easy API to assemble and disassemble EVM bytecode!
 
 ```python
 >>> from ethpwn import *
