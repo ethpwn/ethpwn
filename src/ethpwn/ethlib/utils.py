@@ -9,17 +9,18 @@ import tempfile
 from hexbytes import HexBytes
 from web3 import Web3
 
-from .contract_labels import contract_by_label
-
 @functools.lru_cache(maxsize=1024)
-def normalize_contract_address(address_or_label) -> str:
+def normalize_contract_address(address_or_label, resolve_labels=True) -> str:
     """Normalize a contract address. This ensures all addresses are checksummed and have the 0x prefix."""
+
     if not address_or_label:
         return None
 
-    if address := contract_by_label(address_or_label):
-        # found label by this name, continue with the address
-        address_or_label = address
+    if resolve_labels:
+        from .contract_labels import contract_by_label
+        if address := contract_by_label(address_or_label):
+            # found label by this name, continue with the address
+            address_or_label = address
 
     if type(address_or_label) == str:
         address_or_label = "0x" + address_or_label.replace("0x", '').zfill(40)
