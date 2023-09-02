@@ -243,7 +243,7 @@ class ContractRegistry:
         assert os.path.isdir(contract_registry_dir)
 
         for address, contract in self.registered_contracts.items():
-            serialize_to_file(contract, path=os.path.join(contract_registry_dir, HexBytes(address).hex()))
+            serialize_to_file(contract, path=os.path.join(contract_registry_dir, normalize_contract_address(address)))
 
     def reload_contract(self, contract_address) -> 'ContractRegistry':
         '''
