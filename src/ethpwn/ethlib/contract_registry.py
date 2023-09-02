@@ -265,8 +265,8 @@ class ContractRegistry:
             contract = deserialize_from_file(path=p)
 
             assert contract.address is not None
-            assert p.rsplit('.', 1)[0] == f"{HexBytes(contract.address).hex()}"
-            assert p.rsplit('.', 1)[-1] in ['json', 'msgpack']
+            assert p.rsplit('.', 1)[0] == address
+            assert p.rsplit('.', 1)[-1] in serialize_extensions()
             assert contract.address not in self.registered_contracts, f"Duplicate contract address {contract.address}"
             self.registered_contracts[contract.address] = contract
             return contract
