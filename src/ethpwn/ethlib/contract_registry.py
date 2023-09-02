@@ -221,46 +221,57 @@ class ContractRegistry:
         metadata is registered for the given contract address.
         '''
         address = normalize_contract_address(contract_address)
-        return self.registered_contracts.get(address, default)
+        if address in self.registered_contracts:
+            return self.registered_contracts[address]
 
-    # # handler for `registry[contract_address] = contract`
-    # def __setitem__(self, contract_address, contract: Contract):
-    #     address = normalize_contract_address(contract_address)
-    #     self.registered_contracts[address] = contract
+        # try to reload the contract from disk
+        if contract := self.reload_contract(address):
+            return contract
+
+        return default
 
     def __iter__(self) -> Iterator[Tuple[HexBytes, ContractInstance]]:
         return self.registered_contracts.items().__iter__()
 
-    def store(self, contract_registry_dir):
+    def store(self):
         '''
         Store the registry to the given directory. Creates the directory if it does not exist.
         Stores each contract metadata to `contract_registry_dir/<address>.json`.
         '''
+        contract_registry_dir = get_contract_registry_dir()
         os.makedirs(contract_registry_dir, exist_ok=True)
         assert os.path.isdir(contract_registry_dir)
 
         for address, contract in self.registered_contracts.items():
             serialize_to_file(contract, path=os.path.join(contract_registry_dir, HexBytes(address).hex()))
 
-    @staticmethod
-    def load(contract_registry_dir) -> 'ContractRegistry':
+    def reload_contract(self, contract_address) -> 'ContractRegistry':
         '''
-        Load the registry from the given directory. Loads each contract metadata from `contract_registry_dir/<address>.json`.
+        Load a contract from `contract_registry_dir/<address>.{msgpack,json}`.
         '''
+        address = normalize_contract_address(contract_address)
+        contract_registry_dir = get_contract_registry_dir()
         if not os.path.isdir(contract_registry_dir):
             return False
 
-        self = ContractRegistry()
+        paths = [
+            os.path.join(contract_registry_dir, normalize_contract_address(address) + extension)
+            for extension in serialize_extensions()
+        ]
+        for p in paths:
+            if not os.path.exists(p):
+                continue
 
-        for contract_file_name in os.listdir(contract_registry_dir):
-            contract = deserialize_from_file(path=os.path.join(contract_registry_dir, contract_file_name))
+            contract = deserialize_from_file(path=p)
+
             assert contract.address is not None
-            assert contract_file_name.rsplit('.', 1)[0] == f"{HexBytes(contract.address).hex()}"
-            assert contract_file_name.rsplit('.', 1)[-1] in ['json', 'msgpack']
+            assert p.rsplit('.', 1)[0] == f"{HexBytes(contract.address).hex()}"
+            assert p.rsplit('.', 1)[-1] in ['json', 'msgpack']
             assert contract.address not in self.registered_contracts, f"Duplicate contract address {contract.address}"
             self.registered_contracts[contract.address] = contract
-
-        return self
+            return contract
+        else:
+            return None
 
     def __rich_console__(self, console, options):
         table = Table(title="Contract Registry")
@@ -295,11 +306,7 @@ def load_or_create_contract_registry() -> ContractRegistry:
     '''
     Load the contract registry from disk if it exists, or create a new one if it does not exist.
     '''
-    contract_registry_dir = get_contract_registry_dir()
-    if os.path.isdir(contract_registry_dir):
-        return ContractRegistry.load(contract_registry_dir)
-    else:
-        return ContractRegistry()
+    return ContractRegistry()
 
 def convert_contract_registry_to_encoding(from_encoding, to_encoding):
     contract_registry_dir = get_contract_registry_dir()
