@@ -37,7 +37,7 @@ In addition to the compiled information accessible via the `ContractMetadata`, `
 
 #### Deploying smart contracts
 
-A contract instance can be retrieved either by deploying a (new) given contract via `ContractMetadata.deploy()`, or by the address of an already deployed contract via `ContractMetadata.get_contract_at()`.
+A contract instance can be retrieved either by deploying a new contract via `ContractMetadata.deploy()`, or by the address of an already deployed contract via `ContractMetadata.get_contract_at()`.
 
 ```python
 # deploy an instance of ContractA onto the blockchain
@@ -71,6 +71,8 @@ Lastly, it automatically launches `ethdbg` to debug the transaction in case it f
 
 #### Assembling and Disassembling EVM code
 
+Easily API to assemble and disassemble EVM bytecode!
+
 ```python
 >>> from ethpwn import *
 >>> bytecode = assemble_pro("""
@@ -100,6 +102,8 @@ Lastly, it automatically launches `ethdbg` to debug the transaction in case it f
 
 
 #### Testing EVM bytecode on-the-fly
+
+`pwnlib.runner.run_assembly` anyone? :)
 
 ```python
 >>> from ethpwn import *

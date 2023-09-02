@@ -66,7 +66,7 @@ Contracts are automatically added to the contract registry by `ethpwn` in the fo
 
 1. You deploy a smart contract via `ContractMetadata.deploy()`
 2. You interact with a verified contract on-chain (if you have a valid Etherscan API configured)
-3. You manually register contract metadata with a contract instance via `ContractMetadata.get_contract_at(<address>)`
+3. You manually register contract metadata with a contract instance via `ContractMetadata.get_contract_at(<address>)` (or using the [CLI](/ethpwn/ethpwn/cli/))
 
 `ethpwn` then stores this association in its global `ContractRegistry` object, which can be accessed via `contract_registry()`.
 The contract registry is stored locally on your machine in `~/.config/ethpwn/contract_registry/` by default and will be loaded every time you use `ethpwn`.
@@ -79,7 +79,7 @@ This allows you to transparently retrieve the metadata for these contracts witho
 
 To use this feature, set the `ETHERSCAN_API_KEY` environment variable to your etherscan API key, or add it to your `ethpwn` configuration file.
 
-Then you can use the following command to fetch the verified source code for the Uniswap Router contract:
+Then you can use the following command to fetch the verified source code for, e.g., the Uniswap Router contract:
 ```bash
 ethpwn contract fetch_verified_contract 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
 ```
@@ -95,7 +95,7 @@ instance = fetch_verified_contract(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D)
 instance = fetch_verified_contract(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, api_key='<YOUR_API_KEY>')
 ```
 
-## 🪪 ContractMetadata
+## 🗃 ContractMetadata
 Whenever you compile contracts within a Python script, `ethpwn` manages the compiled contract metadata in a *temporary*  `ContractMetadata` object that can be accessed via the `CONTRACT_METADATA` variable.
 
 Note that, this object does NOT persist after the termination of your script.
