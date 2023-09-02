@@ -12,7 +12,6 @@ from pathlib import Path
 from time import sleep
 from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union
 from hexbytes import HexBytes
-from web3.contract import Contract
 from ansi.color.fx import reset, bold
 from ansi.color.fg import red
 from rich.tree import Tree
@@ -371,7 +370,7 @@ class ContractMetadata(Serializable):
         insn_idx = self.closest_instruction_index_for_runtime_pc(pc, fork=fork)
         return self.source_info_for_runtime_instruction_idx(insn_idx)
 
-    def deploy(self, *constructor_args, **tx_extras) -> Tuple[HexBytes, Contract]:
+    def deploy(self, *constructor_args, **tx_extras) -> Tuple[HexBytes, 'ContractInstance']:
         '''
         Deploys an instance of this contract to the blockchain and registers it with the contract registry.
         '''
@@ -421,18 +420,14 @@ class ContractMetadata(Serializable):
             else:
                 context.logger.info("No funds to retrieve from contract %s", contract.address)
 
-    def get_contract_at(self, addr) -> Contract:
+    def get_contract_at(self, addr) -> 'ContractInstance':
         '''
         Returns a web3 contract instance for the contract at the given address. This will
         automatically register this contract instance with the contract registry.
         '''
         # pylint: disable=import-outside-toplevel
         from .contract_registry import register_contract_at_address
-        register_contract_at_address(self, addr)
-        return context.w3.eth.contract(
-            address=addr,
-            abi=self.abi
-        )
+        return register_contract_at_address(self, addr)
 
     def decode_function_input(self, data):
         '''
@@ -675,3 +670,5 @@ class ContractMetadataRegistry:
     #                 withjson.dump(file_data, f,
 
 CONTRACT_METADATA: ContractMetadataRegistry = ContractMetadataRegistry()
+
+from .contract_registry import ContractInstance

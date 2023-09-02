@@ -63,6 +63,7 @@ class ContractInstance(Serializable):
             best_effort_get_contract_address_and_tx_hash_and_receipt(address, deploy_tx_hash, deploy_tx_receipt)
 
         self.deploy_wallet = deploy_wallet if deploy_wallet is not None else get_wallet_by_address(self.address)
+        self._w3 = None
 
     # implement the Serializable interface
     def to_serializable(self):
@@ -89,13 +90,20 @@ class ContractInstance(Serializable):
         # now yield the metadata
         yield from self.metadata.__rich_console__(console, options)
 
+    @property
     def w3(self):
         '''
         Get a web3 contract object for this contract. Automatically has the correct ABI based on the metadata.
 
         :return: The web3 contract object
         '''
-        return context.w3.eth.contract(address=self.address, abi=self.metadata.abi)
+        if not self._w3:
+            self._w3 = context.w3.eth.contract(address=self.address, abi=self.metadata.abi)
+        return self._w3
+
+    @property
+    def functions(self):
+        return self.w3.functions
 
     def merge(self, other: 'ContractInstance') -> bool:
         '''
@@ -159,7 +167,7 @@ class ContractRegistry:
                                    deploy_tx_hash=None,
                                    deploy_tx_receipt: TxReceipt = None,
                                    deploy_wallet=None,
-                                   ):
+                                   ) -> ContractInstance:
         '''
         Add information about a deployed contract to the registry. If the contract is already registered, it is
         updated / merged with the new information.
@@ -182,6 +190,7 @@ class ContractRegistry:
 
         # on change, save the registry back to disk
         self.store(get_contract_registry_dir())
+        return self.registered_contracts[contract.address]
 
     # handler for `x in registry`
     def __contains__(self, contract_address) -> bool:
@@ -309,13 +318,13 @@ def convert_contract_registry_to_encoding(from_encoding, to_encoding):
         # remove the old file
         os.remove(os.path.join(contract_registry_dir, contract_file_name))
 
-def register_deployed_contract(metadata, address=None, deploy_tx_hash=None, deploy_tx_receipt: TxReceipt = None):
+def register_deployed_contract(metadata, address=None, deploy_tx_hash=None, deploy_tx_receipt: TxReceipt = None) -> ContractInstance:
     '''
     Helper function to easily register a deployed contract. If the contract is already registered, it is
     updated / merged with the new information.
     '''
     reg = contract_registry()
-    reg.register_contract_metadata(
+    return reg.register_contract_metadata(
         metadata,
         address,
         deploy_tx_hash,
@@ -323,13 +332,13 @@ def register_deployed_contract(metadata, address=None, deploy_tx_hash=None, depl
         deploy_wallet=get_wallet_by_address(deploy_tx_receipt['from'])
     )
 
-def register_contract_at_address(metadata, address):
+def register_contract_at_address(metadata, address) -> ContractInstance:
     '''
     Helper function to easily register a contract at a given address. If the contract is already registered, it is
     updated / merged with the new information.
     '''
     reg = contract_registry()
-    reg.register_contract_metadata(
+    return reg.register_contract_metadata(
         metadata,
         address,
         deploy_wallet=get_wallet_by_address(address)

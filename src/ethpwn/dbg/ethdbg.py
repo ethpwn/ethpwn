@@ -1770,7 +1770,6 @@ def main():
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethpwn/pwn/wallets.json )", default=None)
 
     parser.add_argument("--shellcode", help="test on-the-fly shellcode", default=None)
-    parser.add_argument("--deploy", help="contract deployment emulation", action='store_true')
 
     args = parser.parse_args()
 
@@ -1831,24 +1830,6 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
                                         block_number=args.block, calldata=args.calldata,
                                         full_context=args.full_context,
                                         custom_balance=args.balance)
-    elif args.target:
-        # interactive mode
-        # is the target an address?
-        if not re.match(ETH_ADDRESS, args.target):
-            print(f"{RED_COLOR}Invalid ETH address provided as target: {args.target}{RESET_COLOR}")
-            sys.exit()
-
-        if args.value is None:
-            value = 0
-        else:
-            value = int(args.value)
-
-        debug_target = TransactionDebugTarget(context.w3)
-        debug_target.new_transaction(to=args.target,
-                                     sender=args.sender, value=value,
-                                     calldata=args.calldata, block_number=args.block,
-                                     wallet_conf=wallet_conf, full_context=False,
-                                     custom_balance=args.balance)
 
     elif args.shellcode:
         # shellcode mode
@@ -1873,10 +1854,12 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
                                      custom_balance=args.balance
                                     )
 
-
-
-    elif args.deploy:
-        # deploy mode
+    else:
+        # interactive mode
+        # is the target an address?
+        if args.target and not re.match(ETH_ADDRESS, args.target):
+            print(f"{RED_COLOR}Invalid ETH address provided as target: {args.target}{RESET_COLOR}")
+            sys.exit()
 
         if args.value is None:
             value = 0
@@ -1884,18 +1867,11 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
             value = int(args.value)
 
         debug_target = TransactionDebugTarget(context.w3)
-        debug_target.new_transaction(to=None,
-                                     sender=args.sender,
-                                     value=value,
-                                     calldata=bytes.fromhex(args.calldata),
-                                     block_number=args.block,
-                                     wallet_conf=wallet_conf,
-                                     full_context=False,
-                                     custom_balance=args.balance
-                                    )
-    else:
-        print(f"{YELLOW_COLOR}No target address or txid provided.{RESET_COLOR}")
-        sys.exit()
+        debug_target.new_transaction(to=args.target,
+                                     sender=args.sender, value=value,
+                                     calldata=args.calldata, block_number=args.block,
+                                     wallet_conf=wallet_conf, full_context=False,
+                                     custom_balance=args.balance)
 
     # Load previous sessions history.
     load_cmds_history()
@@ -1904,19 +1880,21 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
     ethdbgshell.print_license()
 
     while True:
-        try:
-            ethdbgshell.cmdloop()
-        except KeyboardInterrupt:
-            print("")
-            continue
-        except ExitCmdException:
-            print("Program terminated.")
-            continue
-        except RestartDbgException:
-            old_breaks = ethdbgshell.breakpoints
+        import ipdb
+        with ipdb.launch_ipdb_on_exception():
+            try:
+                ethdbgshell.cmdloop()
+            except KeyboardInterrupt:
+                print("")
+                continue
+            except ExitCmdException:
+                print("Program terminated.")
+                continue
+            except RestartDbgException:
+                old_breaks = ethdbgshell.breakpoints
 
-            ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks)
-            ethdbgshell.cmdqueue.append("start\n")
+                ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks)
+                ethdbgshell.cmdqueue.append("start\n")
 
 if __name__ == '__main__':
     main()
