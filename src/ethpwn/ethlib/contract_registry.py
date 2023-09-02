@@ -191,7 +191,7 @@ class ContractRegistry:
             self.registered_contracts[contract.address] = contract
 
         # on change, save the registry back to disk
-        self.store(get_contract_registry_dir())
+        self.store()
         return self.registered_contracts[contract.address]
 
     # handler for `x in registry`
