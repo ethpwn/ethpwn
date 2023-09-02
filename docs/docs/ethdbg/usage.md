@@ -21,14 +21,14 @@ ethpwn config create
 
 Under the key `dbg` in the main configuration, the following options are available:
 
-| Option String | Option Summary | Default |
-|-------------------|----------|----------|
-|`show_opcodes_desc` | whether to display the description of the EVM opcodes in the disassembly | True |
-|`stop_on_returns` | whether you want `ethdbg` to always stop at RETURN opcodes | False |
-|`stop_on_reverts` | whether you want `ethdbg` to always stop at REVERT opcodes | True |
-|`hide_sstores` | whether you want to hide the sstores issued for the current account in the context view | False |
-|`hide_sloads` | whether you want to hide the sloads issued for the current account in the context view | False |
-|`hide_source_view` | whether you want to hide the Source View | False |
+| Option String       | Option Summary | Default |
+|---------------------|----------------|----------|
+|`show_opcodes_desc`  | whether to display the description of the EVM opcodes in the disassembly | True |
+|`stop_on_returns`    | whether you want `ethdbg` to always stop at RETURN opcodes | False |
+|`stop_on_reverts`    | whether you want `ethdbg` to always stop at REVERT opcodes | True |
+|`hide_sstores`       | whether you want to hide the sstores issued for the current account in the context view | False |
+|`hide_sloads`        | whether you want to hide the sloads issued for the current account in the context view | False |
+|`context_layout`     | The layout of the views to display in the context, for details see [Context Layout](/ethpwn/ethdbg/commands/context/) | "source,metadata,status,disass,stack,callstack" |
 |`source_view_cutoff` | the maximum amount of source code lines that are displayed | None |
 
 Here are two possible configuration files:
@@ -139,11 +139,6 @@ tr:nth-child(even) {
 | ['--calldata']     | False    | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
 | ['--wallet']       | False    | The default wallet in the `ethpwn` config | Name or address of the wallet in the configuration you want to use |
 | ['--shellcode']    | False    | None | EVM bytecode that we want to execute on-the-fly in ethdbg |
-
-| ❗️ Note                                                              |
-|----------------------------------------------------------------------|
-| Unless you are using the `--shellcode` option, either `--txid` or `--target` must be specified when starting `ethdbg` |
-
 
 ## 🚀 Examples Usage
 
