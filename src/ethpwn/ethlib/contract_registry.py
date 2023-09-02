@@ -255,7 +255,7 @@ class ContractRegistry:
             return False
 
         paths = [
-            os.path.join(contract_registry_dir, normalize_contract_address(address) + extension)
+            os.path.join(contract_registry_dir, f'{address}.{extension}')
             for extension in serialize_extensions()
         ]
         for p in paths:
