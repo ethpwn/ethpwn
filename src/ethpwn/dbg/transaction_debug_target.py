@@ -243,6 +243,7 @@ class TransactionDebugTarget:
         self.source_address = kwargs.pop('sender', None) or tx_data.get('from', None)
         self.calldata = kwargs.pop('calldata', None) or kwargs.pop('input', None) or tx_data.get('input', None)
         self.custom_balance = kwargs.pop('custom_balance', None) or None
+        
 
         for k, v in tx_data.items():
             k_snake = to_snake_case(k)
@@ -251,6 +252,8 @@ class TransactionDebugTarget:
                 setattr(self, k_snake, value)
             except AttributeError:
                 pass
+        
+        self.gas = kwargs.pop('custom_gas', None) or None
 
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
@@ -270,6 +273,7 @@ class TransactionDebugTarget:
         self.source_address = kwargs.pop('sender', None) or wallet_conf.address
         self.block_number = kwargs.pop('block_number', None) or  self.w3.eth.block_number
         self.custom_balance = kwargs.pop('custom_balance', None) or None
+        self.gas = kwargs.pop('custom_gas', None) or None
 
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)
@@ -295,6 +299,7 @@ class TransactionDebugTarget:
         self.source_address = kwargs.pop('sender', None) or wallet_conf.address
         self.block_number = kwargs.pop('block_number', None) or  self.w3.eth.block_number
         self.custom_balance = kwargs.pop('custom_balance', None) or None
+        self.gas = kwargs.pop('custom_gas', None) or None
 
         if type(self.block_number) == str:
             self.block_number = int(self.block_number, 10)

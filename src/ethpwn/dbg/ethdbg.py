@@ -334,6 +334,8 @@ class EthDbgShell(cmd.Cmd):
         # List of addresses of contracts that reverted
         self.reverted_contracts = set()
 
+        self.tx_start_gas = None
+
     def precmd(self, line):
         # Check if the command is valid, if yes, we save it
         if line != None and line != '' and "do_" + line.split(' ')[0] in [c for c in self.get_names() if "do" in c]:
@@ -603,7 +605,8 @@ class EthDbgShell(cmd.Cmd):
         self.callstack.append(origin_callframe)
 
         self.temp_break = True
-
+        self.tx_start_gas = self.debug_target.gas
+        
         try:
             receipt, comp = vm.apply_transaction(
                 header=vm.get_header(),
@@ -1233,7 +1236,7 @@ class EthDbgShell(cmd.Cmd):
 
         _metadata = f'EVM fork: [[{self.debug_target.fork}]] | Block: {self.debug_target.block_number!r} | Origin: {curr_origin}\n'
         _metadata += f'Current Code Account: {YELLOW_COLOR}{curr_account_code}{RESET_COLOR} | Current Storage Account: {YELLOW_COLOR}{curr_account_storage}{RESET_COLOR}\n'
-        _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Gas Used: {gas_used} | ⛽ Gas Remaining: {gas_remaining} '
+        _metadata += f'💰 Balance: {curr_balance} wei ({curr_balance_eth} ETH) | ⛽ Start Gas: {self.tx_start_gas} | ⛽ Gas Used: {gas_used} | ⛽ Gas Remaining: {gas_remaining}'
 
         return title + _metadata
 
@@ -1761,6 +1764,7 @@ def main():
     parser.add_argument("--txid", help="address of the smart contract we are debugging", default=None)
     parser.add_argument("--full-context", help="whether we should replay the previous txs before the target one", action='store_true')
     parser.add_argument("--sender", help="address of the sender", default=None)
+    parser.add_argument("--gas", help="initial gas you want to send", type=int, default=None)
     parser.add_argument("--balance", help="set a custom balance for the sender", default=None)
     parser.add_argument("--value",  help="amount of ETH to send", default=None)
     parser.add_argument("--node-url", help="url to connect to geth node (infura, alchemy, or private)", default=None)
@@ -1826,10 +1830,13 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
         # replay transaction mode
         debug_target = TransactionDebugTarget(context.w3)
         debug_target.replay_transaction(args.txid,
-                                        sender=args.sender, to=args.target,
-                                        block_number=args.block, calldata=args.calldata,
+                                        sender=args.sender, 
+                                        to=args.target,
+                                        block_number=args.block, 
+                                        calldata=args.calldata,
                                         full_context=args.full_context,
-                                        custom_balance=args.balance)
+                                        custom_balance=args.balance,
+                                        custom_gas=args.gas)
 
     elif args.shellcode:
         # shellcode mode
@@ -1851,7 +1858,8 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
                                      block_number=args.block,
                                      wallet_conf=wallet_conf,
                                      full_context=False,
-                                     custom_balance=args.balance
+                                     custom_balance=args.balance,
+                                     custom_gas=args.gas
                                     )
 
     else:
@@ -1868,10 +1876,14 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
 
         debug_target = TransactionDebugTarget(context.w3)
         debug_target.new_transaction(to=args.target,
-                                     sender=args.sender, value=value,
-                                     calldata=args.calldata, block_number=args.block,
-                                     wallet_conf=wallet_conf, full_context=False,
-                                     custom_balance=args.balance)
+                                     sender=args.sender, 
+                                     value=value,
+                                     calldata=args.calldata, 
+                                     block_number=args.block,
+                                     wallet_conf=wallet_conf, 
+                                     full_context=False,
+                                     custom_balance=args.balance,
+                                     custom_gas=args.gas)
 
     # Load previous sessions history.
     load_cmds_history()
