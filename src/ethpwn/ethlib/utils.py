@@ -105,6 +105,7 @@ class ChainName:
     MAINNET = 1
     SEPOLIA = 11155111
     AVALANCHE = 43114
+    BINANCE = 56
 
 
 def get_chainid(chain_name):
@@ -117,6 +118,8 @@ def get_chainid(chain_name):
         return 11155111
     elif chain_name == "avalanche":
         return 43114
+    elif chain_name == 'binance':
+        return 56
     else:
         raise Exception(f"Unknown chain name {chain_name}")
 
@@ -131,6 +134,8 @@ def get_chain_name(id):
         return "sepolia"
     elif id == 43114:
         return "avalanche"
+    elif id == 56:
+        return "binance"
     else:
         raise Exception("Unknown chain id")
 

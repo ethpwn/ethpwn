@@ -330,7 +330,7 @@ class ContractMetadata(Serializable):
         or at the given pc in the constructor bytecode.
         '''
         disass = disassemble_all(self.bin, pc=0, fork=fork)
-        insns = [i for i, insn in enumerate(disass) if i.pc <= pc]
+        insns = [i for i, insn in enumerate(disass) if insn.pc <= pc]
         # gets the closest instruction that is before the pc
         return insns[-1] if len(insns) >= 1 else None
 

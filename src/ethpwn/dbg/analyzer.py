@@ -647,6 +647,9 @@ def get_vm_for_block(block_number: int, w3: web3.Web3 = None, hook: OpcodeHook =
     elif w3.eth.chain_id == 11155111: # sepolia
         TargetVM = eth.vm.forks.shanghai.ShanghaiVM
 
+    elif w3.eth.chain_id == 56: # binance
+        TargetVM = eth.vm.forks.shanghai.ShanghaiVM
+
     if hook is None:
         return TargetVM
 

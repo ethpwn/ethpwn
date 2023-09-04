@@ -70,7 +70,7 @@ def get_source_code_view_for_pc(debug_target: TransactionDebugTarget, contract_a
     if contract is None:
         return None
 
-    if debug_target.target_address is None or int.from_bytes(HexBytes(debug_target.target_address), byteorder='big') == 0:
+    if contract_address == 'None' or int.from_bytes(HexBytes(contract_address), byteorder='big') == 0:
         closest_instruction_idx = contract.metadata.closest_instruction_index_for_constructor_pc(pc, fork=debug_target.fork)
         source_info = contract.metadata.source_info_for_constructor_instruction_idx(closest_instruction_idx)
     else:
@@ -594,9 +594,10 @@ class EthDbgShell(cmd.Cmd):
 
         self.started = True
 
-        addr = '0x0' if self.debug_target.target_address is None else self.debug_target.target_address
+        addr = 'None' if self.debug_target.target_address is None else '0x'+self.debug_target.target_address.replace('0x','').zfill(40)
+        
         origin_callframe = CallFrame(
-            '0x'+addr.replace('0x','').zfill(40),
+            addr,
             self.debug_target.source_address,
             self.debug_target.source_address,
             self.debug_target.value,
@@ -1078,7 +1079,7 @@ class EthDbgShell(cmd.Cmd):
 
         while len(worklist) != 0:
             node = worklist.pop()
-            if curr_storage_contract in node.label or curr_code_contracts in node.label:
+            if curr_storage_contract in node.label or (curr_code_contracts is not None and curr_code_contracts in node.label):
                 offset = node.label.find(curr_storage_contract)
                 if offset == -1:
                     offset = node.label.find(curr_code_contracts)
@@ -1155,9 +1156,14 @@ class EthDbgShell(cmd.Cmd):
             calltype_string = calltype_string.ljust(max_call_opcode_length)
             callsite_string = call.callsite.rjust(max_pc_length)
             call_addr = call.address
-            registry_contract = contract_registry().get(call_addr)
-            contract_name = registry_contract.metadata.contract_name if registry_contract else ''
+            if call_addr != 'None':
+                registry_contract = contract_registry().get(call_addr)
+                contract_name = registry_contract.metadata.contract_name if registry_contract else ''
+            else:
+                contract_name = ''
             msg_sender = call.msg_sender
+            if msg_sender is None:
+                msg_sender =  normalize_contract_address(self.comp.msg.sender.hex())
             calls_view += f'{call_addr:44} | {color}{calltype_string}{RESET_COLOR} | {callsite_string} | {msg_sender:44} | {call.value:12} | {contract_name}\n'
 
         return title + legend + calls_view
