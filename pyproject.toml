@@ -30,7 +30,7 @@ dependencies = [
     "alive-progress",
     "coolname",
     "msgpack",
-
+    "ipdb",
     "ethcx",
     "ethpwn-py-evm",
     "ethpwn-pyevmasm",
