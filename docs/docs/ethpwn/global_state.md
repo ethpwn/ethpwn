@@ -152,9 +152,9 @@ The following example relies on the following setup using the `ethpwn` CLI:
 ##########
 
 # set up labels for the contracts we want to use for easy access
-ethpwn contract label add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D uniswap-router
-ethpwn contract label add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH-token
-ethpwn contract label add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI-token
+ethpwn label add 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D uniswap-router
+ethpwn label add 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 WETH-token
+ethpwn label add 0x6B175474E89094C44Da98b954EedeAC495271d0F DAI-token
 
 # fetch the verified source code for the uniswap router contract from etherscan to access its metadata and ABI
 ethpwn contract fetch_verified_source 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D

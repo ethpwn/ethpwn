@@ -35,7 +35,7 @@ To provide source code, a user can either verify their contract source on Ethers
 
 ```bash
 # register a contract in the registry using the ethpwn CLI
-$ ethpwn contract register MyContractName 0x1234... MyContract.sol
+$ ethpwn contract register 0x1234... MyContractName  MyContract.sol
 
 # register a contract in the registry using the ethpwn python API
 >>> from ethpwn import *

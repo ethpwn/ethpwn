@@ -6,6 +6,8 @@ import sys
 from typing import Dict, List, Callable
 from rich import print as rprint
 
+from ..python_introspection_utils import extract_fully_annotated_args, parse_doc
+
 main_cli_parser = argparse.ArgumentParser()
 main_cli_parser.add_argument('--silent', action='store_true', help="Don't print anything")
 main_cli_subparsers = main_cli_parser.add_subparsers(dest='subcommand')
@@ -47,28 +49,10 @@ PRIMITIVE_TYPE_PARSERS = {
     int: lambda s: int(s, base=0),
     bool: lambda s: s.lower() in ['true', '1', 'yes'],
 }
-def parse_doc(doc: str):
-    param_docs = {}
-    return_doc = None
-    real_doc = ''
 
-    for line in doc.split('\n'):
-        line = line.strip()
-        if line.startswith(':param'):
-            line = line[6:].strip()
-            param_name, param_doc = line.split(':', maxsplit=1)
-            param_docs[param_name.strip()] = param_doc.strip()
-        elif line.startswith(':return:'):
-            line = line[8:].strip()
-            return_doc = line.strip()
-        else:
-            real_doc += line + '\n'
-
-    return param_docs, return_doc, real_doc.strip()
-
-def add_parser_arg(parser, name, type, default=None, help=None):
+def parser_arg_type_keys(name, type, default=None):
     if type in PRIMITIVE_TYPE_PARSERS:
-        parser.add_argument(name, type=PRIMITIVE_TYPE_PARSERS[type], default=default, help=help)
+        return dict(type=PRIMITIVE_TYPE_PARSERS[type], default=default)
 
     # check if it's a typing value and it has a __origin__
     elif hasattr(type, '__origin__'):
@@ -78,7 +62,7 @@ def add_parser_arg(parser, name, type, default=None, help=None):
             assert inner_type in PRIMITIVE_TYPE_PARSERS, f"unsupported type {type} for argument {name}"
             assert default is None or isinstance(default, list), f"invalid default value {default} for argument {name}"
             default = default or list()
-            parser.add_argument(name, type=PRIMITIVE_TYPE_PARSERS[inner_type], action='append', help=help, default=default)
+            return dict(type=PRIMITIVE_TYPE_PARSERS[inner_type], action='append', default=default)
 
         # check if it's typing.Dict
         elif type.__origin__ is dict:
@@ -87,10 +71,8 @@ def add_parser_arg(parser, name, type, default=None, help=None):
             assert value_type in PRIMITIVE_TYPE_PARSERS, f"unsupported type {type} for argument {name}"
             assert default is None or isinstance(default, dict), f"invalid default value {default} for argument {name}"
             default = default or dict()
-            parser.add_argument(
-                name,
+            return dict(
                 action=ParseKVAction,
-                help=help,
                 default=default,
                 key_type=key_type,
                 value_type=value_type
@@ -100,66 +82,51 @@ def add_parser_arg(parser, name, type, default=None, help=None):
             raise Exception(f"unsupported type {type} for argument {name}")
 
     else:
-        parser.add_argument(name, type=type, help=help, default=default)
+        return dict(type=type, default=default)
 
-def generate_subparser_for_function(subparsers: argparse._SubParsersAction, handlers: Dict[str, Callable], function: callable):
-    if type(function) is functools.partial:
-        # code = function.func.__code__
-        fname = function.func.__name__
-        argcount = function.func.__code__.co_argcount
-        varnames = function.func.__code__.co_varnames[:argcount][len(function.args):]
-        code_flags = function.func.__code__.co_flags
-        annotations = function.func.__annotations__
-        defaults = function.func.__defaults__ # strip the partial'ed args
-        func_doc = function.func.__doc__
-    else:
-        # code = function.__code__
-        fname = function.__name__
-        argcount = function.__code__.co_argcount
-        varnames = function.__code__.co_varnames[:argcount]
-        code_flags = function.__code__.co_flags
-        annotations = function.__annotations__
-        defaults = function.__defaults__
-        func_doc = function.__doc__
 
-    args = varnames
-    # we don't support *args or **kwargs
-    assert code_flags & (inspect.CO_VARARGS) == 0, f"unsupported function signature: *args in {fname}"
-    assert code_flags & inspect.CO_VARKEYWORDS != 0, f"must handle **kwargs in {fname}"
-    arg_types = annotations
-    defaults = defaults or []
-    if len(defaults) > 0:
-        args, kwargs = args[:-len(defaults)], args[-len(defaults):]
-    else:
-        args = args
-        kwargs = []
+def generate_subparser_for_function(subparsers: argparse._SubParsersAction, handlers: Dict[str, Callable], full_function: callable):
+    annotated_args = extract_fully_annotated_args(full_function)
+    unwrapped_function = full_function
+    while type(unwrapped_function) is functools.partial:
+        unwrapped_function = unwrapped_function.func
 
-    param_docs, return_doc, function_doc = parse_doc(func_doc)
+    param_docs, return_doc, function_doc = parse_doc(unwrapped_function.__doc__)
 
     # create the subparser
     try:
         short_help, _ = function_doc.split('\n\n', maxsplit=1)
     except ValueError:
         short_help = function_doc
-    p: argparse.ArgumentParser = subparsers.add_parser(fname, description=function_doc, help=short_help)
+    p: argparse.ArgumentParser = subparsers.add_parser(unwrapped_function.__name__, description=function_doc, help=short_help)
 
-    for i, arg in enumerate(args):
-        arg_type = arg_types.get(arg, str)
-        arg_doc = param_docs.get(arg, None)
-        arg = arg.replace('_', '-')
-        add_parser_arg(p, arg, arg_type, None, arg_doc)
+    for arg_dict in annotated_args:
+        arg_name = arg_dict['name']
+        arg_type = arg_dict.get('arg_type', str)
+        arg_default = arg_dict.get('default', None)
+        arg_doc = param_docs.get(arg_name, None)
+        arg_name = arg_name.replace('_', '-')
+        arg_name = '--' + arg_name if 'default' in arg_dict else arg_name
+        if arg_dict['kind'] == 'positional_only':
+            p.add_argument(arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc)
+        elif arg_dict['kind'] == 'positional_or_keyword':
+            p.add_argument(arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc)
+        elif arg_dict['kind'] == 'keyword_only':
+            p.add_argument(arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc)
+        elif arg_dict['kind'] == 'star_args':
+            p.add_argument(arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc, nargs='*')
+        elif arg_dict['kind'] == 'star_kwargs':
+            pass
+            # p.add_argument('--' + arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc, nargs='*')
+        else:
+            raise Exception(f"unknown arg kind {arg_dict['kind']}")
+    p.set_defaults(subcommand=unwrapped_function.__name__)
 
-    for kwarg, default in zip(kwargs, defaults):
-        arg_type = arg_types.get(kwarg, str)
-        arg_doc = param_docs.get(kwarg, None)
-        kwarg = kwarg.replace('_', '-')
-        add_parser_arg(p, f"--{kwarg}", arg_type, default, arg_doc)
-
-    function.__cli_parser__ = p
+    full_function.__cli_parser__ = p
 
     # add the function to the handlers
-    handlers[fname] = function
-    return function
+    handlers[unwrapped_function.__name__] = full_function
+    return full_function
 
 
 def parser_callable(subparsers, handlers):
@@ -219,5 +186,6 @@ cmdline = parser_callable(main_cli_subparsers, main_cli_handlers)
 
 from .config import *
 from .contract import *
+from .label import *
 from .wallet import *
 from .credential import *

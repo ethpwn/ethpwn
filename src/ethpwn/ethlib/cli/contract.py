@@ -35,20 +35,6 @@ def address(address_string: str, **kwargs):
     return normalize_contract_address(address_string)
 
 @contract_handler
-def deploy(contract_name,
-           constructor_args: List[str] = [],
-           tx_args: Dict[str, str] = {},
-           **kwargs):
-    '''
-    Deploy a contract and return the deployed contract instance.
-
-    Registers it in the contract registry. Optionally, you can provide the contract source code, or a list of source files to
-    compile the contract on the file.
-    '''
-    contract = CONTRACT_METADATA[contract_name]
-    return contract.deploy(*constructor_args, **tx_args)
-
-@contract_handler
 def get_default_import_remappings(sources: List[str], **kwargs):
     '''
     Print the default import remappings.
@@ -119,6 +105,7 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
     CONTRACT_METADATA.compile_solidity_files(sources, **kwargs)
     return CONTRACT_METADATA
 
+
 @contract_handler
 def convert_registry(from_encoding: str, to_encoding: str, **kwargs):
     '''
@@ -140,14 +127,35 @@ def convert_registry(from_encoding: str, to_encoding: str, **kwargs):
     convert_contract_registry_to_encoding(from_encoding, to_encoding)
 
 @contract_handler
-def register(contract_name: str, contract_address: HexBytes,
-             source_files: List[str]=None,
-             no_default_remappings: bool=False,
-             import_remappings: Dict[str, str]=None,
-             recover_opt_settings: bool=False,
-             solc_version: str=None,
-             **kwargs
-            ):
+def deploy( contract_name: str,
+            sources: List[str],
+            constructor_args: List[str]=[],
+            no_default_remappings: bool=False,
+            import_remappings: Dict[str, str]=None,
+            recover_opt_settings: bool=False,
+            solc_version: str=None,
+            tx_args: Dict[str, str] = {},
+           **kwargs):
+    '''
+    Deploy a contract and return the deployed contract instance.
+
+    Registers it in the contract registry. Optionally, you can provide the contract source code, or a list of source files to
+    compile the contract on the file.
+    '''
+    contract = CONTRACT_METADATA[contract_name]
+    return contract.deploy(*constructor_args, **tx_args)
+
+@contract_handler
+def register(
+    contract_address: HexBytes,
+    contract_name: str,
+    *sources: List[str],
+    no_default_remappings: bool=False,
+    import_remappings: Dict[str, str]=None,
+    recover_opt_settings: bool=False,
+    solc_version: str=None,
+    **kwargs
+):
     '''
     Register an instance of the contract `contract_name` at `contract_address` in the contract registry.
     Optionally, you can provide the contract source code, or a list of source files to compile the
@@ -158,9 +166,9 @@ def register(contract_name: str, contract_address: HexBytes,
     register a contract that was already deployed, but you don't know the optimizer settings that
     were used to compile it. This is a slow process, so it is disabled by default.
 
-    :param contract_name: the name of the contract
-    :param contract_address: the address of the contract
-    :param source_files: a list of source files to compile the contract
+    :param contract_address: the address of the contract on the blockchain
+    :param contract_name: the name of the contract class
+    :param sources: source files to compile
     :param no_default_remappings: whether to avoid using the default import remappings
     :param import_remappings: a list of import remappings to use when compiling the contract
     :param recover_opt_settings: whether to try to recover the optimizer settings that were used to compile the contract
@@ -169,7 +177,7 @@ def register(contract_name: str, contract_address: HexBytes,
     if no_default_remappings:
         _import_remappings = {}
     else:
-        _import_remappings = get_default_import_remappings(source_files)
+        _import_remappings = get_default_import_remappings(sources)
     _import_remappings.update(import_remappings or {})
 
     if _import_remappings:
@@ -178,14 +186,14 @@ def register(contract_name: str, contract_address: HexBytes,
     best_kwargs = {}
     if recover_opt_settings:
         # from .solidity_utils import try_match_optimizer_settings
-        if source_files is not None:
-            assert type(source_files) is list
+        if sources is not None:
+            assert type(sources) is list
             do_compile = functools.partial(
                 CONTRACT_METADATA.solidity_compiler.compile_files,
-                source_files
+                sources
             )
         else:
-            raise ValueError(f"Invalid parameters given: {source_files=!r} not given, but requested to recover optimizer settings.")
+            raise ValueError(f"Invalid parameters given: {sources=!r} not given, but requested to recover optimizer settings.")
         bin_runtime = context.w3.eth.get_code(contract_address)
         best_kwargs, meta, final_bytecode = try_match_optimizer_settings(
             do_compile,
@@ -194,8 +202,8 @@ def register(contract_name: str, contract_address: HexBytes,
             solc_versions=ethcx.get_installable_solc_versions() if solc_version is None else [solc_version],
         )
 
-    if source_files is not None:
-        CONTRACT_METADATA.compile_solidity_files(source_files, **best_kwargs)
+    if sources is not None:
+        CONTRACT_METADATA.compile_solidity_files(sources, **best_kwargs)
 
     contract = CONTRACT_METADATA[contract_name]
     return contract.get_contract_at(contract_address)
@@ -229,36 +237,3 @@ def decode_calldata(target_contract: HexBytes=None, calldata: HexBytes=None, tx_
     if metadata is not None:
         metadata = (metadata.source_file, metadata.contract_name)
     return metadata, decoded
-
-
-contracts_label_handler = subcommand_callable(contract_handler, 'label', __subcommand_doc='Manage contract labels')
-
-@contracts_label_handler
-def add(label: str, address: HexBytes, **kwargs):
-    '''
-    Add a label for a contract address.
-    '''
-    register_contract_label(address, label)
-
-@contracts_label_handler
-def get(address: HexBytes, **kwargs):
-    '''
-    Get the labels of a contract address.
-    '''
-    return labels_for_contract(address)
-
-@contracts_label_handler
-@rename('list')
-def _list(**kwargs):
-    '''
-    Show all contract labels.
-    '''
-    table = Table()
-    table.add_column("Contract Address")
-    table.add_column("Label")
-    for label, address in contract_labels().label_to_address.items():
-        table.add_row(
-            normalize_contract_address(address),
-            label
-        )
-    return table
