@@ -101,6 +101,10 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
     p: argparse.ArgumentParser = subparsers.add_parser(unwrapped_function.__name__, description=function_doc, help=short_help)
 
     for arg_dict in annotated_args:
+        if 'value' in arg_dict:
+            # already set by a functools.partial, can't be changed
+            continue
+
         arg_name = arg_dict['name']
         arg_type = arg_dict.get('arg_type', str)
         arg_default = arg_dict.get('default', None)
@@ -120,7 +124,6 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
             # p.add_argument('--' + arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc, nargs='*')
         else:
             raise Exception(f"unknown arg kind {arg_dict['kind']}")
-    p.set_defaults(subcommand=unwrapped_function.__name__)
 
     full_function.__cli_parser__ = p
 
