@@ -34,7 +34,7 @@ def create(**kwargs):
 
     node_urls = {}
     while node_url := input_node_url(f'Ethereum node URL #{len(node_urls)}: '):
-        context.connect_http(node_url)
+        context.connect(node_url)
         network = get_chain_name(int(context.w3.net.version))
         if network in node_urls:
             print(f'Node URL already added for network {network}. Please try again.')
@@ -115,7 +115,7 @@ def set_default_node_url(node_url: str, network: str=None, force: bool=False, **
     If `force` is True, the node URL is set anyway.
     In case a node URL is already set for `network`, a warning is printed and the user is prompted to confirm the change.
     '''
-    success = context.connect_http(node_url, can_fail=True)
+    success = context.connect(node_url, can_fail=True)
     if not success:
         if not force:
             context.logger.warning(

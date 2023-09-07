@@ -80,6 +80,7 @@ class ContractMetadata(Serializable):
                     compiler=None,
                     source_file=None,
                     contract_name=None,
+                    method_identifiers=None,
                     sources_by_id=None,
                     generated_sources_by_id_constructor=None,
                     generated_sources_by_id_runtime=None,
@@ -97,6 +98,7 @@ class ContractMetadata(Serializable):
         self.compiler = compiler
         self.source_file = source_file
         self.contract_name = contract_name
+        self.method_identifiers = method_identifiers or {}
         self.sources = sources_by_id
         self.generated_sources_constructor = generated_sources_by_id_constructor
         self.generated_sources_runtime = generated_sources_by_id_runtime
@@ -128,6 +130,14 @@ class ContractMetadata(Serializable):
             )
         return table
 
+    def _rich_table_for_method_identifiers(self, _console, _options):
+        table = Table(title="Method identifiers")
+        table.add_column("Signature")
+        table.add_column("Selector")
+        for sig, selector in self.method_identifiers.items():
+            table.add_row(sig, selector)
+        return table
+
     def _rich_table_for_storage_layout(self, _console, _options):
         table = Table(title="Storage layout")
         table.add_column("Type")
@@ -155,6 +165,8 @@ class ContractMetadata(Serializable):
         tree.add(f"{bold(self.contract_name)} ({self.source_file})")
         abi = tree.add(f"{bold('ABI')}")
         abi.add(self._rich_table_for_abi(console, options))
+        method_identifiers = tree.add(f"{bold('Method identifiers')}")
+        method_identifiers.add(self._rich_table_for_method_identifiers(console, options))
 
         if self.bin is not None:
             tree.add(f"{bold('Bytecode (constructor)')}")
@@ -181,6 +193,8 @@ class ContractMetadata(Serializable):
         source_file = str(Path(source_file).resolve())
         sources = _unify_sources(compiler, input_sources, output_sources)
 
+        import ipdb; ipdb.set_trace()
+
         abi = output_json['abi']
         bin_constructor = HexBytes(output_json['evm']['bytecode']['object'])
         bin_runtime = HexBytes(output_json['evm']['deployedBytecode']['object'])
@@ -196,6 +210,10 @@ class ContractMetadata(Serializable):
             src['generated'] = True
         storage_layout = output_json.get('storageLayout', {'types': [], 'storage': []})
 
+        method_identifiers = output_json['evm'].get('methodIdentifiers', {})
+        for sig, selector in method_identifiers.items():
+            register_signature_hash(sig, selector)
+
         return ContractMetadata(
             compiler,
             source_file=source_file,
@@ -209,6 +227,7 @@ class ContractMetadata(Serializable):
             srcmap=srcmap,
             srcmap_runtime=srcmap_runtime,
             storage_layout=storage_layout,
+            method_identifiers=method_identifiers,
         )
 
     # implement the Serializable interface
@@ -221,6 +240,7 @@ class ContractMetadata(Serializable):
             'compiler': self.compiler,
             'source_file': str(self.source_file),
             'contract_name': self.contract_name,
+            'method_identifiers': self.method_identifiers,
             'sources': self.sources,
             'generated_sources_constructor': self.generated_sources_constructor,
             'generated_sources_runtime': self.generated_sources_runtime,
@@ -241,6 +261,7 @@ class ContractMetadata(Serializable):
             compiler=value['compiler'],
             source_file=value['source_file'],
             contract_name=value['contract_name'],
+            method_identifiers=value.get('method_identifiers', None),
             sources_by_id=value['sources'],
             generated_sources_by_id_constructor=value['generated_sources_constructor'],
             generated_sources_by_id_runtime=value['generated_sources_runtime'],
@@ -275,6 +296,13 @@ class ContractMetadata(Serializable):
         else:
             assert self.compiler.startswith('solc-')
             return 'solc'
+
+    @property
+    def selectors(self):
+        '''
+        Fuck-e you Coglione.
+        '''
+        return self.method_identifiers
 
     def constructor_source_by_id(self, _id):
         '''
