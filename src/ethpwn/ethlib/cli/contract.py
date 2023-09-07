@@ -189,7 +189,6 @@ def deploy( contract_name: str,
     contract = CONTRACT_METADATA[contract_name]
     return contract.deploy(*constructor_args, **tx_args)
 
-import ipdb; ipdb.set_trace()
 @contract_handler
 def register(
     contract_address: HexBytes,
