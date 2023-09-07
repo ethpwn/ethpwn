@@ -28,6 +28,8 @@ from .compilation.srcmap import SymbolizedSourceMap, InstructionSourceInfo
 from .compilation.compiler_solidity import SolidityCompiler
 from .compilation.compiler_vyper import VyperCompiler
 
+from .hashes import register_signature_hash
+
 from pyevmasm import disassemble_all, Instruction
 
 def get_language_for_compiler(compiler):
@@ -192,9 +194,6 @@ class ContractMetadata(Serializable):
 
         source_file = str(Path(source_file).resolve())
         sources = _unify_sources(compiler, input_sources, output_sources)
-
-        import ipdb; ipdb.set_trace()
-
         abi = output_json['abi']
         bin_constructor = HexBytes(output_json['evm']['bytecode']['object'])
         bin_runtime = HexBytes(output_json['evm']['deployedBytecode']['object'])
