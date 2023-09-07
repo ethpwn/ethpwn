@@ -62,7 +62,7 @@ def parser_arg_type_keys(name, type, default=None):
             assert inner_type in PRIMITIVE_TYPE_PARSERS, f"unsupported type {type} for argument {name}"
             assert default is None or isinstance(default, list), f"invalid default value {default} for argument {name}"
             default = default or list()
-            return dict(type=PRIMITIVE_TYPE_PARSERS[inner_type], action='append', default=default)
+            return dict(type=PRIMITIVE_TYPE_PARSERS[inner_type], action='extend', default=default, nargs='*')
 
         # check if it's typing.Dict
         elif type.__origin__ is dict:
@@ -75,7 +75,7 @@ def parser_arg_type_keys(name, type, default=None):
                 action=ParseKVAction,
                 default=default,
                 key_type=key_type,
-                value_type=value_type
+                value_type=value_type,
             )
 
         else:
@@ -118,7 +118,7 @@ def generate_subparser_for_function(subparsers: argparse._SubParsersAction, hand
         elif arg_dict['kind'] == 'keyword_only':
             p.add_argument(arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc)
         elif arg_dict['kind'] == 'star_args':
-            p.add_argument(arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc, nargs='*')
+            p.add_argument(arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc)
         elif arg_dict['kind'] == 'star_kwargs':
             pass
             # p.add_argument('--' + arg_name, **parser_arg_type_keys(arg_name, arg_type, arg_default), help=arg_doc, nargs='*')

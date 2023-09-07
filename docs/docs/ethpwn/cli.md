@@ -4,8 +4,8 @@
 Most commands have a help page that should explain what a command will do, see for example
 ```bash
 ethpwn -h
-ethpwn wallets -h
-ethpwn wallets add -h
+ethpwn wallet -h
+ethpwn wallet add -h
 ```
 This should include descriptions of the behavior of the command as well as any arguments it takes.
 
@@ -18,7 +18,44 @@ The most used command is probably `ethpwn contract`, which can be used to manage
 ```bash
 $ ethpwn contract -h
 usage: ethpwn contract [-h]
-                       {address,deploy,get_default_import_remappings,compile,convert_registry,register,fetch_verified_contract,decode_calldata,name} ...
+                       {address,get_default_import_remappings,compile,convert_registry,deploy,register,fetch_verified_contract,decode_calldata}
+                       ...
+
+Manage contracts and their metadata
+
+positional arguments:
+  {address,get_default_import_remappings,compile,convert_registry,deploy,register,fetch_verified_contract,decode_calldata}
+    address             Parse an address string into an address. The string can be in checksummed, non-
+                        checksummed, or hex format.
+    get_default_import_remappings
+                        Print the default import remappings.
+    compile             Compile a contract. Returns the contract object. Optionally, you can provide the
+                        contract source code, or a list of source files to compile the contract on the
+                        file.
+    convert_registry    Convert the contract registry from one encoding to another. Valid encodings:
+                        'json', 'msgpack'
+    deploy              Deploy a contract and return the deployed contract instance.
+    register            Register an instance of the contract `contract_name` at `contract_address` in the
+                        contract registry. Optionally, you can provide the contract source code, or a list
+                        of source files to compile the contract first.
+    fetch_verified_contract
+                        Fetch the verified source code for the contract at `address` from Etherscan and
+                        register it in the code-registry. If the contract is not verified, an error is
+                        raised. If the contract is already registered, it is returned.
+    decode_calldata     Decode a transaction. Either `target_contract`+`calldata` or `tx_hash` must be
+                        provided.
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+
+$ ethpwn contract address 0x1234...
+
+# ONLY for testing, has no permanent effect, check to see if the contract compiles
+$ ethpwn contract compile --contract_name MyContract --source_file ~/Downloads/MyContract.sol
+
+# register a contract in the contract registry
+$ ethpwn contract register MyContract 0x1234... --source_file ~/Downloads/MyContract.sol
 ```
 
 ### Wallet management (`ethpwn wallet`)
@@ -51,7 +88,7 @@ $ ethpwn wallet add 0xd3362F22C6d517a405b0508a045C2A8861cA3267 <private_key> --n
 $ ethpwn wallet list
 Wallet(address='0xd3362F22C6d517a405b0508a045C2A8861cA3267', private_key=<blinded>, name='my_wallet', description="The best wallet ever", network='sepolia')
 
-$ ethpwn wallet my_wallet ethernaut
+$ ethpwn wallet balance my_wallet
 Wallet my_wallet (0xd3362F22C6d517a405b0508a045C2A8861cA3267) on sepolia has 4.784452377989923737 ether (4784452377989923737 wei)
 ```
 
@@ -83,4 +120,36 @@ $ ethpwn credential list
 
 $ ethpwn credential get etherscan
 <etherscan_api_key>
+```
+
+### Labels (`ethpwn label`)
+
+`ethpwn` allows you to label common ethereum addresses and contracts for convenient use in all other components of `ethpwn`. These labels are stored in the `ethpwn` configuration, and can be used to retrieve contracts from the registry. E.g. Contract addresses can be associated with multiple labels, however each label must be unique.
+
+```
+$ ethpwn label -h
+usage: ethpwn label [-h] {add,get,list} ...
+
+Manage contract labels
+
+positional arguments:
+  {add,get,list}
+    add           Add a label for a contract address.
+    get           Get the labels of a contract address.
+    list          Show all contract labels.
+
+optional arguments:
+  -h, --help      show this help message and exit
+
+$ ethpwn label add my_label 0x1234...
+
+$ ethpwn label get 0x1234...
+['my_label']
+
+$ ethpwn label list
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃ Contract Address                           ┃ Label             ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ 0x1234...                                  │ asdf              │
+└────────────────────────────────────────────┴───────────────────┘
 ```

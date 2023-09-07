@@ -126,6 +126,30 @@ def convert_registry(from_encoding: str, to_encoding: str, **kwargs):
 
     convert_contract_registry_to_encoding(from_encoding, to_encoding)
 
+def recover_optimizer_settings(bin_runtime, contract_name, sources, solc_version=None):
+    assert type(sources) is list
+    do_compile = functools.partial(
+        CONTRACT_METADATA.solidity_compiler.compile_files,
+        sources
+    )
+    best_kwargs, meta, final_bytecode = try_match_optimizer_settings(
+            do_compile,
+            contract_name,
+            bin_runtime=bin_runtime,
+            solc_versions=ethcx.get_installable_solc_versions() if solc_version is None else [solc_version],
+        )
+    return best_kwargs, meta, final_bytecode
+
+def update_import_remappings(sources, no_default_remappings=False, import_remappings=None, **kwargs):
+    if no_default_remappings:
+        _import_remappings = {}
+    else:
+        _import_remappings = get_default_import_remappings(sources)
+    _import_remappings.update(import_remappings or {})
+
+    if _import_remappings:
+        CONTRACT_METADATA.solidity_compiler.add_import_remappings(_import_remappings)
+
 @contract_handler
 def deploy( contract_name: str,
             sources: List[str],
@@ -142,14 +166,35 @@ def deploy( contract_name: str,
     Registers it in the contract registry. Optionally, you can provide the contract source code, or a list of source files to
     compile the contract on the file.
     '''
+    if not sources:
+        raise ValueError("Must provide sources to deploy a contract")
+
+    update_import_remappings(
+        sources,
+        no_default_remappings=no_default_remappings,
+        import_remappings=import_remappings
+    )
+    if recover_opt_settings:
+        best_kwargs, _, _ = recover_opt_settings(
+            None,
+            contract_name,
+            sources,
+            solc_version=solc_version
+        )
+    else:
+        best_kwargs = {}
+
+    CONTRACT_METADATA.compile_solidity_files(sources, **best_kwargs)
+
     contract = CONTRACT_METADATA[contract_name]
     return contract.deploy(*constructor_args, **tx_args)
 
+import ipdb; ipdb.set_trace()
 @contract_handler
 def register(
     contract_address: HexBytes,
     contract_name: str,
-    *sources: List[str],
+    sources: List[str],
     no_default_remappings: bool=False,
     import_remappings: Dict[str, str]=None,
     recover_opt_settings: bool=False,
@@ -173,37 +218,26 @@ def register(
     :param import_remappings: a list of import remappings to use when compiling the contract
     :param recover_opt_settings: whether to try to recover the optimizer settings that were used to compile the contract
     '''
+    if not sources:
+        raise ValueError("Must provide sources to register a contract")
 
-    if no_default_remappings:
-        _import_remappings = {}
-    else:
-        _import_remappings = get_default_import_remappings(sources)
-    _import_remappings.update(import_remappings or {})
-
-    if _import_remappings:
-        CONTRACT_METADATA.solidity_compiler.add_import_remappings(_import_remappings)
-
-    best_kwargs = {}
+    update_import_remappings(
+        sources,
+        no_default_remappings=no_default_remappings,
+        import_remappings=import_remappings
+    )
     if recover_opt_settings:
-        # from .solidity_utils import try_match_optimizer_settings
-        if sources is not None:
-            assert type(sources) is list
-            do_compile = functools.partial(
-                CONTRACT_METADATA.solidity_compiler.compile_files,
-                sources
-            )
-        else:
-            raise ValueError(f"Invalid parameters given: {sources=!r} not given, but requested to recover optimizer settings.")
         bin_runtime = context.w3.eth.get_code(contract_address)
-        best_kwargs, meta, final_bytecode = try_match_optimizer_settings(
-            do_compile,
+        best_kwargs, _, _ = recover_opt_settings(
+            bin_runtime,
             contract_name,
-            bin_runtime=bin_runtime,
-            solc_versions=ethcx.get_installable_solc_versions() if solc_version is None else [solc_version],
+            sources,
+            solc_version=solc_version
         )
+    else:
+        best_kwargs = {}
 
-    if sources is not None:
-        CONTRACT_METADATA.compile_solidity_files(sources, **best_kwargs)
+    CONTRACT_METADATA.compile_solidity_files(sources, **best_kwargs)
 
     contract = CONTRACT_METADATA[contract_name]
     return contract.get_contract_at(contract_address)

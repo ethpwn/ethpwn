@@ -231,7 +231,15 @@ class ContractRegistry:
         return default
 
     def __iter__(self) -> Iterator[Tuple[HexBytes, ContractInstance]]:
-        return self.registered_contracts.items().__iter__()
+        '''
+        Iterate over all registered contracts. Yields tuples of (contract_address, contract).
+        '''
+        for f in os.listdir(get_contract_registry_dir()):
+
+            if f.rsplit('.', 1)[-1] not in serialize_extensions():
+                continue
+            addr = f.rsplit('.', 1)[0]
+            yield self.reload_contract(addr)
 
     def store(self):
         '''
@@ -245,7 +253,7 @@ class ContractRegistry:
         for address, contract in self.registered_contracts.items():
             serialize_to_file(contract, path=os.path.join(contract_registry_dir, normalize_contract_address(address)))
 
-    def reload_contract(self, contract_address) -> 'ContractRegistry':
+    def reload_contract(self, contract_address) -> 'ContractInstance':
         '''
         Load a contract from `contract_registry_dir/<address>.{msgpack,json}`.
         '''
