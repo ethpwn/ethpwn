@@ -595,7 +595,7 @@ class EthDbgShell(cmd.Cmd):
         self.started = True
 
         addr = 'None' if self.debug_target.target_address is None else '0x'+self.debug_target.target_address.replace('0x','').zfill(40)
-        
+
         origin_callframe = CallFrame(
             addr,
             self.debug_target.source_address,
@@ -607,7 +607,7 @@ class EthDbgShell(cmd.Cmd):
 
         self.temp_break = True
         self.tx_start_gas = self.debug_target.gas
-        
+
         try:
             receipt, comp = vm.apply_transaction(
                 header=vm.get_header(),
@@ -654,24 +654,70 @@ class EthDbgShell(cmd.Cmd):
             quick_view = self._get_quick_view(arg)
             print(quick_view)
 
-    def do_calldata(self, arg):
+    def do_hextoint(self, arg):
+        # make sure arg is valid hex number and return integer representation
+        try:
+            num = int(arg, 16)
+            print(f'{num}')
+        except Exception:
+            print(f'Invalid hex number')
+            return None
+
+    def do_inttohex(self, arg):
+        # make sure arg is valid hex number and return integer representation
+        try:
+            num = int(arg, 10)
+            print(f'{hex(num)}')
+        except Exception:
+            print(f'Invalid hex number')
+            return None
+
+    def do_calldata(self, args):
         '''
         Print the original calldata of the transaction
         Usage: calldata
         '''
-        if self.debug_target.debug_type == 'shellcode':
-            print(f'{self.debug_target.calldata}')
-            print(f'{RED_COLOR}(Cannot change calldata in shellcode mode){RESET_COLOR}')
+        if not self.started:
+            target_calldata = self.debug_target.calldata
         else:
-            if arg and not self.started:
+            target_calldata = self.comp.msg.data.hex()
+
+        read_args = args.split(" ")
+
+        # Ok there are arguments
+        if len(read_args) >= 1 and read_args[0] != '':
+
+            if read_args[0].startswith('+'):
+                # Sliced display
                 try:
-                    self.debug_target.calldata = arg
+                    start_offset = int(read_args[0][1:], 10) * 2
                 except Exception:
-                    print(f'Invalid calldata: {arg}')
-            elif not arg and not self.started:
-                print(f'{self.debug_target.calldata}')
+                    print(f'Invalid offset')
+                    return None
+
+                # Did the user also specify a size?
+                if len(read_args) > 1:
+                    try:
+                        size = int(read_args[1], 10) * 2
+                        end_offset = min(start_offset + size, len(target_calldata))
+                    except Exception:
+                        print(f'Invalid size')
+                        return None
+                else:
+                    end_offset = len(target_calldata)
+
+                print(f'{target_calldata[start_offset:end_offset]}')
+
             else:
-                print(f'{self.comp.msg.data.hex()}')
+                # Just want to set the calldata to something else
+                # this is valid ONLY if the debugger is not started yet.
+                if not self.started and self.debug_target.debug_type != 'shellcode':
+                    self.debug_target.calldata = args
+                else:
+                    print(f'{target_calldata}')
+        else:
+            # Ok, just print the whole thing
+            print(f'{target_calldata}')
 
     def do_weitoeth(self, arg):
         '''
@@ -1836,9 +1882,9 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
         # replay transaction mode
         debug_target = TransactionDebugTarget(context.w3)
         debug_target.replay_transaction(args.txid,
-                                        sender=args.sender, 
+                                        sender=args.sender,
                                         to=args.target,
-                                        block_number=args.block, 
+                                        block_number=args.block,
                                         calldata=args.calldata,
                                         full_context=args.full_context,
                                         custom_balance=args.balance,
@@ -1882,11 +1928,11 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
 
         debug_target = TransactionDebugTarget(context.w3)
         debug_target.new_transaction(to=args.target,
-                                     sender=args.sender, 
+                                     sender=args.sender,
                                      value=value,
-                                     calldata=args.calldata, 
+                                     calldata=args.calldata,
                                      block_number=args.block,
-                                     wallet_conf=wallet_conf, 
+                                     wallet_conf=wallet_conf,
                                      full_context=False,
                                      custom_balance=args.balance,
                                      custom_gas=args.gas)
