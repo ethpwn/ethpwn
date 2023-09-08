@@ -33,6 +33,7 @@ from ..ethlib.utils import normalize_contract_address
 from ..ethlib.config.wallets import get_wallet
 from ..ethlib.config.dbg import DebugConfig
 from ..ethlib.config import get_default_global_config_path
+from ..ethlib.assembly_utils import disassemble_all
 
 from .breakpoint import Breakpoint, ETH_ADDRESS
 from .analyzer import Analyzer
@@ -671,6 +672,60 @@ class EthDbgShell(cmd.Cmd):
         except Exception:
             print(f'Invalid hex number')
             return None
+
+    @only_when_started
+    def do_disass(self, args):
+        '''
+        Disassemble bytecode starting from a specific pc
+        Usage: disass <pc> <num_instructions>
+        '''
+        read_args = args.split(" ")
+        if len(read_args) != 2:
+            print("Usage: disass <pc> <num_instructions>")
+            return
+        else:
+            try:
+                pc, num_isns = args.split(" ")[0], args.split(" ")[1]
+
+                num_isns = int(read_args[1], 0)
+                pc = int(read_args[0], 16)
+
+                with self.comp.code.seek(pc):
+                    opcode_bytes = self.comp.code.read(64) # max 32 byte immediate + 32 bytes should be enough, right???
+
+                assert self.debug_target.fork is not None
+
+                if opcode_bytes:
+                    insn: Instruction = disassemble_one(opcode_bytes, pc=pc, fork=self.debug_target.fork)
+                    assert insn is not None, "64 bytes was not enough to disassemble?? or this is somehow an invalid opcode??"
+                else:
+                    return
+
+                _next_opcodes_str = f''
+
+                for _ in range(0,num_isns):
+                    pc += insn.size
+                    with self.comp.code.seek(pc):
+                        opcode_bytes = self.comp.code.read(64)
+                    if opcode_bytes:
+                        insn: Instruction = disassemble_one(opcode_bytes, pc=pc, fork=self.debug_target.fork)
+                        if insn is None:
+                            # we are done here
+                            break
+                        else:
+                            hex_bytes = ' '.join(f'{b:02x}' for b in insn.bytes[:5])
+                            if insn.size > 5: hex_bytes += ' ...'
+                            if self.show_opcodes_desc:
+                                _next_opcodes_str += f'  {pc:#06x}  {hex_bytes:18} {str(insn):20}    // {insn.description}\n'
+                            else:
+                                _next_opcodes_str += f'  {pc:#06x}  {hex_bytes:18} {str(insn):20}\n'
+                    else:
+                        break
+
+                print(_next_opcodes_str)
+
+            except Exception as e:
+                print(f'{RED_COLOR}Error during disassemble: {e}{RESET_COLOR}')
 
     def do_calldata(self, args):
         '''

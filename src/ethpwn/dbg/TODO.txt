@@ -12,23 +12,21 @@ EXTRAS:
 11- Support execution of TX from top of block, end, or specific position (more advanced)
     - Executing always at the top might not work in some cases (balance of tokens for a contract)
 12- Decode strings if they look like strings when printing the disassembly or the stack
-13- Custom gas for transactions
-14- Order sstores and sloads temporarly (otherwise it's impossible to understand in which order this things happened)
-15- Probably need this to support Avalanche:
+13- Order sstores and sloads temporarly (otherwise it's impossible to understand in which order this things happened)
+14- Probably need this to support Avalanche:
     - https://stackoverflow.com/questions/69334835/get-avalanche-block-data-by-block-hash-with-web3-py
-16- Collect the pre-image and show them when there is an sstore on a map/array.
-17- add dynamic provenance (use-def plugin printed with rich tree)
-18- add code_address:storage_address for each log in the log_op
-19- add break when opcode is X and its arguments are X,Y,Z.
-20- add memory watchpoints
-
+15- Collect the pre-image and show them when there is an sstore on a map/array.
+16- add dynamic provenance (use-def plugin printed with rich tree)
+17- add code_address:storage_address for each log in the log_op
+18- add break when opcode is X and its arguments are X,Y,Z.
+19- add memory watchpoints
+20- disassemble by pc
 
 PRIORITY:
 1- Avoid to re-execute all the txs to bring the EVM in the right state when replay (snapshot it?) (snapshot + checkpoint)
-2- Polishing!
 
 NEW:
 
 BUGS:
-0x53a9a0bbc478632da7c3a28883eb8e501708c136 does not compile due to import name non-sense
+
 
