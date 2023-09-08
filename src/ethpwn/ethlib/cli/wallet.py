@@ -1,4 +1,5 @@
 import functools
+import web3
 
 from . import subcommand_callable, cmdline, rename
 from ..config import update_config
@@ -54,6 +55,27 @@ def add(address: str, private_key: str, name: str=None, description=None, networ
         name = generate_slug()
 
     wallet = Wallet(address, private_key, name=name, description=description, network=network)
+    add_wallet(wallet)
+    update_config()
+    return wallet
+
+@wallet_handler
+def create(name: str=None, description=None, network=None, **kwargs):
+    '''
+    Create a new wallet and add it to the wallet registry.
+    '''
+
+    if network:
+        get_chainid(network) # validate the network name
+    else:
+        network = 'mainnet'
+
+    if name is None:
+        name = generate_slug()
+
+    new_account = web3.Account.create()
+
+    wallet = Wallet(new_account.address, new_account.key.hex(), name=name, description=description, network=network)
     add_wallet(wallet)
     update_config()
     return wallet
