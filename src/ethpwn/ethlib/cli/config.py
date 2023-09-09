@@ -1,8 +1,12 @@
 import json
 import os
+import web3
 
-from ..user_input import input_bool, input_node_url, input_pick_choice_with_default, input_pick_from_list, input_wallet
+from coolname import generate_slug
+
+from ..user_input import input_bool, input_node_url, input_pick_choice_with_default, input_pick_from_list, input_wallet, input_wallet_creation
 from ..config import get_default_global_config_path, get_default_wallet_path, reload_default_config, save_config_as_default_config, update_config
+from ..config.wallets import Wallet
 from ..utils import get_chain_name
 from ..global_context import context
 from ..config.misc import get_default_node_url, set_default_node_url as _set_default_node_url, set_default_network as _set_default_network
@@ -33,29 +37,53 @@ def create(**kwargs):
     """)
 
     node_urls = {}
-    while node_url := input_node_url(f'Ethereum node URL #{len(node_urls)}: '):
+    while node_url := input_node_url(f'Ethereum node URL #{len(node_urls)}'):
         context.connect(node_url)
         network = get_chain_name(int(context.w3.net.version))
         if network in node_urls:
             print(f'Node URL already added for network {network}. Please try again.')
             continue
-        node_urls[network] = network
+        node_urls[network] = node_url
+
+    if not node_urls:
+        print('No node URLs specified. Please try again.')
+        return False
 
     print("Select the default network to use.")
     keys = list(node_urls.keys())
-    index = input_pick_from_list(keys)
+    index = input_pick_from_list(keys) if len(keys) > 1 else 0
     network = keys[index]
 
     print("Next, we need to know the wallets you'd like to use.")
     wallets = []
-    while True:
-        wallet = input_wallet()
+
+    choice = input_wallet_creation("Do you want to create a new wallet or importing an existing one?")
+
+    if choice == 'import':
+        while True:
+            wallet = input_wallet()
+            wallets.append(wallet)
+            if not input_bool("Add another wallet? "):
+                break
+    else:
+        # ask user for a name for the wallet
+        name = input("Wallet name? (optional): ")
+        desc = input("Wallet description? (optional): ")
+
+        if name is None:
+            name = generate_slug()
+
+        new_account = web3.Account.create()
+
+        wallet = Wallet(new_account.address, new_account.key.hex(), name=name, description=desc, network=network)
         wallets.append(wallet)
-        if not input_bool("Add another wallet? "):
-            break
+
+    if not wallets:
+        print('No wallets specified. Please try again.')
+        return False
 
     print("Select the default wallet to use.")
-    default_index = input_pick_from_list(wallets)
+    default_index = input_pick_from_list(wallets) if len(wallets) > 1 else 0
     default_wallet = wallets.pop(default_index)
     wallets.insert(0, default_wallet)
 

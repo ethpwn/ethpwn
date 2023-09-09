@@ -6,7 +6,7 @@ from hexbytes import HexBytes
 
 def input_until_valid(prompt, invalid_reason, stop_on_blank=True):
     while True:
-        value = input(prompt + " (leave blank to cancel): " if stop_on_blank else prompt + ": ")
+        value = input(prompt + ": ")
         if not value.strip():
             if stop_on_blank:
                 return None
@@ -37,7 +37,7 @@ def input_pick_choice_with_default(prompt, choices, default, parse=str):
         if value not in choices:
             return f"Invalid value: {value} must be one of {choices}"
 
-    return input_until_valid(prompt, invalid_reason) or default
+    return input_until_valid(prompt + f" (default: {default!r}, choices={choices!r})", invalid_reason) or default
 
 def input_pick_from_list(choices, repr_func=repr):
     for i, choice in enumerate(choices):
@@ -51,7 +51,7 @@ def input_pick_from_list(choices, repr_func=repr):
         if value < 0 or value >= len(choices):
             return f"{value} must be between 0 and {len(choices)-1}"
 
-    return int(input_until_valid("Pick a choice: ", invalid_reason))
+    return int(input_until_valid("Pick a choice: ", invalid_reason, stop_on_blank=False))
 
 def _reason_invalid_node_url(value):
     if not value.strip():
@@ -117,6 +117,9 @@ def input_network(prompt):
 
 def input_bool(prompt):
     return input_pick_choice(prompt + " [y/n] ", ["y", "n"], parse=lambda x: x.lower()) == 'y'
+
+def input_wallet_creation(prompt):
+    return input_pick_choice_with_default(prompt, ["new", "import"], 'new', parse=lambda x: x.lower())
 
 def input_wallet():
     # first, should we create a new wallet or use an existing one?
