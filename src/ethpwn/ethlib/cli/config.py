@@ -49,6 +49,8 @@ def create(**kwargs):
         print('No node URLs specified. Please try again.')
         return False
 
+    print(f'✅ Successfully connected to node: {node_url}')
+
     print("Select the default network to use.")
     keys = list(node_urls.keys())
     index = input_pick_from_list(keys) if len(keys) > 1 else 0
@@ -118,6 +120,7 @@ def default_network(set_to: str = None, **kwargs):
     else:
         context.network = set_to
         update_config()
+        print(f'✅ Default network switched to: {set_to}')
 
 
 @config_handler
