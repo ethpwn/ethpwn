@@ -418,7 +418,7 @@ class ContractMetadata(Serializable):
                                    deploy_tx_receipt=tx_receipt
                                    )
 
-        return tx_hash, self.get_contract_at(address)
+        return tx_hash, self.get_contract_at(address).address
 
     @contextmanager
     def deploy_destructible(self, *constructor_args, **tx_extras):
