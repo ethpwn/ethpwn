@@ -107,6 +107,13 @@ class ContractInstance(Serializable):
     def functions(self):
         return self.w3.functions
 
+    @property
+    def balance(self):
+        '''
+        Get the balance of this contract.
+        '''
+        return context.w3.eth.get_balance(self.address)
+
     def merge(self, other: 'ContractInstance') -> bool:
         '''
         Merge the given contract into this contract. Ensures changes are compatible, e.g. if the address is already set, it cannot be changed. Information can only be added. See `update()` for more details.
