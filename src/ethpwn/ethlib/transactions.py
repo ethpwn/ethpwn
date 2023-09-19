@@ -162,9 +162,9 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
             transaction_hash = context.w3.eth.send_raw_transaction(tx_signed.rawTransaction)
             break
         except ValueError as e:
-            if e.args[0]['message'] in ERRORS_TO_RETRY:
-                context.logger.warn(f"Spurious error {e.args[0]['message']}, blockchain sucks, retrying after 1 second ({i+1}/{retry})")
-                time.sleep(1)
+            if any(element in e.args[0]['message'] for element in ERRORS_TO_RETRY):
+                context.logger.warn(f"Spurious error {e.args[0]['message']}, retrying after 1 second ({i+1}/{retry})")
+                time.sleep(1*retry*2)
                 if i != retry - 1:
                     continue
             raise
