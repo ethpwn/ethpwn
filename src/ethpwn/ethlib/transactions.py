@@ -105,7 +105,7 @@ def debug_onchain_transaction(tx_hash):
     ])
     input("Continue? ")
 
-ERRORS_TO_RETRY = ("nonce too low", "replacement transaction underpriced")
+ERRORS_TO_RETRY = ("replacement transaction underpriced")
 
 def transact(contract_function=None, private_key=None, force=False, wait_for_receipt=True,
              from_addr=None, retry=3, debug_transaction_errors=None, **tx
@@ -156,18 +156,22 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
         else:
             raise InsufficientFundsError(funds_required, balance, err_msg)
 
-    tx_signed = context.w3.eth.account.sign_transaction(tx, private_key=private_key)
     for i in range(retry):
         try:
+            tx_signed = context.w3.eth.account.sign_transaction(tx, private_key=private_key)
             transaction_hash = context.w3.eth.send_raw_transaction(tx_signed.rawTransaction)
             break
         except ValueError as e:
-            if any(element in e.args[0]['message'] for element in ERRORS_TO_RETRY):
+            if "nonce too low" in e.args[0]['message']:
+                tx['nonce'] = tx['nonce'] + 1
+                continue
+            elif any(element in e.args[0]['message'] for element in ERRORS_TO_RETRY):
                 context.logger.warn(f"Spurious error {e.args[0]['message']}, retrying after 1 second ({i+1}/{retry})")
-                time.sleep(1*retry*2)
-                if i != retry - 1:
-                    continue
-            raise
+                time.sleep(retry*2)
+                if i == retry - 1:
+                    raise
+            else:
+                raise
 
     context.logger.info(f"Sent transaction {contract_function}: {context.w3.to_hex(transaction_hash)}: {from_addr} -> {tx['to']} ({ether(tx['value'])} ether)")
 
