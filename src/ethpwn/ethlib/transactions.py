@@ -135,7 +135,7 @@ def transact(contract_function=None, private_key=None, force=False, wait_for_rec
         except:
             if force:
                 context.logger.warn(f"Failed to estimate gas, using 2 million instead (forced, continuing anyway)")
-                tx['gas'] = 200000
+                tx['gas'] = 2_000_000
             else:
                 if debug_transaction_errors:
                     debug_simulated_transaction(tx)
