@@ -303,6 +303,9 @@ class EthDbgShell(cmd.Cmd):
         self.sloads = {}
         self.hide_sloads = DebugConfig.hide_sloads
 
+        # list of logs emitted by the transaction
+        self.logs = []
+
         self.context_layout = DebugConfig.context_layout
         self.source_view_cutoff = DebugConfig.source_view_cutoff
 
@@ -903,6 +906,20 @@ class EthDbgShell(cmd.Cmd):
                 print(f'Account: {BOLD_TEXT}{BLUE_COLOR}{ref_account}{RESET_COLOR}:')
                 for sload_slot, sload_val in sloads.items():
                     print(f' {CYAN_COLOR}[r]{RESET_COLOR} Slot: {sload_slot} | Value: {HexBytes(sload_val).hex()}')
+
+    @only_when_started
+    def do_logs(self, arg):
+        '''
+        Print all the logs that have been emitted so far
+        Usage: logs
+        '''
+        for idx_log, log in enumerate(self.logs):
+            code_addr = log[0]
+            mnemonic = log[1]
+            topics = log[2]
+            print(f' {GREEN_COLOR} 📨 Contract: {code_addr} | Mnemonic: {mnemonic} {RESET_COLOR}')
+            for tidx, t in enumerate(topics):
+                print(f'  {YELLOW_COLOR}Topic{tidx}:{RESET_COLOR} {t} ')
 
     def do_breaks(self,arg):
         '''
@@ -1723,6 +1740,16 @@ class EthDbgShell(cmd.Cmd):
             else:
                 self.sloads[ref_account][slot_id] = slot_val
 
+        if "LOG" in opcode.mnemonic:
+            n_topics = int(opcode.mnemonic[-1])
+            offset = hex(read_stack_int(computation, 1))
+            size = hex(read_stack_int(computation, 2))
+            emitted_topics = []
+            if n_topics > 0:
+                for i in range(n_topics):
+                    emitted_topics.append(hex(read_stack_int(computation, 3 + i)))
+            self.logs.append((normalize_contract_address(computation.msg.code_address), opcode.mnemonic , emitted_topics))
+        
         if opcode.mnemonic in CALL_OPCODES:
 
             if opcode.mnemonic == "CALL":
@@ -1838,8 +1865,7 @@ class EthDbgShell(cmd.Cmd):
                 self.callstack.append(new_callframe)
                 new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE2{RESET_COLOR} {contract_address}")
                 self.curr_tree_node = new_tree_node
-                self.list_tree_nodes.append(new_tree_node)
-
+                self.list_tree_nodes.append(new_tree_node)            
             else:
                 print(f"Plz add support for {opcode.mnemonic}")
 
