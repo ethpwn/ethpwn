@@ -102,7 +102,6 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
     # check extension of the file we want to compile 
     # if it is .vy, then we use the vyper compiler
     # otherwise, we use the solidity compiler
-    import ipdb; ipdb.set_trace()
     if sources[0].endswith('.vy'):
         compiler = 'vyper'
     elif sources[0].endswith('.sol'):
