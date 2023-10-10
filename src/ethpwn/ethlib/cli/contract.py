@@ -99,10 +99,32 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
 
     _import_remappings.update(import_remappings or {})
 
-    if _import_remappings:
-        CONTRACT_METADATA.solidity_compiler.add_import_remappings(_import_remappings)
+    # check extension of the file we want to compile 
+    # if it is .vy, then we use the vyper compiler
+    # otherwise, we use the solidity compiler
+    import ipdb; ipdb.set_trace()
+    if sources[0].endswith('.vy'):
+        compiler = 'vyper'
+    elif sources[0].endswith('.sol'):
+        compiler = 'solc'
+    else:
+        raise ValueError(f"Unknown file extension {sources[0]}")
 
-    CONTRACT_METADATA.compile_solidity_files(sources, **kwargs)
+    if _import_remappings:
+        if compiler == 'solc':
+            CONTRACT_METADATA.solidity_compiler.add_import_remappings(_import_remappings)
+        elif compiler == 'vyper':
+            CONTRACT_METADATA.vyper_compiler.add_import_remappings(_import_remappings)
+        else:
+            raise ValueError(f"Unknown compiler {compiler}")
+
+    if compiler == 'solc':
+        CONTRACT_METADATA.compile_solidity_files(sources, **kwargs)
+    elif compiler == 'vyper':
+        CONTRACT_METADATA.compile_contracts_from_vyper_files(sources, **kwargs)
+    else:
+        raise ValueError(f"Unknown compiler {compiler}")
+    
     return CONTRACT_METADATA
 
 
