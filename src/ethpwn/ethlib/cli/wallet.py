@@ -63,7 +63,6 @@ def add(address: str, private_key: str, name: str=None, description=None, networ
 def create(name: str=None, description=None, network=None, **kwargs):
     '''
     Create a new wallet and add it to the wallet registry.
-    : FIXME
     '''
 
     if network:
