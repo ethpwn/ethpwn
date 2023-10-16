@@ -72,6 +72,7 @@ Lastly, it automatically launches `ethdbg` to debug the transaction in case it f
 ccc = contract_registry().get(0x0AC6f85872C1e5309dEc61f94B10196ea1d248d0)
 calldata = bytes.fromhex('30c13ade000000000001231031230102310230123')
 transact(to=ccc.address, data=calldata, force=True)
+```
 
 #### Assembling and Disassembling EVM code
 
