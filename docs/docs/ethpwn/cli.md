@@ -11,6 +11,32 @@ This should include descriptions of the behavior of the command as well as any a
 
 ## 🐥 Tutorials
 
+
+### Configuration Management (`ethpwn config`)
+This is used to either create a new `ethpwn` configuration from scratch, or to switch across different configured chains.
+
+```bash
+ethpwn config -h
+usage: ethpwn config [-h] {create,default_network,debug_transaction_errors,set_default_node_url,show} ...
+
+Manage config for ethlib
+
+positional arguments:
+  {create,default_network,debug_transaction_errors,set_default_node_url,show}
+    create              Create a new config file with a basic setup. Will interactively prompt you for the necessary information.
+    default_network     Set or get the default network to use
+    debug_transaction_errors
+                        Set or get whether to automatically spawn an ethdbg shell if a transaction fails.
+    set_default_node_url
+                        Sets the default node URL for `network`.
+    show                Show the current config
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+```
+
+
 ### Contract Metadata Management (`ethpwn contract`)
 
 The most used command is probably `ethpwn contract`, which can be used to manage contract metadata. This metadata is stored in the `ethpwn contract_registry`, and can be used by other components of `ethpwn` to simplify interaction with contracts.
@@ -69,9 +95,10 @@ usage: ethpwn wallet [-h] {import,add,list,balance} ...
 Manage wallets for ethlib
 
 positional arguments:
-  {import,add,list,balance}
+  {import,add,create,list,balance}
     import              Import wallets from a file. The file should be a JSON file with a list of wallet objects.
     add                 Add a wallet to the wallet registry.
+    create              Create a new wallet and add it to the wallet registry.
     list                List the wallets in the wallet registry.
     balance             Get the balance of a wallet.
 
