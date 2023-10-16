@@ -37,6 +37,8 @@ nav:
       - start: ethdbg/commands/start.md
       - continue: ethdbg/commands/continue.md
       - context: ethdbg/commands/context.md
+      - calldata: ethdbg/commands/calldata.md
+      - disass: ethdbg/commands/disass.md
       - break: ethdbg/commands/break.md
       - tbreak: ethdbg/commands/tbreak.md
       - step: ethdbg/commands/step.md
