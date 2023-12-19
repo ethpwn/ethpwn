@@ -140,6 +140,7 @@ tr:nth-child(even) {
 | ['--calldata']     | False    | The original calldata of the transaction (if `txid` is specified)  | Calldata you want to use for a new transaction |
 | ['--wallet']       | False    | The default wallet in the `ethpwn` config | Name or address of the wallet in the configuration you want to use |
 | ['--shellcode']    | False    | None | EVM bytecode that we want to execute on-the-fly in ethdbg |
+| ['--value']    | False    | None | The original value sent with the transaction (if `txid` is specified), otherwise 0 | Set the amount of ETH to send with this transaction |
 
 ## 🚀 Examples Usage
 
