@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/ethpwn/ethpwn/blob/main/LICENSE)  [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ethpwn/ethpwn)  [![PyPI](https://img.shields.io/pypi/v/ethpwn?style=for-the-badge)](https://pypi.org/project/ethpwn/)
   ![Python3](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-
+<center><img src="./imgs/logo.png" width="150" height="150" /></center>
 
 `ethpwn` is a project inspired by the widely popular CTF exploitation framework [`pwntools`](https://github.com/Gallopsled/pwntools), and the amazing enhanced GDB utility [`GEF`](https://github.com/hugsy/gef/) by [@hugsy](https://github.com/hugsy).
 In other words, `ethpwn` is all you ever wanted for debugging and interacting with smart contracts on EVM-based blockchains.
