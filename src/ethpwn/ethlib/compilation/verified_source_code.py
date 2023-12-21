@@ -115,7 +115,6 @@ def pull_verified_source_from_etherscan(contract_address, network=None, api_key=
 def _parse_verified_source_code_into_registry(contract_address, result, origin='etherscan'):
 
     # TODO: should verify that the bytecode at the end matches
-
     source = result['SourceCode']
     source = source.strip().replace('\r\n', '\n')
     assert origin == 'etherscan'

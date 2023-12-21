@@ -99,7 +99,7 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
 
     _import_remappings.update(import_remappings or {})
 
-    # check extension of the file we want to compile 
+    # check extension of the file we want to compile
     # if it is .vy, then we use the vyper compiler
     # otherwise, we use the solidity compiler
     if sources[0].endswith('.vy'):
@@ -123,7 +123,7 @@ def compile(sources: List[str], import_remappings: Dict[str, str]=None, no_defau
         CONTRACT_METADATA.compile_contracts_from_vyper_files(sources, **kwargs)
     else:
         raise ValueError(f"Unknown compiler {compiler}")
-    
+
     return CONTRACT_METADATA
 
 

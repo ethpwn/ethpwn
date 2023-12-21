@@ -1,18 +1,19 @@
-from hexbytes import HexBytes
 import requests
-from sha3 import keccak_256
+
+from hexbytes import HexBytes
+from eth_utils import keccak
 
 def keccak256(plaintext):
     """Computes the keccak256 hash of a plaintext string."""
     if type(plaintext) is str:
         plaintext = plaintext.encode('utf-8')
-    return HexBytes(keccak_256(plaintext).hexdigest())
+    return HexBytes(keccak(plaintext).hex())
 
 def signature_hash(plaintext):
     """Computes the signature hash of a plaintext string."""
     if type(plaintext) is str:
         plaintext = plaintext.encode('utf-8')
-    return keccak_256(plaintext).hexdigest()[:8]
+    return keccak(plaintext).hex()[:8]
 
 HASH_TABLE = {}
 HASH_TABLE_SIGNATURES = {}

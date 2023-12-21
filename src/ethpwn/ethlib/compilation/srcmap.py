@@ -41,13 +41,18 @@ def parse_srcmap(srcmap: str) -> List[Tuple[int, int]]:
                 continue
             cur_entry[i] = vals[i]
 
-        results.append(SrcMapEntry(
-            src_start_character_index=int(cur_entry[0]),
-            num_chars=int(cur_entry[1]),
-            source_file_index=int(cur_entry[2]),
-            jumpType=JumpType(cur_entry[3]),
-            modifierDepth=int(cur_entry[4]),
-        ))
+        try:
+            results.append(SrcMapEntry(
+                src_start_character_index=int(cur_entry[0]),
+                num_chars=int(cur_entry[1]),
+                source_file_index=int(cur_entry[2]),
+                jumpType=JumpType(cur_entry[3]),
+                modifierDepth=int(cur_entry[4]),
+            ))
+        except Exception as e:
+            # FIXME
+            pass
+
         last_entry = cur_entry
 
     return results

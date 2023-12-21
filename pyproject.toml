@@ -8,7 +8,7 @@ allow-direct-references = true # to allow github dependencies
 [project]
 name = "ethpwn"
 license = {text = "MIT License"}
-version = "0.0.4"
+version = "0.0.9"
 authors = [
   { name="Lukas Dresel", email="Lukas-Dresel@noreply.github.com" },
   { name="Fabio Gritti", email="degrigis@ucsb.edu"}
@@ -19,7 +19,6 @@ requires-python = ">=3.7"
 
 dependencies = [
     "web3>=6.0.0",
-    "pysha3>=1.0.2",
     "requests",
     "hexbytes",
     "ansi",

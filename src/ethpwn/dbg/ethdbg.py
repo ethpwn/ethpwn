@@ -7,8 +7,6 @@ import re
 import sys
 import cmd
 import traceback
-import sha3
-
 
 from hexdump import hexdump
 from typing import List
@@ -23,12 +21,15 @@ from rich import print as rich_print
 from rich.table import Table
 from rich.tree import Tree
 
+from eth_utils import keccak
+
 from functools import wraps
 
 from ethpwn.ethlib.config.misc import get_default_node_url, get_default_network
 
 
 from ..ethlib.prelude import *
+from ..ethlib.evm.analyzer import *
 from ..ethlib.utils import normalize_contract_address
 from ..ethlib.config.wallets import get_wallet
 from ..ethlib.config.dbg import DebugConfig
@@ -36,10 +37,7 @@ from ..ethlib.config import get_default_global_config_path
 from ..ethlib.assembly_utils import disassemble_all
 
 from .breakpoint import Breakpoint, ETH_ADDRESS
-from .analyzer import Analyzer
-
 from .transaction_debug_target import TransactionDebugTarget
-from .analyzer import *
 from .utils import *
 from .ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, RestartDbgException, InvalidTargetException
 
@@ -446,9 +444,8 @@ class EthDbgShell(cmd.Cmd):
         Usage: funcid <function_name>
         '''
         arg = arg.encode('utf-8')
-        k = sha3.keccak_256()
-        k.update(arg)
-        print("Function signature: 0x{}".format(k.hexdigest()[0:8]))
+        funcid = keccak(arg).hex()[0:8]
+        print("Function signature: 0x{}".format(funcid))
 
     def do_value(self, arg):
         '''
@@ -489,7 +486,7 @@ class EthDbgShell(cmd.Cmd):
         if self.debug_target.debug_type == 'shellcode':
 
             # We need to deploy the shellcode as a contract before starting the debugger
-            analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number)
+            analyzer = EVMAnalyzer.from_block_number(self.w3, self.debug_target.block_number)
             vm = analyzer.vm
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 
@@ -540,7 +537,7 @@ class EthDbgShell(cmd.Cmd):
             print("No calldata set. Proceeding with empty calldata.")
 
         if self.debug_target.debug_type == "replay":
-            analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number)
+            analyzer = EVMAnalyzer.from_block_number(self.w3, self.debug_target.block_number)
             vm = analyzer.vm
 
             if self.debug_target.full_context:
@@ -573,7 +570,7 @@ class EthDbgShell(cmd.Cmd):
             analyzer.hook_vm(self._myhook)
         elif self.debug_target.debug_type == "new":
             # get the analyzer
-            analyzer = Analyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
+            analyzer = EVMAnalyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
             vm = analyzer.vm
             vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
 

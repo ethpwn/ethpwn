@@ -2,7 +2,7 @@
 import re
 import hashlib
 from .ethdbg_exceptions import InvalidBreakpointException
-from .analyzer import ALL_EVM_OPCODES, ComputationAPI, OpcodeAPI
+from ..ethlib.evm.analyzer import ALL_EVM_OPCODES, ComputationAPI, OpcodeAPI
 
 ALLOWED_COND_BPS = ['addr', 'saddr', 'op', 'pc', 'value', 'gas_remaining']
 ALLOWED_COND_WHEN = ['==', '!=', '<=', '>=', '>', '<', '=']

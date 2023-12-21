@@ -9,6 +9,12 @@ import web3
 import web3.types
 import web3.exceptions
 import eth.chains.mainnet.constants
+import eth_account.signers.local
+import eth.vm.forks
+import eth.vm.forks.arrow_glacier
+import eth.vm.forks.arrow_glacier.state
+import eth.vm.forks.arrow_glacier.computation
+
 from eth.exceptions import (
     HeaderNotFound,
 )
@@ -36,20 +42,15 @@ from eth.vm.interrupt import (
     MissingBytecode,
 )
 from eth.db.backends.memory import MemoryDB
-import eth.vm.forks
-import eth.vm.forks.arrow_glacier
-import eth.vm.forks.arrow_glacier.state
-import eth.vm.forks.arrow_glacier.computation
 
 # I guess this will be replaced by ShanghaiBlockHeader
 from eth.vm.forks.paris.blocks import ParisBlockHeader
 
 from eth_account import Account
-import eth_account.signers.local
-from ..ethlib.prelude import *
+from types import SimpleNamespace
+from ..prelude import *
 
 OpcodeHook = typing.Callable[[Opcode, ComputationAPI], typing.Any]
-
 
 CALL_OPCODES = ['CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL', 'CREATE', 'CREATE2']
 RETURN_OPCODES = ['RETURN', 'REVERT', 'STOP']
@@ -250,7 +251,7 @@ class LayeredCache(AbstractCache):
         if self.layer_2 is not None:
             self.layer_2[key] = value
 
-class Analyzer:
+class EVMAnalyzer:
     w3: web3.Web3
     block_number: int
     block_header: BlockHeaderAPI
@@ -258,6 +259,9 @@ class Analyzer:
     next_txn_id: int
     vm: VM
     vm_old_handlers: dict = {}
+
+    # keep track of registered plugins
+    plugins = SimpleNamespace()
 
     _user_cache: AbstractCache
 
@@ -374,20 +378,20 @@ class Analyzer:
             custom_cache: AbstractCache = None,
             infer_header: bool = False,
             hook = None
-        ) -> 'Analyzer':
+        ) -> 'EVMAnalyzer':
         """
-        Construct an analyzer at the given block number.
+        Construct an EVMAnalyzer at the given block number.
 
         Args:
             w3: web3 connection
-            block_number: the block number that this analyzer will execute as
+            block_number: the block number that this EVMAnalyzer will execute as
             custom_cache: optional, a cache object
             infer_header: optional, whether to infer this block's header rather than load it
         """
         assert isinstance(w3, web3.Web3)
         assert isinstance(block_number, int)
 
-        ret = Analyzer()
+        ret = EVMAnalyzer()
         ret.block_number = block_number
         ret.w3 = w3
         if not infer_header:
@@ -402,7 +406,7 @@ class Analyzer:
 
     def advance_block(self):
         """
-        Advance analyzer to the next block.
+        Advance EVMAnalyzer to the next block.
         MUST be called after all transactions are analyzed
         """
         assert self.next_txn_id == len(self.block['transactions'])
@@ -546,6 +550,10 @@ class Analyzer:
 
         cls._cache[key] = block
         return block
+
+    def register_plugin(self, addon: 'BaseAnalysisPlugin', **kwargs):
+        addon(**kwargs).install_on(self)
+        setattr(self.plugins, addon.name, addon)
 
     def hook_vm(self, hook: typing.Callable[[Opcode, ComputationAPI], None] = None):
 
