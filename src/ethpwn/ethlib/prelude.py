@@ -11,5 +11,5 @@ from .transactions import transact, transfer_funds, TransactionFailedError, Insu
 from .assembly_utils import asm_push_value, asm_codecopy, asm_return, create_shellcode_deployer_bin, asm_mload, asm_mstore, assemble_pro, value_to_smallest_hexbytes, disassemble_pro, debug_shellcode
 from .utils import normalize_contract_address, normalize_block_number, show_diff, to_snake_case, ChainName, get_chainid, get_chain_name
 from .compilation.verified_source_code import fetch_verified_contract
-from .evm_analyzer import get_evm_at_block
+from .evm_analyzer import get_evm_at_block, get_evm_at_block_and_tx_index
 from .cli.contract import register as register_contract, compile as compile_contracts

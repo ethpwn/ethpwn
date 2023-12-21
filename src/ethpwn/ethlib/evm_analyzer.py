@@ -10,7 +10,7 @@ def get_evm_at_block(block_number:int, **kwargs) -> EVMAnalyzer:
     '''
     return EVMAnalyzer.from_block_number(context.w3, block_number)
 
-def get_evm_at_block_and_txindex(block_number:int, txindex:int, **kwargs) -> EVMAnalyzer:
+def get_evm_at_block_and_tx_index(block_number:int, txindex:int, **kwargs) -> EVMAnalyzer:
     '''
     Return an EVMAnalyzer instance for the given block number and transaction index.
     '''
