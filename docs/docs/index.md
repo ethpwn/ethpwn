@@ -7,7 +7,7 @@
 `ethpwn` is a project inspired by the widely popular CTF exploitation framework [`pwntools`](https://github.com/Gallopsled/pwntools), and the amazing enhanced GDB utility [`GEF`](https://github.com/hugsy/gef/) by [@hugsy](https://github.com/hugsy).
 In other words, `ethpwn` is all you ever wanted for debugging and interacting with smart contracts on EVM-based blockchains.
 
-The project started due to the frustration of [@honululu](https://twitter.com/dreselli) and [@degrigis](https://twitter.com/degrigis), when trying to debug exploits for the [ethernaut](https://ethernaut.openzeppelin.com/) challenges.
+The project started due to the frustration of [@honululu](https://twitter.com/dreselli), [@degrigis](https://twitter.com/degrigis) and [@robmcl4](https://twitter.com/robmcl4), when trying to debug exploits for the [ethernaut](https://ethernaut.openzeppelin.com/) challenges.
 With `ethpwn`, we hope to improve educational capabilities when it comes to smart contract and blockchain analysis, and facilitate research efforts in the area.
 
 Currently, `ethpwn` is a package that ships a set of handy wrappers for the `web3` Python package (in pwntools style!), and a CLI debugger --`ethdbg`-- that allows users to set breakpoints, inspect memory, storage (and more!) in a GDB-like interface. It even automatically pulls verified source-code from [Etherscan](https://etherscan.io/) if it can find it!
@@ -92,6 +92,6 @@ For any bugs and feedback please either open an issue on our [Github repository]
 Please keep in mind this is a tool developed for fun in our spare time, while we will try to maintain it, we currently cannot commit to regular releases and bug fixes.
 
 ## 🛠️ Contributions
-`ethpwn` is currently mainly maintained by [degrigis](https://github.com/degrigis) and [honululu](https://github.com/Lukas-Dresel) and the following contributors:
+`ethpwn` is currently mainly maintained by [degrigis](https://github.com/degrigis), [honululu](https://github.com/Lukas-Dresel), [robmcl4](https://github.com/robmcl4) and the following contributors:
 
 ![contributors-img](https://contrib.rocks/image?repo=ethpwn/ethpwn)

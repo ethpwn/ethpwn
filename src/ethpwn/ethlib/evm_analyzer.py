@@ -11,7 +11,7 @@ def get_evm_at_block(block_number:int, **kwargs) -> EVMAnalyzer:
     return EVMAnalyzer.from_block_number(context.w3, block_number)
 
 
-def get_evm_at_txn(txn:int) -> EVMAnalyzer:
+def get_evm_at_txn(txn:str) -> EVMAnalyzer:
     '''
     Return an EVMAnalyzer instance for the given transaction hash.
     '''
@@ -22,11 +22,12 @@ def get_evm_at_txn(txn:int) -> EVMAnalyzer:
     a = EVMAnalyzer.from_block_number(context.w3, block_number)
 
     print(f"Applying transactions up to {txn}")
+
     # apply the transactions up to the one we want 
     for t in w3block.transactions:
         if t.hex() == txn:
             break
-        else:
-            a.next_transaction()
+        else:   
+            _, receipt, comp = a.next_transaction()
     
     return a

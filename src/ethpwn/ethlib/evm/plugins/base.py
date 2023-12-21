@@ -5,8 +5,9 @@ from eth.vm.opcode import Opcode
 from eth.abc import (BlockHeaderAPI, ComputationAPI, MessageAPI, OpcodeAPI,
                      ReceiptAPI)
 
+from .utils import *
 from ..analyzer import EVMAnalyzer
-from ..utils import *
+
 
 class BaseAnalysisPlugin:
     PRE_TRANSACTION_PRIORITY: int = 100

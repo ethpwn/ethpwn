@@ -552,7 +552,7 @@ class EVMAnalyzer:
         return block
 
     def register_plugin(self, addon: 'BaseAnalysisPlugin', **kwargs):
-        addon(**kwargs).install_on(self)
+        addon.install_on(self)
         setattr(self.plugins, addon.name, addon)
 
     def hook_vm(self, hook: typing.Callable[[Opcode, ComputationAPI], None] = None):
