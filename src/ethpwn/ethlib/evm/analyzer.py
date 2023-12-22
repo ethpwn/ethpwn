@@ -42,12 +42,15 @@ from eth.vm.interrupt import (
     MissingBytecode,
 )
 from eth.db.backends.memory import MemoryDB
+from eth_utils.curried import to_canonical_address
 
 # I guess this will be replaced by ShanghaiBlockHeader
 from eth.vm.forks.paris.blocks import ParisBlockHeader
 
 from eth_account import Account
 from types import SimpleNamespace
+
+from .txn_condom import TransactionCondom
 from ..prelude import *
 
 OpcodeHook = typing.Callable[[Opcode, ComputationAPI], typing.Any]
@@ -431,7 +434,7 @@ class EVMAnalyzer:
             return None
         self.next_txn_id += 1
 
-        txn = build_transaction(self.vm, self.w3, self.block_number, txn_idx)
+        txn = self.build_transaction_with_idx(txn_idx)
 
         receipt, computation = self.apply(txn)
 
@@ -612,13 +615,42 @@ class EVMAnalyzer:
                 )
                 self.vm.state.computation_class.invalid_opcode_class = stub_cls
 
+    def build_transaction_with_idx(self, transaction_index: int) -> SignedTransactionMethods:
+        """
+        Load a transaction from geth in the format pyevm likes (not json)
+        """
+        raw_txn = self.w3.eth.get_raw_transaction_by_block(self.block_number, transaction_index)
+        return self.vm.get_transaction_builder().decode(raw_txn)
 
-def build_transaction(vm: VM, w3: web3.Web3, block_number: int, transaction_index: int) -> SignedTransactionMethods:
-    """
-    Load a transaction from geth in the format pyevm likes (not json)
-    """
-    raw_txn = w3.eth.get_raw_transaction_by_block(block_number, transaction_index)
-    return vm.get_transaction_builder().decode(raw_txn)
+    def build_new_transaction(self, txn_data:dict) -> SignedTransactionMethods:
+
+        if 'wallet_conf' not in txn_data:
+            txn_data['wallet_conf'] = get_wallet(None)
+        else:
+            wallet = txn_data['wallet_conf']
+
+        txn_condom = TransactionCondom(self.w3)
+        txn_condom.new_transaction(**txn_data)
+
+        txn_condom.set_defaults(
+            gas=6_000_000,
+            gas_price=(10 ** 9) * 1000,
+            value=0,
+            calldata='',
+            origin=txn_condom.source_address,
+            nonce=self.w3.eth.get_transaction_count(txn_condom.source_address),
+            fork = self.vm.fork
+        )
+
+        txn_dict = txn_condom.get_transaction_dict()
+        account = Account.from_key(wallet.private_key)
+        raw_txn = bytes(account.sign_transaction(txn_dict).rawTransaction)
+
+        new_txn = self.vm.get_transaction_builder().decode(raw_txn)
+
+        self.vm.state.set_balance(to_canonical_address(account.address), 100000000000000000000000000)
+
+        return new_txn
 
 
 EVM_OLD_HANDLERS = {}

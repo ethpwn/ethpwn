@@ -35,9 +35,9 @@ from ..ethlib.config.wallets import get_wallet
 from ..ethlib.config.dbg import DebugConfig
 from ..ethlib.config import get_default_global_config_path
 from ..ethlib.assembly_utils import disassemble_all
+from ..ethlib.evm.txn_condom import TransactionCondom
 
 from .breakpoint import Breakpoint, ETH_ADDRESS
-from .transaction_debug_target import TransactionDebugTarget
 from .utils import *
 from .ethdbg_exceptions import ExitCmdException, InvalidBreakpointException, RestartDbgException, InvalidTargetException
 
@@ -64,7 +64,7 @@ def get_contract_for(contract_address: HexBytes):
     return registry.get(contract_address)
 
 
-def get_source_code_view_for_pc(debug_target: TransactionDebugTarget, contract_address: HexBytes, pc: int=None):
+def get_source_code_view_for_pc(debug_target: TransactionCondom, contract_address: HexBytes, pc: int=None):
     contract = get_contract_for(contract_address)
     if contract is None:
         return None
@@ -267,7 +267,7 @@ class EthDbgShell(cmd.Cmd):
         # EVM stuff
         self.w3 = context.w3
 
-        self.debug_target: TransactionDebugTarget = debug_target
+        self.debug_target: TransactionCondom = debug_target
         self.debug_target.set_defaults(
             gas=6_000_000, # silly default value
             gas_price=(10 ** 9) * 1000,
@@ -500,7 +500,7 @@ class EthDbgShell(cmd.Cmd):
             deployed_address = computation.msg.storage_address.hex()
 
             # Now we build the new debug target object to execute the deployed contract
-            new_debug_target = TransactionDebugTarget(context.w3)
+            new_debug_target = TransactionCondom(context.w3)
             new_debug_target.set_defaults(
                 gas=6_000_000, # silly default value
                 gas_price=(10 ** 9) * 1000,
@@ -549,7 +549,7 @@ class EthDbgShell(cmd.Cmd):
                     # Now we need to get the position of the transaction in the block
                     for prev_tx in block["transactions"][0:self.debug_target.transaction_index]:
 
-                        prev_tx_target = TransactionDebugTarget(self.w3)
+                        prev_tx_target = TransactionCondom(self.w3)
                         prev_tx_target.replay_transaction(prev_tx)
                         prev_tx_target.set_default('fork', vm.fork)
                         txn = prev_tx_target.get_transaction_dict()
@@ -1746,7 +1746,7 @@ class EthDbgShell(cmd.Cmd):
                 for i in range(n_topics):
                     emitted_topics.append(hex(read_stack_int(computation, 3 + i)))
             self.logs.append((normalize_contract_address(computation.msg.code_address), opcode.mnemonic , emitted_topics))
-        
+
         if opcode.mnemonic in CALL_OPCODES:
 
             if opcode.mnemonic == "CALL":
@@ -1862,7 +1862,7 @@ class EthDbgShell(cmd.Cmd):
                 self.callstack.append(new_callframe)
                 new_tree_node = self.curr_tree_node.add(f"{GREEN_COLOR}CREATE2{RESET_COLOR} {contract_address}")
                 self.curr_tree_node = new_tree_node
-                self.list_tree_nodes.append(new_tree_node)            
+                self.list_tree_nodes.append(new_tree_node)
             else:
                 print(f"Plz add support for {opcode.mnemonic}")
 
@@ -1958,7 +1958,7 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
     # CHECK 3: Are we re-tracing or starting a new transaction?
     if args.txid:
         # replay transaction mode
-        debug_target = TransactionDebugTarget(context.w3)
+        debug_target = TransactionCondom(context.w3)
         debug_target.replay_transaction(args.txid,
                                         sender=args.sender,
                                         to=args.target,
@@ -1980,7 +1980,7 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
         else:
             value = int(args.value)
 
-        debug_target = TransactionDebugTarget(context.w3)
+        debug_target = TransactionCondom(context.w3)
         debug_target.new_shellcode(to=None,
                                      sender=args.sender,
                                      value=value,
@@ -2004,7 +2004,7 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
         else:
             value = int(args.value)
 
-        debug_target = TransactionDebugTarget(context.w3)
+        debug_target = TransactionCondom(context.w3)
         debug_target.new_transaction(to=args.target,
                                      sender=args.sender,
                                      value=value,
