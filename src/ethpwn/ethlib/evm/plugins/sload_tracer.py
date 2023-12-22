@@ -1,6 +1,5 @@
 
 import typing
-
 from .base import *
 
 class TracedSLoad(typing.NamedTuple):

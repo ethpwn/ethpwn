@@ -21,7 +21,7 @@ def get_evm_at_txn(txn:str) -> EVMAnalyzer:
 
     a = EVMAnalyzer.from_block_number(context.w3, block_number)
 
-    print(f"Applying transactions up to {txn}")
+    #print(f"Applying transactions up to {txn}")
 
     # apply the transactions up to the one we want 
     for t in w3block.transactions:
