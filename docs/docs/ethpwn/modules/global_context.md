@@ -24,6 +24,72 @@ def try_auto_connect()
 
 Try to auto connect to a node if the default network is set and autoconnect is not disabled.
 
+<a id="ethpwn.ethlib.global_context.Web3Context.terminal"></a>
+
+#### terminal
+
+```python
+@property
+def terminal()
+```
+
+Get the terminal
+
+<a id="ethpwn.ethlib.global_context.Web3Context.terminal"></a>
+
+#### terminal
+
+```python
+@terminal.setter
+def terminal(value)
+```
+
+Set the terminal
+
+<a id="ethpwn.ethlib.global_context.Web3Context.network"></a>
+
+#### network
+
+```python
+@property
+def network()
+```
+
+Get the default network
+
+<a id="ethpwn.ethlib.global_context.Web3Context.network"></a>
+
+#### network
+
+```python
+@network.setter
+def network(value)
+```
+
+Set the default network
+
+<a id="ethpwn.ethlib.global_context.Web3Context.debug_transaction_errors"></a>
+
+#### debug\_transaction\_errors
+
+```python
+@property
+def debug_transaction_errors()
+```
+
+Get whether to debug on revert
+
+<a id="ethpwn.ethlib.global_context.Web3Context.debug_transaction_errors"></a>
+
+#### debug\_transaction\_errors
+
+```python
+@debug_transaction_errors.setter
+def debug_transaction_errors(value)
+```
+
+Set whether to debug on revert
+
 <a id="ethpwn.ethlib.global_context.Web3Context.default_from_addr"></a>
 
 #### default\_from\_addr
@@ -45,6 +111,17 @@ def default_signing_key()
 ```
 
 Get the default signing key
+
+<a id="ethpwn.ethlib.global_context.Web3Context.etherscan_api_key"></a>
+
+#### etherscan\_api\_key
+
+```python
+@property
+def etherscan_api_key()
+```
+
+Get the etherscan API key
 
 <a id="ethpwn.ethlib.global_context.Web3Context.log_level"></a>
 

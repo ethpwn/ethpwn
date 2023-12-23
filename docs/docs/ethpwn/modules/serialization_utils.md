@@ -23,62 +23,58 @@ def register_serializable(cls)
 Register a class as serializable. This is done automatically when a class inherits from
 Serializable.
 
-<a id="ethpwn.ethlib.serialization_utils.CustomEncoder"></a>
+<a id="ethpwn.ethlib.serialization_utils.decoder_object_hook"></a>
 
-## CustomEncoder Objects
-
-```python
-class CustomEncoder(json.JSONEncoder)
-```
-
-A custom JSON encoder that can handle AttributeDict, HexBytes and Serializable objects.
-
-<a id="ethpwn.ethlib.serialization_utils.custom_decoder"></a>
-
-#### custom\_decoder
+#### decoder\_object\_hook
 
 ```python
-def custom_decoder(obj)
+def decoder_object_hook(obj)
 ```
 
-A custom JSON decoder that can handle AttributeDict, HexBytes and Serializable objects.
+A custom JSON decoder object_hook that can handle AttributeDict, HexBytes and Serializable objects.
 
 <a id="ethpwn.ethlib.serialization_utils.deserialize_from_file"></a>
 
 #### deserialize\_from\_file
 
 ```python
-def deserialize_from_file(path=None)
+def deserialize_from_file(path=None, encoding=None)
 ```
 
-Deserialize a JSON file to a Python object using the custom decoder.
+Deserialize a file to a Python object using the custom decoder.
 
-<a id="ethpwn.ethlib.serialization_utils.deserialize_from_string"></a>
+<a id="ethpwn.ethlib.serialization_utils.deserialize_from_bytes"></a>
 
-#### deserialize\_from\_string
+#### deserialize\_from\_bytes
 
 ```python
-def deserialize_from_string(s)
+def deserialize_from_bytes(s, encoding=None)
 ```
 
-Deserialize a JSON string to a Python object using the custom decoder.
+Deserialize bytes to a Python object using the custom decoder.
 
 <a id="ethpwn.ethlib.serialization_utils.serialize_to_file"></a>
 
 #### serialize\_to\_file
 
 ```python
-def serialize_to_file(obj, path)
+def serialize_to_file(obj, path, encoding=None)
 ```
 
-Serialize a Python object to a JSON file using the custom encoder.
+Serialize a Python object to a file using the custom encoder and a given encoding scheme.
 
-<a id="ethpwn.ethlib.serialization_utils.serialize_to_string"></a>
+**Arguments**:
 
-#### serialize\_to\_string
+- `obj`: the object to serialize
+- `path`: the path to the file to write to (not including the suffix)
+- `encoding`: the encoding scheme to use (e.g. 'json', 'msgpack')
+
+<a id="ethpwn.ethlib.serialization_utils.serialize_to_bytes"></a>
+
+#### serialize\_to\_bytes
 
 ```python
-def serialize_to_string(obj)
+def serialize_to_bytes(obj, encoding=None)
 ```
 
 Serialize a Python object to a JSON string using the custom encoder.

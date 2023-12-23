@@ -43,12 +43,22 @@ def transfer_funds(from_addr, to_addr, value=None, **kwargs)
 
 Transfer funds from `from_addr` to `to_addr`. If `value` is None, transfer all available funds minus the transaction cost.
 
-<a id="ethpwn.ethlib.transactions.debug_transaction"></a>
+<a id="ethpwn.ethlib.transactions.debug_simulated_transaction"></a>
 
-#### debug\_transaction
+#### debug\_simulated\_transaction
 
 ```python
-def debug_transaction(tx_hash, txdata)
+def debug_simulated_transaction(tx)
+```
+
+Simulate a transaction and attempt to debug the state using `ipdb` if it fails.
+
+<a id="ethpwn.ethlib.transactions.debug_onchain_transaction"></a>
+
+#### debug\_onchain\_transaction
+
+```python
+def debug_onchain_transaction(tx_hash)
 ```
 
 Simulate a transaction and attempt to debug the state using `ipdb` if it fails.
@@ -65,6 +75,8 @@ def transact(contract_function=None,
              force=False,
              wait_for_receipt=True,
              from_addr=None,
+             retry=3,
+             debug_transaction_errors=None,
              **tx) -> (HexBytes, TxReceipt)
 ```
 

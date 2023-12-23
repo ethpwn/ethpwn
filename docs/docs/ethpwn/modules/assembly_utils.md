@@ -109,24 +109,24 @@ label:
     <shellcode goes here>
 ```
 
-<a id="ethpwn.ethlib.assembly_utils.disassemble"></a>
+<a id="ethpwn.ethlib.assembly_utils.disassemble_pro"></a>
 
-#### disassemble
+#### disassemble\_pro
 
 ```python
-def disassemble(code, start_pc=0, fork='paris')
+def disassemble_pro(code, start_pc=0, fork='paris')
 ```
 
 Disassemble code and return a string containing the disassembly. This disassembly includes the
 pc, bytes, instruction, gas cost, and description of each instruction in addition to the
 standard disassembly.
 
-<a id="ethpwn.ethlib.assembly_utils.assemble"></a>
+<a id="ethpwn.ethlib.assembly_utils.assemble_pro"></a>
 
-#### assemble
+#### assemble\_pro
 
 ```python
-def assemble(code, start_pc=0, fork='paris')
+def assemble_pro(code, start_pc=0, fork='paris')
 ```
 
 Assemble code and return a string containing the bytecode.
@@ -135,4 +135,26 @@ code is a string such as:
          PUSH1 0x40
          MSTORE
      '''
+
+<a id="ethpwn.ethlib.assembly_utils.debug_shellcode"></a>
+
+#### debug\_shellcode
+
+```python
+def debug_shellcode(code, ethdbg=True)
+```
+
+Run on-the-fly EVM bytecode inside ethdbg.
+code is the bytecode as a string such (the deploying bytecode does not need to be included)
+
+<a id="ethpwn.ethlib.assembly_utils.debug_contract"></a>
+
+#### debug\_contract
+
+```python
+def debug_contract(code, abi, ethdbg=True)
+```
+
+Run the bytecode of a smart contract inside ethdbg.
+code is the run-time bytecode, abi is the abi of the contract
 

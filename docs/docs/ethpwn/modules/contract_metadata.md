@@ -86,6 +86,17 @@ def compiler_name() -> Union[Literal['vyper'], Literal['solc']]
 Based on the `compiler` property, return the name of the compiler used to compile the
 contract. Currently supports `vyper` and `solc`. Does not include version/commit information.
 
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadata.selectors"></a>
+
+#### selectors
+
+```python
+@property
+def selectors()
+```
+
+Fuck-e you Coglione.
+
 <a id="ethpwn.ethlib.contract_metadata.ContractMetadata.constructor_source_by_id"></a>
 
 #### constructor\_source\_by\_id
@@ -189,17 +200,18 @@ Returns the source info for instruction at index `insn_idx` in the runtime bytec
 def source_info_for_pc(pc, fork='paris') -> InstructionSourceInfo
 ```
 
-Returns the source info for the instruction at the given pc in the constructor bytecode.
+Returns the source info for the instruction at the given program counter in the deployed bytecode.
 
 <a id="ethpwn.ethlib.contract_metadata.ContractMetadata.deploy"></a>
 
 #### deploy
 
 ```python
-def deploy(*constructor_args, **tx_extras) -> Tuple[HexBytes, Contract]
+def deploy(*constructor_args,
+           **tx_extras) -> Tuple[HexBytes, 'ContractInstance']
 ```
 
-Deploys a contract and registers it with the contract registry.
+Deploys an instance of this contract to the blockchain and registers it with the contract registry.
 
 <a id="ethpwn.ethlib.contract_metadata.ContractMetadata.deploy_destructible"></a>
 
@@ -220,11 +232,11 @@ automatically registered with the contract registry.
 #### get\_contract\_at
 
 ```python
-def get_contract_at(addr) -> Contract
+def get_contract_at(addr) -> 'ContractInstance'
 ```
 
 Returns a web3 contract instance for the contract at the given address. This will
-automatically register the contract at the given address with the contract registry.
+automatically register this contract instance with the contract registry.
 
 <a id="ethpwn.ethlib.contract_metadata.ContractMetadata.decode_function_input"></a>
 
@@ -409,6 +421,18 @@ def find_by_name(name: str) -> Optional[Tuple[str, str, ContractMetadata]]
 ```
 
 Find the first contract with the given name, returning the file name, contract name,
+and metadata.
+
+<a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.find_by_filename"></a>
+
+#### find\_by\_filename
+
+```python
+def find_by_filename(
+        filename: str) -> Optional[Tuple[str, str, ContractMetadata]]
+```
+
+Find the first contract with the given filename, returning the file name, contract name,
 and metadata.
 
 <a id="ethpwn.ethlib.contract_metadata.ContractMetadataRegistry.all_contracts"></a>

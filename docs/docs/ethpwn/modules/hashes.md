@@ -2,6 +2,16 @@
 
 # ethpwn.ethlib.hashes
 
+<a id="ethpwn.ethlib.hashes.keccak256"></a>
+
+#### keccak256
+
+```python
+def keccak256(plaintext)
+```
+
+Computes the keccak256 hash of a plaintext string.
+
 <a id="ethpwn.ethlib.hashes.signature_hash"></a>
 
 #### signature\_hash

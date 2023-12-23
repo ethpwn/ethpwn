@@ -53,6 +53,7 @@ A dictionary that can be serialized to JSON
 #### w3
 
 ```python
+@property
 def w3()
 ```
 
@@ -61,6 +62,17 @@ Get a web3 contract object for this contract. Automatically has the correct ABI 
 **Returns**:
 
 The web3 contract object
+
+<a id="ethpwn.ethlib.contract_registry.ContractInstance.balance"></a>
+
+#### balance
+
+```python
+@property
+def balance()
+```
+
+Get the balance of this contract.
 
 <a id="ethpwn.ethlib.contract_registry.ContractInstance.merge"></a>
 
@@ -128,7 +140,7 @@ def register_contract_metadata(metadata: 'ContractMetadata',
                                address=None,
                                deploy_tx_hash=None,
                                deploy_tx_receipt: TxReceipt = None,
-                               deploy_wallet=None)
+                               deploy_wallet=None) -> ContractInstance
 ```
 
 Add information about a deployed contract to the registry. If the contract is already registered, it is
@@ -172,27 +184,36 @@ def get(contract_address, default=None) -> ContractInstance
 Get the registered metadata for the given contract address (if any). Returns the given default value if no
 metadata is registered for the given contract address.
 
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry.__iter__"></a>
+
+#### \_\_iter\_\_
+
+```python
+def __iter__() -> Iterator[Tuple[HexBytes, ContractInstance]]
+```
+
+Iterate over all registered contracts. Yields tuples of (contract_address, contract).
+
 <a id="ethpwn.ethlib.contract_registry.ContractRegistry.store"></a>
 
 #### store
 
 ```python
-def store(contract_registry_dir)
+def store()
 ```
 
 Store the registry to the given directory. Creates the directory if it does not exist.
 Stores each contract metadata to `contract_registry_dir/<address>.json`.
 
-<a id="ethpwn.ethlib.contract_registry.ContractRegistry.load"></a>
+<a id="ethpwn.ethlib.contract_registry.ContractRegistry.reload_contract"></a>
 
-#### load
+#### reload\_contract
 
 ```python
-@staticmethod
-def load(contract_registry_dir) -> 'ContractRegistry'
+def reload_contract(contract_address) -> 'ContractInstance'
 ```
 
-Load the registry from the given directory. Loads each contract metadata from `contract_registry_dir/<address>.json`.
+Load a contract from `contract_registry_dir/<address>.{msgpack,json}`.
 
 <a id="ethpwn.ethlib.contract_registry.contract_registry"></a>
 
@@ -219,10 +240,11 @@ Load the contract registry from disk if it exists, or create a new one if it doe
 #### register\_deployed\_contract
 
 ```python
-def register_deployed_contract(metadata,
-                               address=None,
-                               deploy_tx_hash=None,
-                               deploy_tx_receipt: TxReceipt = None)
+def register_deployed_contract(
+        metadata,
+        address=None,
+        deploy_tx_hash=None,
+        deploy_tx_receipt: TxReceipt = None) -> ContractInstance
 ```
 
 Helper function to easily register a deployed contract. If the contract is already registered, it is
@@ -233,7 +255,7 @@ updated / merged with the new information.
 #### register\_contract\_at\_address
 
 ```python
-def register_contract_at_address(metadata, address)
+def register_contract_at_address(metadata, address) -> ContractInstance
 ```
 
 Helper function to easily register a contract at a given address. If the contract is already registered, it is
