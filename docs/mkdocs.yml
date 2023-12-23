@@ -20,6 +20,7 @@ nav:
     - About: ethpwn/about.md
     - Getting Started: ethpwn/getting_started.md
     - Global State: ethpwn/global_state.md
+    - EVMAnalyzers: ethpwn/evmanalyzers.md
     - Command Line Tools: ethpwn/cli.md
     - Modules:
       - ethpwn.ethlib.global_context: ethpwn/modules/global_context.md

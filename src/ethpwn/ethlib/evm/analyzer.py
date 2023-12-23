@@ -625,7 +625,8 @@ class EVMAnalyzer:
     def build_new_transaction(self, txn_data:dict) -> SignedTransactionMethods:
 
         if 'wallet_conf' not in txn_data:
-            txn_data['wallet_conf'] = get_wallet(None)
+            wallet = get_wallet(None)
+            txn_data['wallet_conf'] = wallet
         else:
             wallet = txn_data['wallet_conf']
 
