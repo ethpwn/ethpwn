@@ -32,6 +32,7 @@ nav:
       - ethpwn.ethlib.currency_utils: ethpwn/modules/currency_utils.md
       - ethpwn.ethlib.serialization_utils: ethpwn/modules/serialization_utils.md
       - ethpwn.ethlib.utils: ethpwn/modules/utils.md
+      - ethpwn.ethlib.evm_analyzer: ethpwn/modules/evm_analyzer.md
   - 🐛 ethdbg:
     - Usage: ethdbg/usage.md
     - Commands:
