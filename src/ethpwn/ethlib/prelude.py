@@ -13,3 +13,4 @@ from .utils import normalize_contract_address, normalize_block_number, show_diff
 from .compilation.verified_source_code import fetch_verified_contract
 from .evm_analyzer import get_evm_at_block, get_evm_at_txn
 from .cli.contract import register as register_contract, compile as compile_contracts
+from .tokens_utils import get_val_in_usd
