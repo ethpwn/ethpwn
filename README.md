@@ -1,4 +1,4 @@
-# ethpwn 🐛 ⚔️
+# ethpwn 
 
 [![PyPI](https://img.shields.io/pypi/v/ethpwn?style=flat)](https://pypi.org/project/ethpwn/)
 [![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=flat)]([https://pypi.org/project/ethpwn/](https://raw.githubusercontent.com/ethpwn/ethpwn/main/LICENSE))
