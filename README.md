@@ -4,9 +4,14 @@
 [![License](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=flat)]([https://pypi.org/project/ethpwn/](https://raw.githubusercontent.com/ethpwn/ethpwn/main/LICENSE))
 [![Docs](https://img.shields.io/badge/Documentation-gh_pages)](https://ethpwn.github.io/ethpwn/)
 
+
+<img align="left" width="160"  src="https://github.com/ethpwn/ethpwn/assets/4940271/365a9cc6-14d0-4ae9-8c01-0311ac443cd7">
+
+
 `ethpwn` is a project inspired by the widely popular CTF exploitation framework pwntools, and the amazing enhanced GDB utility GEF. In other words, ethpwn is all you ever wanted for debugging and interacting with smart contracts on EVM-based blockchains.
 
 More practically, this package includes a kick-ass command line debugger for simulating and re-playing Ethereum transactions (`ethdbg`), and a set of convenient wrappers for many `web3` functionalities that are useful for interacting with smart contracts.
+
 
 
 ![](./docs/docs/imgs/598565.gif)
