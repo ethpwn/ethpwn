@@ -4,6 +4,7 @@ import copy
 import argparse
 import typing
 import inspect
+import functools
 import os
 import web3
 import web3.types
@@ -49,6 +50,7 @@ from eth.vm.forks.paris.blocks import ParisBlockHeader
 
 from eth_account import Account
 from types import SimpleNamespace
+from hexbytes import HexBytes
 
 from .txn_condom import TransactionCondom
 from ..prelude import *
@@ -259,6 +261,7 @@ class EVMAnalyzer:
     block_number: int
     block_header: BlockHeaderAPI
     block: web3.types.BlockData
+    block_txs: list
     next_txn_id: int
     vm: VM
     vm_old_handlers: dict = {}
@@ -404,6 +407,7 @@ class EVMAnalyzer:
 
         ret.vm = ret._vm_at_block_start(w3, infer_header=infer_header, hook=hook)
         ret.block_header = ret.vm.get_header()
+        ret.block_txs = [t.hex() for t in ret.block.transactions]
 
         return ret
 
@@ -619,7 +623,26 @@ class EVMAnalyzer:
         """
         Load a transaction from geth in the format pyevm likes (not json)
         """
-        raw_txn = self.w3.eth.get_raw_transaction_by_block(self.block_number, transaction_index)
+        # This is NOT compatible with an Infura/Alchemy node
+        #raw_txn = self.w3.eth.get_raw_transaction_by_block(self.block_number, transaction_index)
+        
+        # This is compatible with an Infura node and a private node
+        tx_hash = self.block_txs[transaction_index]
+        # We need to use the condom to support both a private node and a public node.
+        txn_condom = TransactionCondom(self.w3)
+        txn_condom.replay_transaction(tx_hash)
+        txn_dict = txn_condom.get_transaction_dict()
+
+        # Use the current wallet to sign the transaction
+        wallet = get_wallet(None)
+        account = Account.from_key(wallet.private_key)
+        raw_txn = bytes(account.sign_transaction(txn_dict).rawTransaction)
+
+        # Modify the sender with the original one
+        def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
+            return bytes(HexBytes(source_address))
+        eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, txn_condom.source_address)
+        
         return self.vm.get_transaction_builder().decode(raw_txn)
 
     def build_new_transaction(self, txn_data:dict) -> SignedTransactionMethods:
