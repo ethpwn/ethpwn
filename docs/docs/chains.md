@@ -5,5 +5,5 @@ Currently we support the following ones:
 
 | Chain Name | Chain Id | Supported |
 |-------------------|----------|----------|
-| GREEDY_SHA  | False | ✅ |
-| LAZY_SOLVES | False | ✅ |
+| mainnet | 1 | ✅ |
+| sepolia (testnet) | 11155111 | ✅ |
