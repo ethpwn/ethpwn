@@ -30,7 +30,15 @@ jobs:
 
     - name: Update version in pyproject.toml
       run: >-
-        sed -i "s/{{VERSION_PLACEHOLDER}}/${{ steps.tag.outputs.TAG_NAME }}/g" pyproject.toml
+        sed -i 's/version = ".*"/version = "${{ steps.tag.outputs.TAG_NAME }}"/g' pyproject.toml
+
+    - name: Commit version change
+      run: >-
+        git config --local user.email "Releasebot@ethpwn.com"
+        git config --local user.name "Releasebot"
+        git add pyproject.toml
+        git commit -m "Bump version to ${{ steps.tag.outputs.TAG_NAME }}"
+        git push
 
     - name: Build a binary wheel
       run: >-
