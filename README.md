@@ -29,8 +29,9 @@ Make sure your pip version is >= 23.1.2, then:
 git clone git@github.com:ethpwn/ethpwn.git && cd ./ethpwn && pip install -e .
 ```
 
-To start out, you should run `ethpwn config create` to generate your initial configuration file. 
-This command will interactively prompt you for the most important settings, including the Ethereum node URL to use and wallets you want to use.
+| ❗️ Note                                                              |
+|----------------------------------------------------------------------|
+| To start out, if you haven't created your global config before, you should run `ethpwn config create` to generate your initial configuration file. This command will interactively prompt you for the most important settings, including the Ethereum node URL to use and wallets you want to use. |
 
 ## ⚡️ Jump Start for ethdbg ##
 ```bash
