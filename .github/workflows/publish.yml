@@ -48,10 +48,6 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ github.token }}
 
-    - name: test
-      run: >-
-        ls -al
-        ls -al dist
     - name: upload sources zip
       uses: actions/upload-release-asset@v1
       env:
