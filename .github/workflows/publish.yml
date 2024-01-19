@@ -15,8 +15,7 @@ jobs:
     environment:
       name: pypi
       url: https://pypi.org/p/ethpwn/
-    permissions:
-      id-token: write
+    permissions: write-all
 
     steps:
     - uses: actions/checkout@master
