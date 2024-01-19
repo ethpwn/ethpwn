@@ -1,4 +1,4 @@
-name: Publish Python 🐍 distributions 📦 to PyPI
+name: Publish Release
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@master
 
@@ -63,4 +63,4 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./dist/ethpwn-${{ steps.tag.outputs.TAG_NAME }}-py3-none-any.whl
         asset_name: ethpwn-${{ steps.tag.outputs.TAG_NAME }}-py3-none-any.whl
-        asset_content_type: application/gzip
+        asset_content_type: application/zip
