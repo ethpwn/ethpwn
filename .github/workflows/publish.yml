@@ -33,7 +33,7 @@ jobs:
         sed -i 's/version = ".*"/version = "${{ steps.tag.outputs.TAG_NAME }}"/g' pyproject.toml
 
     - name: Commit version change
-      run: >-
+      run: |
         git config --local user.email "Releasebot@ethpwn.com"
         git config --local user.name "Releasebot"
         git add pyproject.toml
