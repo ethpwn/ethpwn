@@ -51,9 +51,12 @@ def create(**kwargs):
 
     print(f'✅ Successfully connected to node: {node_url}')
 
-    print("Select the default network to use.")
     keys = list(node_urls.keys())
-    index = input_pick_from_list(keys) if len(keys) > 1 else 0
+    if len(node_urls) > 1:
+        print("Select the default network to use.")
+        index = input_pick_from_list(keys)
+    else:
+        index = 0
     network = keys[index]
 
     print("Next, we need to know the wallets you'd like to use.")
