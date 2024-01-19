@@ -36,34 +36,8 @@ jobs:
       run: >-
         python -m build
 
-    - name: release
-      uses: actions/create-release@v1
-      id: create_release
+    - name: Release
+      uses: softprops/action-gh-release@v1
       with:
-          draft: false
-          prerelease: false
-          release_name: ${{ steps.tag.outputs.TAG_NAME }}
-          tag_name: ${{ github.ref }}
-          body_path: CHANGELOG.md
-      env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-    - name: upload sources zip
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/ethpwn-${{ steps.tag.outputs.TAG_NAME }}.tar.gz
-        asset_name: ethpwn-${{ steps.tag.outputs.TAG_NAME }}.tar.gz
-        asset_content_type: application/gzip
-
-    - name: upload wheel
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/ethpwn-${{ steps.tag.outputs.TAG_NAME }}-py3-none-any.whl
-        asset_name: ethpwn-${{ steps.tag.outputs.TAG_NAME }}-py3-none-any.whl
-        asset_content_type: application/zip
+        body_path: CHANGELOG.md
+        files: dist/*
