@@ -10,8 +10,14 @@ on:
 jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI
-    permissions: write-all
     runs-on: ubuntu-22.04
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ethpwn/
+    permissions:
+      id-token: write
+
     steps:
     - uses: actions/checkout@master
       with:
@@ -52,3 +58,6 @@ jobs:
       with:
         body_path: CHANGELOG.md
         files: dist/*
+
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
