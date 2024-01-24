@@ -30,7 +30,7 @@ from ethpwn.ethlib.config.misc import get_default_node_url, get_default_network
 
 from ..ethlib.prelude import *
 from ..ethlib.evm.analyzer import *
-from ..ethlib.utils import normalize_contract_address
+from ..ethlib.utils import normalize_contract_address, calculate_create_contract_address, calculate_create2_contract_address
 from ..ethlib.config.wallets import get_wallet
 from ..ethlib.config.dbg import DebugConfig
 from ..ethlib.config import get_default_global_config_path
@@ -253,7 +253,7 @@ class EthDbgShell(cmd.Cmd):
 
     prompt = f'\001\033[1;31m\002ethdbg➤\001\033[0m\002 '
 
-    def __init__(self, wallet_conf, debug_target, breaks=None, **kwargs):
+    def __init__(self, wallet_conf, debug_target, script_file='', breaks=None, **kwargs):
         # call the parent class constructor
         super().__init__(**kwargs)
 
@@ -337,6 +337,8 @@ class EthDbgShell(cmd.Cmd):
         self.reverted_contracts = set()
 
         self.tx_start_gas = None
+
+        self.script_file = script_file
 
     def precmd(self, line):
         # Check if the command is valid, if yes, we save it
@@ -568,11 +570,17 @@ class EthDbgShell(cmd.Cmd):
                         bar()
 
             analyzer.hook_vm(self._myhook)
+    
         elif self.debug_target.debug_type == "new":
             # get the analyzer
             analyzer = EVMAnalyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
             vm = analyzer.vm
-            vm.state.set_balance(to_canonical_address(self.account.address), 100000000000000000000000000)
+
+            if self.debug_target.custom_balance:
+                print(f'Custom balance set to {self.debug_target.custom_balance} wei')
+                vm.state.set_balance(to_canonical_address(self.account.address), int(self.debug_target.custom_balance,10))
+            else:
+                vm.state.set_balance(to_canonical_address(self.account.address), 1000000000000000000000000000000000000)
 
         #if self.debug_target.debug_type == "replay":
         def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
@@ -1174,6 +1182,44 @@ class EthDbgShell(cmd.Cmd):
             except Exception as e:
                 print(f'{RED_COLOR}Error reading memory: {e}{RESET_COLOR}')
 
+    @only_when_started
+    def do_set_storage_at(self, args):
+        '''
+        Change the value at a specific storage address in the current contract
+        Usage: set_storage_at <slot> <value>
+        '''
+        read_args = args.split(" ")
+        if len(read_args) != 2:
+            print("Usage: set_storage_at <slot> <value>")
+            return
+        else:
+            try:
+                slot, value = args.split(" ")[0], args.split(" ")[1]
+                slot = int(slot, 16)
+                value = int(value, 16)
+                self.comp.state.set_storage(self.comp.msg.storage_address, slot, value)
+            except Exception as e:
+                print(f'{RED_COLOR}Error setting storage: {e}{RESET_COLOR}')
+
+    def do_get_src_for_pc(self, args):
+        '''
+        Get the source code for a given pc (if source is available)
+        '''
+        read_args = args.split(" ")
+        if len(read_args) != 1:
+            print("Usage: get_src_for_pc <pc>")
+            return
+        else:
+            try:
+                pc = int(args, 16)
+                source_view = self._get_source_view(cutoff=None, pc=pc)
+                if source_view is not None:
+                    print(source_view)
+                else:
+                    print(f"No source code available for contract {normalize_contract_address(self.comp.msg.code_address)}")
+            except Exception as e:
+                print(f'{RED_COLOR}Error getting source code: {e}{RESET_COLOR}')
+    
     # === INTERNALS ===
 
     def _resume(self):
@@ -1561,7 +1607,7 @@ class EthDbgShell(cmd.Cmd):
         print(f'Chain: {self.debug_target.chain} | Node: {self.w3.provider.endpoint_uri} | Block Number: {self.debug_target.block_number!r}')
         print(f'Value: {self.debug_target.value} | Gas: {self.debug_target.gas}')
 
-    def _get_source_view(self, cutoff=None):
+    def _get_source_view(self, cutoff=None, target=None, pc=None):
         message = f"{GREEN_COLOR}Source View{RESET_COLOR}"
         fill = HORIZONTAL_LINE
         align = '<'
@@ -1572,8 +1618,13 @@ class EthDbgShell(cmd.Cmd):
         if not self.started:
             return None
 
+        if not target:
+            target = self.comp.msg.code_address
+        if not pc:
+            pc = self.comp.code.program_counter - 1
+
         try:
-            source = get_source_code_view_for_pc(self.debug_target, self.comp.msg.code_address, self.comp.code.program_counter - 1)
+            source = get_source_code_view_for_pc(self.debug_target, target, pc)
         except Exception as e:
             source = None
 
@@ -1670,6 +1721,14 @@ class EthDbgShell(cmd.Cmd):
             opcode_bytes = computation.code.read(64) # max 32 byte immediate + 32 bytes should be enough, right???
 
         assert self.debug_target.fork is not None
+
+        # Run the script file once and nuke it :)
+        if self.script_file != '':
+            with open(self.script_file, 'r') as f:
+                for line in f:
+                    self.onecmd(line)
+            self.script_file = ''
+
         if opcode_bytes:
             insn: Instruction = disassemble_one(opcode_bytes, pc=pc, fork=self.debug_target.fork)
             assert insn is not None, "64 bytes was not enough to disassemble?? or this is somehow an invalid opcode??"
@@ -1902,6 +1961,7 @@ def main():
     parser.add_argument("--block", help="reference block", default=None)
     parser.add_argument("--calldata", help="calldata to use for the transaction", default=None)
     parser.add_argument("--wallet", help="wallet id (as specified in ~/.config/ethpwn/pwn/wallets.json )", default=None)
+    parser.add_argument("--script-file", help="script file to execute", default='')
 
     parser.add_argument("--shellcode", help="test on-the-fly shellcode", default=None)
 
@@ -2018,7 +2078,7 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
     # Load previous sessions history.
     load_cmds_history()
 
-    ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target)
+    ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, script_file=args.script_file)
     ethdbgshell.print_license()
 
     while True:
@@ -2035,7 +2095,7 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
             except RestartDbgException:
                 old_breaks = ethdbgshell.breakpoints
 
-                ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks)
+                ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks, script_file=args.script_file)
                 ethdbgshell.cmdqueue.append("start\n")
 
 if __name__ == '__main__':
