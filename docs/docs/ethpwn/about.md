@@ -23,3 +23,8 @@ pip install ethpwn
 Specifically, the core logic is found in the `ethpwn.ethlib` module, where the high-level API is found in `ethpwn.ethlib.prelude`.
 For ease-of-use, this is also reexported in `ethpwn` itself, so that you can do `from ethpwn import *` to get convenient access
 to the high-level API functionality.
+
+
+| ❗️ Note                                                              |
+|----------------------------------------------------------------------|
+| To start out, if you haven't created your global config before, you should run `ethpwn config create` to generate your initial configuration file. This command will interactively prompt you for the most important settings, including the Ethereum node URL to use and wallets you want to use. |
