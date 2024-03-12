@@ -79,9 +79,13 @@ class VyperCompiler:
     def get_vyper_input_json(self, sources_entry):
         
         sources_dict = {}
-        for f in sources_entry:
-            sources_dict[f] = {}
-            sources_dict[f]["content"] = open(f, 'r').read()
+        for fname in sources_entry:
+            sources_dict[fname] = {}
+            if 'content' not in sources_entry[fname]:
+                with open(fname, 'r') as f:
+                    sources_dict[fname]['content'] = f.read()
+            else:
+                sources_dict[fname]['content'] = sources_entry[fname]['content'] 
              
         return {
             "language": "Vyper",

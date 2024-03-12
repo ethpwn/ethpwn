@@ -22,6 +22,7 @@ def register_signature_hash(value, hash):
     '''
     Register a signature hash and its given pre-image (plaintext) in the global hash table.
     '''
+    hash = HexBytes(hash).hex()[2:]
     assert signature_hash(value) == hash
     HASH_TABLE_SIGNATURES[hash] = value
 
