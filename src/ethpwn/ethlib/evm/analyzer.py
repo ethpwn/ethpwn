@@ -460,6 +460,20 @@ class EVMAnalyzer:
 
         return receipt, computation
 
+    def deploy_contract(self, bytecode=''):
+
+        wallet = get_wallet(None)
+
+        txn_data = {
+            "sender": wallet.address,
+            "to": None,
+            "calldata": bytecode,
+        }
+
+        new_txn = self.build_new_transaction(txn_data)
+        receipt, computation = self.apply(new_txn)
+        return receipt, computation
+
     def _hook(
             self,
             opcode: Opcode,
@@ -625,7 +639,7 @@ class EVMAnalyzer:
         """
         # This is NOT compatible with an Infura/Alchemy node
         #raw_txn = self.w3.eth.get_raw_transaction_by_block(self.block_number, transaction_index)
-        
+
         # This is compatible with an Infura node and a private node
         tx_hash = self.block_txs[transaction_index]
         # We need to use the condom to support both a private node and a public node.
@@ -642,7 +656,7 @@ class EVMAnalyzer:
         def extract_transaction_sender(source_address, transaction: SignedTransactionAPI) -> Address:
             return bytes(HexBytes(source_address))
         eth.vm.forks.frontier.transactions.extract_transaction_sender = functools.partial(extract_transaction_sender, txn_condom.source_address)
-        
+
         return self.vm.get_transaction_builder().decode(raw_txn)
 
     def build_new_transaction(self, txn_data:dict) -> SignedTransactionMethods:
