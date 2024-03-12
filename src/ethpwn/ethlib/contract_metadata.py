@@ -4,10 +4,12 @@ Contains the metadata registry which is our knowledge base of all the contracts
 we know about, and the `ContractMetadata` class which describes and holds that
 metadata for a single contract.
 '''
+import os
+import re
 
 from collections import defaultdict
 from contextlib import contextmanager
-import os
+
 from pathlib import Path
 from time import sleep
 from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union
@@ -188,15 +190,37 @@ class ContractMetadata(Serializable):
     @staticmethod
     def from_compiler_output_json(compiler, source_file, contract_name, output_json, input_sources, output_sources):
         '''
-        Constructs a ContractMetadata object for a contract in `source_file` with
+        Constructs a ContractMetadata object fo:185r a contract in `source_file` with
         name `contract_name` from the Compiler `output_json` and the `sources` dict.
         '''
 
         source_file = str(Path(source_file).resolve())
         sources = _unify_sources(compiler, input_sources, output_sources)
         abi = output_json['abi']
+
+        # Detection of developing-time linked libraries
+        if '_$' in output_json['evm']['bytecode']['object']:
+            # grab all the instances of these placeholders in the bytecode
+            # by using a regexp that extract the string contained between
+            # __$ and $__
+            context.logger.warning(f' [!] Detected developing-time linked libraries in {contract_name} contract. Replacing the placeholder with address 0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa')
+            regexp = re.compile(r'__\$([a-zA-Z0-9_]+)\$__')
+            matches = regexp.findall(output_json['evm']['bytecode']['object'])
+
+            # replace the placeholders with the address of the library
+            for match in matches:
+                output_json['evm']['bytecode']['object'] = output_json['evm']['bytecode']['object'].replace(f'__${match}$__', 'aAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa')
+
+            # Same for the bin_runtime
+            matches = regexp.findall(output_json['evm']['deployedBytecode']['object'])
+
+            # replace the placeholders with the address of the library
+            for match in matches:
+                output_json['evm']['deployedBytecode']['object'] = output_json['evm']['deployedBytecode']['object'].replace(f'__${match}$__', 'aAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa')
+
         bin_constructor = HexBytes(output_json['evm']['bytecode']['object'])
         bin_runtime = HexBytes(output_json['evm']['deployedBytecode']['object'])
+
         srcmap = output_json['evm']['bytecode'].get('sourceMap', None)              # vyper contracts don't have this for the constructor
         srcmap_runtime = output_json['evm']['deployedBytecode']['sourceMap']
         generated_sources_constructor = output_json['evm']['bytecode'].get('generatedSources', [])

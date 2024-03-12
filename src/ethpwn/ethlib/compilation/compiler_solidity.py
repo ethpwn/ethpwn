@@ -26,7 +26,7 @@ from ..utils import get_shared_prefix_len
 def configure_ethcx_for_solidity_pragma(pragma_line: str):
     if pragma_line is None:
         return
-    
+
     ethcx.install_solc_pragma(pragma_line)
     ethcx.set_solc_version_pragma(pragma_line)
 
@@ -123,6 +123,7 @@ class SolidityCompiler:
             for file in sources_entry.keys():
                 libs[file] = libraries
             result["settings"]["libraries"] = libs
+
         return result
 
     def compile_source(

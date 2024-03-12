@@ -158,6 +158,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         # solidity multi-file version, this is basically the sources dict
         sources_dict = json.loads(source)
         CONTRACT_METADATA.compile_sources_dict(sources_dict, compiler=compiler, libraries=libraries, **compiler_kwargs)
+
     elif source.strip()[:2] == '{{' and source.strip()[-2:] == '}}':
         # solidity input-json format
         input_json = json.loads(source.strip()[1:-1])
@@ -173,6 +174,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         compiler_kwargs.pop('optimizer_settings', None)
         CONTRACT_METADATA.compile_standard_json(input_json, compiler=compiler, **compiler_kwargs)
     else:
+        print("SINGLE FILE!!!")
         # solidity single-file version
         contract_name = result['ContractName']
         CONTRACT_METADATA.compile_string(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, libraries=libraries, **compiler_kwargs)

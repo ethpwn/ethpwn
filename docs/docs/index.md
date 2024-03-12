@@ -60,7 +60,6 @@ git clone git@github.com:ethpwn/ethpwn.git && pip install -e ./ethpwn/
 |----------------------------------------------------------------------|
 | To start out, if you haven't created your global config before, you should run `ethpwn config create` to generate your initial configuration file. This command will interactively prompt you for the most important settings, including the Ethereum node URL to use and wallets you want to use. |
 
-
 #### RPC Node
 You will need access to an Ethereum RPC node to retrieve information about the blockchain, and to interact with smart contracts.
 

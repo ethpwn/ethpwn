@@ -77,16 +77,17 @@ class VyperCompiler:
         return {"enabled": True, "runs": optimizer_runs}
 
     def get_vyper_input_json(self, sources_entry):
-        
+
         sources_dict = {}
-        for f in sources_entry:
-            sources_dict[f] = {}
-            sources_dict[f]["content"] = open(f, 'r').read()
-             
+        #import ipdb; ipdb.set_trace()
+        #for f in sources_entry:
+        #    sources_dict[f] = {}
+        #    sources_dict[f]["content"] = open(f, 'r').read()
+
         return {
             "language": "Vyper",
-            # use dictionary comprehension to build the dict 
-            "sources": sources_dict,
+            # use dictionary comprehension to build the dict
+            "sources": sources_entry,
             "settings": {
                 # 'remappings': [f'{key}={value}' for key, value in sorted(remappings.items())],
                 "outputSelection": {"*": {"*": ["*"], "": ["*"]}},
@@ -176,7 +177,7 @@ class VyperCompiler:
 
         # if optimizer_settings is None:
         #     optimizer_settings = self.get_default_optimizer_settings()
-        
+
         input_json = self.get_vyper_input_json(
             files
             # remappings=self.get_import_remappings(
@@ -186,7 +187,7 @@ class VyperCompiler:
         )
 
         kwargs = _add_cached_vyper_binary_to_kwargs(kwargs)
-        
+
         output_json = ethcx.compile_vyper_standard(
             input_json,
             # allow_paths=self.get_allow_paths() + [os.path.dirname(file) for file in files],

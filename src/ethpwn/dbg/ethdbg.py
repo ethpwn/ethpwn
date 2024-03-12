@@ -577,7 +577,6 @@ class EthDbgShell(cmd.Cmd):
             vm = analyzer.vm
 
             if self.debug_target.custom_balance:
-                print(f'Custom balance set to {self.debug_target.custom_balance} wei')
                 vm.state.set_balance(to_canonical_address(self.account.address), int(self.debug_target.custom_balance,10))
             else:
                 vm.state.set_balance(to_canonical_address(self.account.address), 1000000000000000000000000000000000000)
