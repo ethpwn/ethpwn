@@ -27,8 +27,4 @@ to the high-level API functionality.
 
 | ❗️ Note                                                              |
 |----------------------------------------------------------------------|
-<<<<<<< Updated upstream
 | To start out, if you haven't created your global config before, you should run `ethpwn config create` to generate your initial configuration file. This command will interactively prompt you for the most important settings, including the Ethereum node URL to use and wallets you want to use. |
-=======
-| To start out, if you haven't created your global config before, you should run `ethpwn config create` to generate your initial configuration file. This command will interactively prompt you for the most important settings, including the Ethereum node URL to use and wallets you want to use. |
->>>>>>> Stashed changes
