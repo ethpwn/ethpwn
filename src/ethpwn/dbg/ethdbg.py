@@ -340,6 +340,9 @@ class EthDbgShell(cmd.Cmd):
 
         self.script_file = script_file
 
+        # Storing the stubs here
+        self.hooks = {}
+
     def precmd(self, line):
         # Check if the command is valid, if yes, we save it
         if line != None and line != '' and "do_" + line.split(' ')[0] in [c for c in self.get_names() if "do" in c]:
@@ -570,7 +573,7 @@ class EthDbgShell(cmd.Cmd):
                         bar()
 
             analyzer.hook_vm(self._myhook)
-    
+
         elif self.debug_target.debug_type == "new":
             # get the analyzer
             analyzer = EVMAnalyzer.from_block_number(self.w3, self.debug_target.block_number, hook=self._myhook)
@@ -1045,6 +1048,55 @@ class EthDbgShell(cmd.Cmd):
             self.do_tbreak(f'pc={next_pc},addr={curr_account_code}')
             self._resume()
 
+    def do_hook(self, args):
+        '''
+        Hook calls to contract returning specific values
+        Usage: hook (STATICCALL|CALL|DELEGATECALL) <to> <value to push on stack> <value to return in returndata>
+               The list of values to return will be popped at each call
+        '''
+        read_args = args.split(" ")
+
+        if len(read_args) != 4:
+            print("Usage: hook (STATICCALL|CALL|DELEGATECALL) <to> <value to push on stack> <value to return in returndata>")
+        else:
+            call_type = read_args[0].upper()
+            target = read_args[1]
+            sr = read_args[2]
+            rv = read_args[3]
+
+            # Only these supported call types
+            if call_type not in ["STATICCALL", "CALL", "DELEGATECALL"]:
+                print(f"{call_type} not supported!")
+                return
+
+            # Target must be a valid contract address
+            try:
+                target = to_canonical_address(target)
+            except Exception:
+                print(f"{target} is not a valid address")
+                return
+
+            try:
+                sr = int(sr, 16)
+            except Exception:
+                print(f"Invalid stack return {sr}")
+                return
+
+            try:
+                rv = int(rv, 16)
+            except Exception:
+                print(f"Invalid returned value {rv} ")
+                return
+
+            if call_type not in self.hooks.keys():
+                self.hooks[call_type] = {}
+            
+            target_hex = normalize_contract_address(target.hex())
+            if target_hex not in self.hooks[call_type].keys():
+                self.hooks[call_type][target_hex] = list()
+
+            self.hooks[call_type][target_hex].append((sr, rv))
+
     def do_clear(self, arg):
         '''
         Clear all the breakpoints or a specific one
@@ -1218,7 +1270,7 @@ class EthDbgShell(cmd.Cmd):
                     print(f"No source code available for contract {normalize_contract_address(self.comp.msg.code_address)}")
             except Exception as e:
                 print(f'{RED_COLOR}Error getting source code: {e}{RESET_COLOR}')
-    
+
     # === INTERNALS ===
 
     def _resume(self):
@@ -1744,8 +1796,12 @@ class EthDbgShell(cmd.Cmd):
 
         if self.log_op:
             gas_used = self.debug_target.gas - self.comp.get_gas_remaining() - self.comp.get_gas_refund()
-            print(f'{_opcode_str}  ⛽️ gas_used: {gas_used}')
-
+            if "SSTORE" in _opcode_str:
+                print(f'{YELLOW_COLOR}{_opcode_str}{RESET_COLOR}  ⛽️ gas_used: {gas_used}')
+            elif "SLOAD" in _opcode_str:
+                print(f'{CYAN_COLOR}{_opcode_str}{RESET_COLOR}  ⛽️ gas_used: {gas_used}')
+            else:
+                print(f'{_opcode_str}  ⛽️ gas_used: {gas_used}')
         self.history.append(_opcode_str)
 
         if self.temp_break:
@@ -1806,7 +1862,7 @@ class EthDbgShell(cmd.Cmd):
             self.logs.append((normalize_contract_address(computation.msg.code_address), opcode.mnemonic , emitted_topics))
 
         if opcode.mnemonic in CALL_OPCODES:
-
+            
             if opcode.mnemonic == "CALL":
                 contract_target = hex(read_stack_int(computation, 2))
                 contract_target = normalize_contract_address(contract_target)
@@ -1923,12 +1979,36 @@ class EthDbgShell(cmd.Cmd):
                 self.list_tree_nodes.append(new_tree_node)
             else:
                 print(f"Plz add support for {opcode.mnemonic}")
+            
+            # Here handle the hooks. If we hit an hook, we will have to 
+            # simply return the data specified by the user and skip the call.
+            if opcode.mnemonic in self.hooks.keys():
+                hooked_contracts = self.hooks[opcode.mnemonic]
+                current_target = new_callframe.address
+                if current_target in hooked_contracts.keys() and len(hooked_contracts[current_target]) != 0:
+                    # We have to hook this call!
+                    fake_returned_values = hooked_contracts[current_target].pop(0)
+                    sr = fake_returned_values[0]
+                    rv = fake_returned_values[1]
+                    computation._stack.push_int(sr)
+
+                    num_bytes_for_rv = (rv.bit_length() + 7) // 8
+                    computation.return_data = rv.to_bytes(num_bytes_for_rv, byteorder='big')
+
+                    self.callstack.pop()
+                    if len(self.list_tree_nodes) > 1:
+                        old_root = self.list_tree_nodes.pop()
+                        self.curr_tree_node = self.list_tree_nodes[-1]
+                    
+                    # Early return, don't execute the opcode!
+                    return
 
         if opcode.mnemonic in RETURN_OPCODES:
             self.callstack.pop()
             if len(self.list_tree_nodes) > 1:
                 old_root = self.list_tree_nodes.pop()
                 self.curr_tree_node = self.list_tree_nodes[-1]
+        
         if opcode.mnemonic == "REVERT":
             self._handle_revert()
 
