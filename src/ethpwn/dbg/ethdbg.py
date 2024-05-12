@@ -1051,26 +1051,21 @@ class EthDbgShell(cmd.Cmd):
     def do_hook(self, args):
         '''
         Hook calls to contract returning specific values
-        Usage: hook (STATICCALL|CALL|DELEGATECALL) <to> <value to push on stack> <value to return in returndata>
+        Usage: hook <to> <value to push on stack> <value to return in returndata>
                The list of values to return will be popped at each call
         '''
         read_args = args.split(" ")
 
-        if len(read_args) != 4:
-            print("Usage: hook (STATICCALL|CALL|DELEGATECALL) <to> <value to push on stack> <value to return in returndata>")
+        if len(read_args) != 3:
+            print("Usage: hook <to> <value to push on stack> <value to return in returndata>")
         else:
-            call_type = read_args[0].upper()
-            target = read_args[1]
-            sr = read_args[2]
-            rv = read_args[3]
-
-            # Only these supported call types
-            if call_type not in ["STATICCALL", "CALL", "DELEGATECALL"]:
-                print(f"{call_type} not supported!")
-                return
+            target = read_args[0]
+            sr = read_args[1]
+            rv = read_args[2]
 
             # Target must be a valid contract address
             try:
+                target = normalize_contract_address(target)
                 target = to_canonical_address(target)
             except Exception:
                 print(f"{target} is not a valid address")
@@ -1087,16 +1082,22 @@ class EthDbgShell(cmd.Cmd):
             except Exception:
                 print(f"Invalid returned value {rv} ")
                 return
-
-            if call_type not in self.hooks.keys():
-                self.hooks[call_type] = {}
             
             target_hex = normalize_contract_address(target.hex())
-            if target_hex not in self.hooks[call_type].keys():
-                self.hooks[call_type][target_hex] = list()
+            if target_hex not in self.hooks.keys():
+                self.hooks[target_hex] = list()
 
-            self.hooks[call_type][target_hex].append((sr, rv))
+            self.hooks[target_hex].append((sr, rv))
 
+    def do_hooks(self, arg):
+        '''
+        print all the current active hooks
+        '''
+        for target, ret_vals in self.hooks.items():
+            print(f'🪝  {target}')
+            for call_seq, ret_val in enumerate(ret_vals):
+                print(f'    Call-{call_seq}: {hex(ret_val[0]), hex(ret_val[1])}')
+        
     def do_clear(self, arg):
         '''
         Clear all the breakpoints or a specific one
@@ -1982,12 +1983,11 @@ class EthDbgShell(cmd.Cmd):
             
             # Here handle the hooks. If we hit an hook, we will have to 
             # simply return the data specified by the user and skip the call.
-            if opcode.mnemonic in self.hooks.keys():
-                hooked_contracts = self.hooks[opcode.mnemonic]
+            if opcode.mnemonic in ['CALL', 'STATICCALL']:
                 current_target = new_callframe.address
-                if current_target in hooked_contracts.keys() and len(hooked_contracts[current_target]) != 0:
+                if current_target in self.hooks.keys() and len(self.hooks[current_target]) != 0:
                     # We have to hook this call!
-                    fake_returned_values = hooked_contracts[current_target].pop(0)
+                    fake_returned_values = self.hooks[current_target].pop(0)
                     sr = fake_returned_values[0]
                     rv = fake_returned_values[1]
                     computation._stack.push_int(sr)
