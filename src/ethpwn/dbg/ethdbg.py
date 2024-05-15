@@ -253,7 +253,7 @@ class EthDbgShell(cmd.Cmd):
 
     prompt = f'\001\033[1;31m\002ethdbg➤\001\033[0m\002 '
 
-    def __init__(self, wallet_conf, debug_target, script_file='', breaks=None, **kwargs):
+    def __init__(self, wallet_conf, debug_target, script_file='', breaks=None, hooks=None, **kwargs):
         # call the parent class constructor
         super().__init__(**kwargs)
 
@@ -341,7 +341,7 @@ class EthDbgShell(cmd.Cmd):
         self.script_file = script_file
 
         # Storing the stubs here
-        self.hooks = {}
+        self.hooks = hooks if hooks else dict()
 
     def precmd(self, line):
         # Check if the command is valid, if yes, we save it
@@ -1066,7 +1066,7 @@ class EthDbgShell(cmd.Cmd):
             # Target must be a valid contract address
             try:
                 target = normalize_contract_address(target)
-                target = to_canonical_address(target)
+                _target = to_canonical_address(target)
             except Exception:
                 print(f"{target} is not a valid address")
                 return
@@ -1083,11 +1083,10 @@ class EthDbgShell(cmd.Cmd):
                 print(f"Invalid returned value {rv} ")
                 return
             
-            target_hex = normalize_contract_address(target.hex())
-            if target_hex not in self.hooks.keys():
-                self.hooks[target_hex] = list()
+            if target not in self.hooks.keys():
+                self.hooks[target] = list()
 
-            self.hooks[target_hex].append((sr, rv))
+            self.hooks[target].append((sr, rv))
 
     def do_hooks(self, arg):
         '''
@@ -1985,21 +1984,51 @@ class EthDbgShell(cmd.Cmd):
             # simply return the data specified by the user and skip the call.
             if opcode.mnemonic in ['CALL', 'STATICCALL']:
                 current_target = new_callframe.address
+
+                if opcode.mnemonic == 'CALL':
+                    retOffset = read_stack_int(computation, 6)
+                    retSize = read_stack_int(computation, 7)
+                else:
+                    retOffset = read_stack_int(computation, 5)
+                    retSize = read_stack_int(computation, 6)
+
                 if current_target in self.hooks.keys() and len(self.hooks[current_target]) != 0:
                     # We have to hook this call!
                     fake_returned_values = self.hooks[current_target].pop(0)
                     sr = fake_returned_values[0]
                     rv = fake_returned_values[1]
+                    
+                    num_bytes_for_rv = (rv.bit_length() + 7) // 8
+                    rv_bytes = rv.to_bytes(num_bytes_for_rv, byteorder='big')
+
+                    # pad the rv_bytes (in front) if necessary to match the retSize
+                    if num_bytes_for_rv < retSize:
+                        rv_bytes = b'\x00'*(retSize - num_bytes_for_rv) + rv_bytes
+                    elif num_bytes_for_rv > retSize:
+                        rv_bytes = rv_bytes[-retSize:]
+                    else:
+                        pass
+                    
+                    # Write the return value to memory and in the return_data buffer
+                    computation.return_data = rv_bytes
+                    computation._memory.write(retOffset, retSize, rv_bytes)
+                    
+                    # Fix up the stack
+                    if opcode.mnemonic == 'CALL':
+                        computation._stack.pop_any(7)
+                    else:
+                        computation._stack.pop_any(6)
+
                     computation._stack.push_int(sr)
 
-                    num_bytes_for_rv = (rv.bit_length() + 7) // 8
-                    computation.return_data = rv.to_bytes(num_bytes_for_rv, byteorder='big')
-
                     self.callstack.pop()
+                    
+                    self.curr_tree_node.label = f"{self.curr_tree_node.label} 🪝"
+
                     if len(self.list_tree_nodes) > 1:
                         old_root = self.list_tree_nodes.pop()
                         self.curr_tree_node = self.list_tree_nodes[-1]
-                    
+
                     # Early return, don't execute the opcode!
                     return
 
@@ -2173,8 +2202,9 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
                 continue
             except RestartDbgException:
                 old_breaks = ethdbgshell.breakpoints
+                old_hooks = ethdbgshell.hooks
 
-                ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks, script_file=args.script_file)
+                ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks, hooks=old_hooks, script_file=args.script_file)
                 ethdbgshell.cmdqueue.append("start\n")
 
 if __name__ == '__main__':
