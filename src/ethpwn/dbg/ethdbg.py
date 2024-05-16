@@ -1234,6 +1234,26 @@ class EthDbgShell(cmd.Cmd):
                 print(f'{RED_COLOR}Error reading memory: {e}{RESET_COLOR}')
 
     @only_when_started
+    def do_stackpop(self, arg):
+        '''
+        Pop the top element from the stack
+        Usage: stack_pop
+        '''
+        self.comp._stack.pop_any(1)
+        self.do_context('')
+
+    @only_when_started
+    def do_stackpush(self, arg):
+        '''
+        Push a value onto the stack
+        '''
+        try:
+            self.comp._stack.push_int(int(arg, 16))
+            self.do_context('')
+        except Exception as e:
+            print(f'{RED_COLOR}Error pushing value onto stack: {e}{RESET_COLOR}')
+
+    @only_when_started
     def do_set_storage_at(self, args):
         '''
         Change the value at a specific storage address in the current contract
