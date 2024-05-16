@@ -253,7 +253,7 @@ class EthDbgShell(cmd.Cmd):
 
     prompt = f'\001\033[1;31m\002ethdbg➤\001\033[0m\002 '
 
-    def __init__(self, wallet_conf, debug_target, script_file='', breaks=None, hooks=None, **kwargs):
+    def __init__(self, wallet_conf, debug_target, script_file='', breaks=None, **kwargs):
         # call the parent class constructor
         super().__init__(**kwargs)
 
@@ -341,7 +341,7 @@ class EthDbgShell(cmd.Cmd):
         self.script_file = script_file
 
         # Storing the stubs here
-        self.hooks = hooks if hooks else dict()
+        self.hooks = dict()
 
     def precmd(self, line):
         # Check if the command is valid, if yes, we save it
@@ -2224,7 +2224,7 @@ Please do so by running `ethpwn config set_default_node_url --network {network} 
                 old_breaks = ethdbgshell.breakpoints
                 old_hooks = ethdbgshell.hooks
 
-                ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks, hooks=old_hooks, script_file=args.script_file)
+                ethdbgshell = EthDbgShell(wallet_conf, debug_target=debug_target, breaks=old_breaks, script_file=args.script_file)
                 ethdbgshell.cmdqueue.append("start\n")
 
 if __name__ == '__main__':
