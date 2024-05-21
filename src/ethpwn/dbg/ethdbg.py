@@ -343,6 +343,9 @@ class EthDbgShell(cmd.Cmd):
         # Storing the stubs here
         self.hooks = dict()
 
+        self.get_sha_result = False
+        self.sha3s = list()
+
     def precmd(self, line):
         # Check if the command is valid, if yes, we save it
         if line != None and line != '' and "do_" + line.split(' ')[0] in [c for c in self.get_names() if "do" in c]:
@@ -928,6 +931,14 @@ class EthDbgShell(cmd.Cmd):
             for tidx, t in enumerate(topics):
                 print(f'  {YELLOW_COLOR}Topic{tidx}:{RESET_COLOR} {t} ')
 
+    @only_when_started
+    def do_sha3s(self, arg):
+        '''
+        Print all the SHA3s that have been executed so far with their pre-image
+        '''
+        for sha3 in self.sha3s:
+            print(f'🧩{CYAN_COLOR}[sha3@{hex(sha3[0])}]{RESET_COLOR} Pre-image: {sha3[1]} | Hash: {sha3[2]}')
+
     def do_breaks(self,arg):
         '''
         Print all the breakpoints
@@ -1232,6 +1243,13 @@ class EthDbgShell(cmd.Cmd):
                 hexdump(data.tobytes())
             except Exception as e:
                 print(f'{RED_COLOR}Error reading memory: {e}{RESET_COLOR}')
+
+    @only_when_started
+    def do_retdata(self, args):
+        '''
+        Display the content of the return data buffer
+        '''
+        print(self.comp.return_data.hex())
 
     @only_when_started
     def do_stackpop(self, arg):
@@ -1880,6 +1898,19 @@ class EthDbgShell(cmd.Cmd):
                 for i in range(n_topics):
                     emitted_topics.append(hex(read_stack_int(computation, 3 + i)))
             self.logs.append((normalize_contract_address(computation.msg.code_address), opcode.mnemonic , emitted_topics))
+
+        if self.get_sha_result:
+            self.get_sha_result = False
+            sha_result = hex(read_stack_int(computation, 1))
+            # add this to the last element of self.sha3s
+            self.sha3s[-1] = (self.sha3s[-1][0], self.sha3s[-1][1], sha_result)
+    
+        if "SHA3" in opcode.mnemonic:
+            offset = hex(read_stack_int(computation, 1))
+            size = hex(read_stack_int(computation, 2))
+            data = computation._memory.read(int(offset,16), int(size,16)).hex()
+            self.sha3s.append((pc, data))
+            self.get_sha_result = True
 
         if opcode.mnemonic in CALL_OPCODES:
             
