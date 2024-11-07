@@ -95,6 +95,7 @@ class ContractMetadata(Serializable):
                     srcmap=None,
                     srcmap_runtime=None,
                     storage_layout=None,
+                    settings=None
                  ) -> None:
         super().__init__()
 
@@ -112,6 +113,7 @@ class ContractMetadata(Serializable):
         self.srcmap = srcmap
         self.srcmap_runtime = srcmap_runtime
         self.storage_layout = storage_layout
+        self.settings = settings
         self._symbolic_srcmap_constructor: SymbolizedSourceMap = None
         self._symbolic_srcmap_runtime: SymbolizedSourceMap = None
         self._disass_instructions: List[Instruction] = None
@@ -188,7 +190,7 @@ class ContractMetadata(Serializable):
         yield tree
 
     @staticmethod
-    def from_compiler_output_json(compiler, source_file, contract_name, output_json, input_sources, output_sources):
+    def from_compiler_output_json(compiler, source_file, contract_name, output_json, input_sources, output_sources, input_settings):
         '''
         Constructs a ContractMetadata object fo:185r a contract in `source_file` with
         name `contract_name` from the Compiler `output_json` and the `sources` dict.
@@ -251,6 +253,7 @@ class ContractMetadata(Serializable):
             srcmap_runtime=srcmap_runtime,
             storage_layout=storage_layout,
             method_identifiers=method_identifiers,
+            settings=input_settings
         )
 
     # implement the Serializable interface
@@ -261,6 +264,7 @@ class ContractMetadata(Serializable):
         # dump file_name, contract_name, and json_dict
         return {
             'compiler': self.compiler,
+            'settings': self.settings,
             'source_file': str(self.source_file),
             'contract_name': self.contract_name,
             'method_identifiers': self.method_identifiers,
@@ -294,6 +298,7 @@ class ContractMetadata(Serializable):
             srcmap=value['srcmap'],
             srcmap_runtime=value['srcmap-runtime'],
             storage_layout=value['storage-layout'],
+            settings=value['settings']
         )
 
     @property
@@ -629,7 +634,7 @@ class ContractMetadataRegistry:
                     output_json['compiler'],
                     source_file, contract_name,
                     contract_data,
-                    input_json['sources'], output_json['sources']
+                    input_json['sources'], output_json['sources'], input_json['settings']
                 )
                 self.contracts[''][contract_name] = self.contracts[source_file][contract_name]
 
