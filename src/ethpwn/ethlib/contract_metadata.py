@@ -298,7 +298,7 @@ class ContractMetadata(Serializable):
             srcmap=value['srcmap'],
             srcmap_runtime=value['srcmap-runtime'],
             storage_layout=value['storage-layout'],
-            settings=value['settings']
+            settings=value.get('settings', None)
         )
 
     @property

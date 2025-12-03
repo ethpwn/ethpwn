@@ -18,7 +18,7 @@ readme = "README.md"
 requires-python = ">=3.7"
 
 dependencies = [
-    "web3>=6.0.0",
+    "web3",
     "requests",
     "hexbytes",
     "ansi",
@@ -33,7 +33,8 @@ dependencies = [
     "ethcx",
     "ethpwn-py-evm",
     "ethpwn-pyevmasm",
-    "networkx"
+    "networkx",
+    "setuptools"
 ]
 
 keywords = [

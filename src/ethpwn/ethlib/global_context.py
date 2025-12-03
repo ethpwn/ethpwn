@@ -135,6 +135,17 @@ class Web3Context:
             return api_key
         else:
             return "<No API Key>"
+    
+    @property
+    def bscscan_api_key(self):
+        '''
+        Get the bscscan API key
+        '''
+        from .config.credentials import get_bscscan_api_key
+        if (api_key := get_bscscan_api_key()) is not None:
+            return api_key
+        else:
+            return "<No API Key>"
 
     # if the log_level is changed, update the logger
     @property

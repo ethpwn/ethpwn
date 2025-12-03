@@ -45,17 +45,30 @@ class VerifiedSourceCode:
 def _pull_verified_source_from_etherscan(contract_address, network, api_key):
     assert api_key is not None
 
-    URL_BASE = 'https://api.etherscan.io'
-    if network is not None and network != 'mainnet':
-        URL_BASE = f'https://api-{network}.etherscan.io'
+    if network == "mainnet":
+        URL_BASE = f'https://api.etherscan.io/v2/api'
+        url = URL_BASE + f"?apikey={api_key}&chainid=1&module=contract&action=getsourcecode&address={contract_address}"
+        print(f'Sending request!')
+        print(url)
+        response = requests.get(url)
+        response.raise_for_status()
+        assert response.status_code == 200, "Etherscan API returned non-200 status code in a successful request?"
+        response_json = response.json()
+        print(response_json)
+        if response_json['status'] != '1':
+            raise EtherscanAPIError(f"Etherscan API returned status code {response_json['status']} with message {response_json['message']}: {response_json}")
+    
+    elif network == 'binance':
+        URL_BASE = 'https://api.etherscan.io/v2/api'
 
-    url = URL_BASE + f"/api?module=contract&action=getsourcecode&address={contract_address}&apikey={api_key}"
-    response = requests.get(url)
-    response.raise_for_status()
-    assert response.status_code == 200, "Etherscan API returned non-200 status code in a successful request?"
-    response_json = response.json()
-    if response_json['status'] != '1':
-        raise EtherscanAPIError(f"Etherscan API returned status code {response_json['status']} with message {response_json['message']}: {response_json}")
+        url = URL_BASE + f"?chainid=56&module=contract&action=getsourcecode&address={contract_address}&apikey={api_key}"
+        response = requests.get(url)
+        response.raise_for_status()
+        assert response.status_code == 200, "BSCSCAN API returned non-200 status code in a successful request?"
+        response_json = response.json()
+        if response_json['status'] != '1':
+            raise EtherscanAPIError(f"BSCSCAN API returned status code {response_json['status']} with message {response_json['message']}: {response_json}")
+    
     result = response_json['result']
     assert len(result) == 1, "Etherscan API returned more than one result for a single contract address?"
     result = result[0]
@@ -179,7 +192,7 @@ def _parse_verified_source_code_into_registry(contract_address, result, origin='
         CONTRACT_METADATA.compile_string(source, f'<<<verified>>>/{contract_address}/{contract_name}.{extension}', compiler=compiler, libraries=libraries, **compiler_kwargs)
 
 
-def fetch_verified_contract(contract_address, network=None, api_key=None) -> 'ContractInstance':
+def fetch_verified_contract(contract_address, network='mainnet', api_key=None) -> 'ContractInstance':
     # fastpath: just check if the file exists instead of loading the entire registry
 
     contract_address = normalize_contract_address(contract_address)
@@ -192,7 +205,12 @@ def fetch_verified_contract(contract_address, network=None, api_key=None) -> 'Co
         return
 
     if api_key is None:
-        api_key = get_etherscan_api_key()
+        if network == 'mainnet':
+            api_key = get_etherscan_api_key()
+        elif network == 'binance':
+            api_key = get_bscscan_api_key()
+        else:
+            assert False, "Must provide an api key for non-mainnet networks."
 
     if api_key is not None:
         try:

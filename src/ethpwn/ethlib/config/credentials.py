@@ -27,3 +27,12 @@ def get_etherscan_api_key(api_key=None):
     if api_key is None:
         api_key = get_credentials_for('etherscan')
     return api_key
+
+
+def get_bscscan_api_key(api_key=None):
+    from . import GLOBAL_CONFIG
+    if api_key is None:
+        api_key = os.environ.get('BSCSCAN_API_KEY', None)
+    if api_key is None:
+        api_key = get_credentials_for('bscscan')
+    return api_key
